@@ -62,7 +62,6 @@
             box-shadow: 0 0 12px rgba(251, 191, 36, 0.6); 
         }
 
-        /* SIDEBAR MENU */
         #sideMenu {
             position: fixed; left: -280px; top: 0; width: 280px; height: 100%;
             background: var(--card-bg); z-index: 3000; transition: 0.3s ease;
@@ -75,7 +74,6 @@
         .menu-label { font-size: 11px; color: #94a3b8; text-transform: uppercase; margin: 20px 0 10px 15px; font-weight: 800; }
         .theme-btn { background: none; border: none; cursor: pointer; font-size: 28px; padding: 10px; border-radius: 50%; }
 
-        /* TOP NAV */
         .top-nav { 
             padding: 15px 40px; display: flex; justify-content: space-between; align-items: center; 
             background: var(--header-bg); border-bottom: 1px solid var(--glass-edge);
@@ -84,7 +82,6 @@
         .menu-btn { font-size: 26px; cursor: pointer; color: var(--brand); }
         .logo-text { font-weight: 800; font-size: 26px; display: flex; align-items: center; gap: 10px; text-decoration: none; color: inherit;}
 
-        /* LOGIN SCREEN */
         #loginScreen {
             position: fixed; inset: 0; background: var(--bg-color); z-index: 5000;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -109,7 +106,6 @@
             cursor: pointer; margin-top: 20px; 
         }
 
-        /* TABLE */
         .content-container { flex: 1; overflow-y: auto; padding: 0 40px 180px 40px; height: calc(100vh - 80px); }
         table { width: 100%; border-collapse: collapse; table-layout: fixed; }
         th { position: sticky; top: 0; background: var(--bg-color); padding: 25px 15px; text-align: left; font-size: 11px; color: #94a3b8; text-transform: uppercase; z-index: 50; border-bottom: 2px solid var(--brand); }
@@ -129,7 +125,6 @@
         .brand-pill { background: rgba(59,130,246,0.15); color: #60a5fa; padding: 4px 10px; border-radius: 6px; font-weight: 700; font-size: 11px; display: inline-block; }
         .origin-pill { background: rgba(16,185,129,0.15); color: var(--brand); padding: 4px 10px; border-radius: 6px; font-weight: 700; font-size: 11px; margin-left: 4px; display: inline-block; }
 
-        /* PHYSICAL CALC & EDITABLE POPUP */
         .phys-box { position: relative; }
         .phys-input { 
             width: 100%; background: var(--input-bg); border: 1px solid var(--glass-edge); 
@@ -143,21 +138,14 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.4); cursor: pointer;
         }
         .phys-box:hover .calc-tooltip { display: block; }
-        
-        /* Inline Editor for Pop-up */
-        .history-editor {
-            background: #fff; color: #000; border: none; font-family: inherit;
-            font-weight: 800; width: 120px; text-align: center; border-radius: 4px; outline: none;
-        }
+        .history-editor { background: #fff; color: #000; border: none; font-weight: 800; width: 120px; text-align: center; border-radius: 4px; outline: none; }
 
         .out-of-stock { opacity: 0.5; }
 
-        /* THE TUBE SEARCH BAR */
         .portal-bar {
             position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
             width: 85%; max-width: 1100px; padding: 12px 35px; border-radius: 100px;
-            background: transparent; 
-            border: 2px solid var(--glass-edge);
+            background: transparent; border: 2px solid var(--glass-edge);
             display: flex; align-items: center; gap: 20px; z-index: 1000;
             box-shadow: 0 0 20px rgba(255, 255, 255, 0.05);
         }
@@ -347,7 +335,7 @@
                         <div style="color:#818cf8; font-weight:700;">${highlight(r.pack)}</div>
                         <div style="font-size:9px; opacity:0.6; font-weight:800;">${r.state}</div>
                     </td>
-                    <td style="color:#a78bfa; font-size:13px; font-weight:700;">${highlight(r.sup}</td>
+                    <td style="color:#a78bfa; font-size:13px; font-weight:700;">${highlight(r.sup)}</td>
                     <td>
                         <span class="brand-pill">${highlight(r.brand)}</span>
                         <span class="origin-pill">${highlight(r.origin)}</span>
@@ -356,23 +344,17 @@
             `}).join('');
         }
 
-        // Add New Number
         function runCalc(id, el) {
             const val = parseFloat(el.value);
             if (isNaN(val)) return;
-
             if (!physCounts[id]) physCounts[id] = { total: 0, sequence: "" };
-            
-            // Add to sequence string: e.g., "5 + 4"
             const currentSeq = physCounts[id].sequence;
             physCounts[id].sequence = currentSeq === "" ? `${val}` : `${currentSeq} + ${val}`;
-            
             recalculateTotal(id);
             el.value = "";
             showToast("COUNT UPDATED");
         }
 
-        // Edit History Function
         function editHistory(id, tipEl) {
             const currentSeq = physCounts[id]?.sequence || "";
             tipEl.innerHTML = `<input type="text" class="history-editor" value="${currentSeq}" 
@@ -384,30 +366,23 @@
         function saveHistoryEdit(id, inputEl) {
             const newSeq = inputEl.value.trim();
             if (!physCounts[id]) physCounts[id] = { total: 0, sequence: "" };
-            
             physCounts[id].sequence = newSeq;
             recalculateTotal(id);
             showToast("MEMORY FIXED");
         }
 
-        // Core logic to parse sequence like "5 + 4 + 10" and set total to 19
         function recalculateTotal(id) {
             const seq = physCounts[id].sequence;
             let sum = 0;
-            
             if (seq) {
-                // Split by '+' and sum up numbers
                 const parts = seq.split('+');
                 parts.forEach(p => {
                     const n = parseFloat(p.trim());
                     if (!isNaN(n)) sum += n;
                 });
             }
-
             physCounts[id].total = sum;
             localStorage.setItem('c2c_phys_store', JSON.stringify(physCounts));
-            
-            // Update UI elements
             const inputField = document.getElementById(`input-${id}`);
             const tipField = document.getElementById(`tip-${id}`);
             if (inputField) inputField.placeholder = sum;
@@ -424,13 +399,12 @@
 
         function showToast(msg) {
             const t = document.getElementById('toast');
-            t.innerText = msg;
-            t.style.display = 'block';
+            t.innerText = msg; t.style.display = 'block';
             setTimeout(() => t.style.display = 'none', 800);
         }
 
         function handleQuickCopy(e) {
-            if (e.target.classList.contains('phys-input') || e.target.classList.contains('history-editor')) return;
+            if (e.target.classList.contains('phys-input') || e.target.closest('.calc-tooltip')) return;
             const cell = e.target.closest('td');
             if (!cell) return;
             navigator.clipboard.writeText(cell.innerText).then(() => {

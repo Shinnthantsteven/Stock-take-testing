@@ -158,6 +158,22 @@
         #searchIn::placeholder { color: var(--text); opacity: 0.5; }
 
         #toast { position: fixed; bottom: 120px; left: 50%; transform: translateX(-50%); background: var(--brand); color: white; padding: 10px 30px; border-radius: 50px; font-weight: 800; display: none; z-index: 9999; }
+        
+        /* Sync Button Styling */
+        #syncBtn {
+            background: var(--brand);
+            border: none;
+            color: white;
+            padding: 12px 25px;
+            border-radius: 50px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        #syncBtn:hover { filter: brightness(1.2); transform: scale(1.05); }
     </style>
 </head>
 <body onload="document.getElementById('passIn').focus()">
@@ -219,6 +235,9 @@
         <input type="file" id="fileIn" style="display:none" onchange="manualUpload(event)">
         <button onclick="document.getElementById('fileIn').click()" style="background:none; border:none; cursor:pointer; font-size:24px; opacity:0.6;">📁</button>
         <input type="text" id="searchIn" placeholder="Search Master Records...">
+        
+        <button id="syncBtn" onclick="syncToCloud()">☁️ SYNC TO SHEET</button>
+        
         <button onclick="location.reload()" style="background:var(--danger); border:none; color:white; padding:12px 30px; border-radius:50px; font-weight:800; cursor:pointer;">EXIT</button>
     </div>
 
@@ -226,6 +245,9 @@
         let db = [];
         let currentSearch = "";
         let physCounts = JSON.parse(localStorage.getItem('c2c_phys_store')) || {};
+
+        // API URL from user
+        const CLOUD_API = "https://script.google.com/macros/s/AKfycbyY9ZLvuovbtuC6Zg-WhZ66RcO26Sjr6qRlDlCQ2JnzpX90u4J6OtcY3XrwG5m4XlKZ/exec";
 
         function toggleMenu() {
             document.getElementById('sideMenu').classList.toggle('active');
@@ -348,24 +370,17 @@
             `}).join('');
         }
 
-        // CALCULATOR ENGINE logic
+        // CALCULATOR logic
         function runCalc(id, el) {
             const inputVal = el.value.trim();
             if (!inputVal) return;
-
             if (!physCounts[id]) physCounts[id] = { total: 0, sequence: "" };
             let currentSeq = physCounts[id].sequence || "";
-            
-            // Check if input is a raw expression (e.g. 5+5-2) or just a number to add
-            const hasOperator = /[+\-*/]/.test(inputVal);
-            
             if (currentSeq === "") {
                 physCounts[id].sequence = inputVal;
             } else {
-                // If it's a new complex string, wrap it in plus
                 physCounts[id].sequence = `${currentSeq} + ${inputVal}`;
             }
-            
             recalculateTotal(id);
             el.value = "";
         }
@@ -376,10 +391,8 @@
             input.type = 'text';
             input.className = 'history-editor';
             input.value = currentSeq;
-            
             input.onblur = () => saveHistoryEdit(id, input);
             input.onkeydown = (e) => { if(e.key === 'Enter') input.blur(); };
-            
             tipEl.innerHTML = '';
             tipEl.appendChild(input);
             input.focus();
@@ -395,29 +408,46 @@
         function recalculateTotal(id) {
             let seq = physCounts[id].sequence;
             let result = 0;
-            
             if (seq) {
                 try {
-                    // Safe calculation: removes illegal chars, keeps math ones
                     const cleanSeq = seq.replace(/[^0-9+\-*/.]/g, '');
-                    // Using Function constructor as a safer 'eval' for simple math
                     result = new Function(`return ${cleanSeq}`)();
-                    
-                    // Round to 3 decimal places if needed
                     if (!Number.isInteger(result)) result = parseFloat(result.toFixed(3));
                 } catch(e) {
                     console.error("Math Error", e);
-                    result = physCounts[id].total; // fallback to last good total
+                    result = physCounts[id].total;
                 }
             }
-            
             physCounts[id].total = result;
             localStorage.setItem('c2c_phys_store', JSON.stringify(physCounts));
-            
             const inputField = document.getElementById(`input-${id}`);
             const tipField = document.getElementById(`tip-${id}`);
             if (inputField) inputField.placeholder = result;
             if (tipField) tipField.innerText = seq || "No Entry";
+        }
+
+        // CLOUD SYNC LOGIC
+        async function syncToCloud() {
+            const btn = document.getElementById('syncBtn');
+            btn.innerText = "⏳ SYNCING...";
+            btn.disabled = true;
+
+            try {
+                await fetch(CLOUD_API, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    cache: 'no-cache',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(physCounts)
+                });
+                showToast("✅ SYNCED TO SHEET");
+                btn.innerText = "☁️ SYNC SUCCESS";
+                setTimeout(() => { btn.innerText = "☁️ SYNC TO SHEET"; btn.disabled = false; }, 2000);
+            } catch (error) {
+                showToast("❌ SYNC FAILED");
+                btn.innerText = "❌ RETRY";
+                btn.disabled = false;
+            }
         }
 
         function clearPhysicalCounts() {
@@ -431,7 +461,7 @@
         function showToast(msg) {
             const t = document.getElementById('toast');
             t.innerText = msg; t.style.display = 'block';
-            setTimeout(() => t.style.display = 'none', 800);
+            setTimeout(() => t.style.display = 'none', 1500);
         }
 
         function handleQuickCopy(e) {
@@ -440,7 +470,6 @@
             if (!cell) return;
             navigator.clipboard.writeText(cell.innerText).then(() => {
                 showToast("COPIED");
-                if (window.navigator.vibrate) window.navigator.vibrate(50);
             });
         }
     </script>

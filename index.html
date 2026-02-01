@@ -143,7 +143,7 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.4);
         }
         .phys-box:hover .calc-tooltip { display: block; }
-        .history-editor { background: #fff; color: #000; border: none; font-weight: 800; width: 120px; text-align: center; border-radius: 4px; outline: none; }
+        .history-editor { background: #fff; color: #000; border: none; font-weight: 800; width: 150px; text-align: center; border-radius: 4px; outline: none; }
 
         .out-of-stock { opacity: 0.5; }
 
@@ -348,14 +348,23 @@
             `}).join('');
         }
 
+        // CALCULATOR ENGINE logic
         function runCalc(id, el) {
-            const val = parseFloat(el.value);
-            if (isNaN(val)) return;
+            const inputVal = el.value.trim();
+            if (!inputVal) return;
+
             if (!physCounts[id]) physCounts[id] = { total: 0, sequence: "" };
-            
-            // DNA FIX: Prevents 'undefined' at start
             let currentSeq = physCounts[id].sequence || "";
-            physCounts[id].sequence = currentSeq === "" ? `${val}` : `${currentSeq} + ${val}`;
+            
+            // Check if input is a raw expression (e.g. 5+5-2) or just a number to add
+            const hasOperator = /[+\-*/]/.test(inputVal);
+            
+            if (currentSeq === "") {
+                physCounts[id].sequence = inputVal;
+            } else {
+                // If it's a new complex string, wrap it in plus
+                physCounts[id].sequence = `${currentSeq} + ${inputVal}`;
+            }
             
             recalculateTotal(id);
             el.value = "";
@@ -368,7 +377,6 @@
             input.className = 'history-editor';
             input.value = currentSeq;
             
-            // Enable touch/click anywhere in sequence
             input.onblur = () => saveHistoryEdit(id, input);
             input.onkeydown = (e) => { if(e.key === 'Enter') input.blur(); };
             
@@ -385,20 +393,30 @@
         }
 
         function recalculateTotal(id) {
-            const seq = physCounts[id].sequence;
-            let sum = 0;
+            let seq = physCounts[id].sequence;
+            let result = 0;
+            
             if (seq) {
-                const parts = seq.split('+');
-                parts.forEach(p => {
-                    const n = parseFloat(p.trim());
-                    if (!isNaN(n)) sum += n;
-                });
+                try {
+                    // Safe calculation: removes illegal chars, keeps math ones
+                    const cleanSeq = seq.replace(/[^0-9+\-*/.]/g, '');
+                    // Using Function constructor as a safer 'eval' for simple math
+                    result = new Function(`return ${cleanSeq}`)();
+                    
+                    // Round to 3 decimal places if needed
+                    if (!Number.isInteger(result)) result = parseFloat(result.toFixed(3));
+                } catch(e) {
+                    console.error("Math Error", e);
+                    result = physCounts[id].total; // fallback to last good total
+                }
             }
-            physCounts[id].total = sum;
+            
+            physCounts[id].total = result;
             localStorage.setItem('c2c_phys_store', JSON.stringify(physCounts));
+            
             const inputField = document.getElementById(`input-${id}`);
             const tipField = document.getElementById(`tip-${id}`);
-            if (inputField) inputField.placeholder = sum;
+            if (inputField) inputField.placeholder = result;
             if (tipField) tipField.innerText = seq || "No Entry";
         }
 

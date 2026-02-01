@@ -20,7 +20,7 @@
             --card-bg: #0f172a;
             --text: #f1f5f9;
             --header-bg: #010409;
-            --glass-edge: rgba(255, 255, 255, 0.15); /* Slightly sharper edge for the tube */
+            --glass-edge: rgba(255, 255, 255, 0.15);
             --danger: #ef4444;
             --portal-bg: transparent; 
             --input-bg: rgba(0,0,0,0.3);
@@ -116,7 +116,7 @@
 
         th:nth-child(1) { width: 100px; }
         th:nth-child(2) { width: 35%; }
-        th:nth-child(3) { width: 110px; } /* Physical Column */
+        th:nth-child(3) { width: 110px; } 
         th:nth-child(4) { width: 80px; }
         th:nth-child(5) { width: 80px; }
         th:nth-child(6) { width: 80px; }
@@ -129,7 +129,7 @@
         .brand-pill { background: rgba(59,130,246,0.15); color: #60a5fa; padding: 4px 10px; border-radius: 6px; font-weight: 700; font-size: 11px; display: inline-block; }
         .origin-pill { background: rgba(16,185,129,0.15); color: var(--brand); padding: 4px 10px; border-radius: 6px; font-weight: 700; font-size: 11px; margin-left: 4px; display: inline-block; }
 
-        /* PHYSICAL BOX & TOOLTIP */
+        /* PHYSICAL BOX */
         .phys-box { position: relative; }
         .phys-input { 
             width: 100%; background: var(--input-bg); border: 1px solid var(--glass-edge); 
@@ -140,19 +140,17 @@
             position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%);
             background: var(--hl); color: #000; padding: 6px 12px; border-radius: 8px;
             font-size: 11px; font-weight: 800; white-space: nowrap; display: none; z-index: 100;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.4); cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
         }
         .phys-box:hover .calc-tooltip { display: block; }
         .history-editor { background: #fff; color: #000; border: none; font-weight: 800; width: 120px; text-align: center; border-radius: 4px; outline: none; }
 
         .out-of-stock { opacity: 0.5; }
 
-        /* THE TUBE SEARCH BAR */
         .portal-bar {
             position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
             width: 85%; max-width: 1100px; padding: 12px 35px; border-radius: 100px;
-            background: transparent; 
-            border: 2px solid var(--glass-edge); 
+            background: transparent; border: 2px solid var(--glass-edge); 
             display: flex; align-items: center; gap: 20px; z-index: 1000;
             box-shadow: 0 0 20px rgba(255, 255, 255, 0.05); 
         }
@@ -166,7 +164,6 @@
 
     <div id="sideMenu">
         <h2 style="margin-left:15px; font-size:18px;">MASTER MENU</h2>
-        <div class="menu-label">Settings</div>
         <div class="menu-item" onclick="toggleTheme(); toggleMenu();">🌓 Switch Theme</div>
         <div class="menu-item" onclick="clearPhysicalCounts()">🗑️ Reset Physical Counts</div>
         <button onclick="toggleMenu()" style="width:100%; padding:15px; margin-top:30px; border-radius:12px; border:none; background:var(--danger); color:white; font-weight:800; cursor:pointer;">CLOSE</button>
@@ -355,29 +352,29 @@
             const val = parseFloat(el.value);
             if (isNaN(val)) return;
             if (!physCounts[id]) physCounts[id] = { total: 0, sequence: "" };
-            const currentSeq = physCounts[id].sequence;
+            
+            // DNA FIX: Prevents 'undefined' at start
+            let currentSeq = physCounts[id].sequence || "";
             physCounts[id].sequence = currentSeq === "" ? `${val}` : `${currentSeq} + ${val}`;
+            
             recalculateTotal(id);
             el.value = "";
-            showToast("COUNT UPDATED");
         }
 
         function editHistory(id, tipEl) {
-            const currentSeq = physCounts[id]?.sequence || "";
+            let currentSeq = physCounts[id]?.sequence || "";
             const input = document.createElement('input');
             input.type = 'text';
             input.className = 'history-editor';
             input.value = currentSeq;
+            
+            // Enable touch/click anywhere in sequence
             input.onblur = () => saveHistoryEdit(id, input);
             input.onkeydown = (e) => { if(e.key === 'Enter') input.blur(); };
             
             tipEl.innerHTML = '';
             tipEl.appendChild(input);
             input.focus();
-            
-            // Cursor to the end
-            const len = input.value.length;
-            input.setSelectionRange(len, len);
         }
 
         function saveHistoryEdit(id, inputEl) {
@@ -385,7 +382,6 @@
             if (!physCounts[id]) physCounts[id] = { total: 0, sequence: "" };
             physCounts[id].sequence = newSeq;
             recalculateTotal(id);
-            showToast("MEMORY FIXED");
         }
 
         function recalculateTotal(id) {
@@ -421,9 +417,7 @@
         }
 
         function handleQuickCopy(e) {
-            // Prevent copying if we are clicking inputs or the yellow memory bar
             if (e.target.classList.contains('phys-input') || e.target.closest('.calc-tooltip')) return;
-            
             const cell = e.target.closest('td');
             if (!cell) return;
             navigator.clipboard.writeText(cell.innerText).then(() => {

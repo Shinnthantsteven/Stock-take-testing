@@ -150,9 +150,10 @@
         .portal-bar {
             position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
             width: 85%; max-width: 1100px; padding: 12px 35px; border-radius: 100px;
-            background: transparent; border: 2px solid var(--glass-edge); 
+            background: rgba(15, 23, 42, 0.8); border: 2px solid var(--glass-edge); 
             display: flex; align-items: center; gap: 20px; z-index: 1000;
             box-shadow: 0 0 20px rgba(255, 255, 255, 0.05); 
+            backdrop-filter: blur(10px);
         }
         #searchIn { background: transparent; border: none; color: var(--text); font-size: 16px; font-weight: 700; outline: none; flex: 1; }
         #searchIn::placeholder { color: var(--text); opacity: 0.5; }
@@ -426,63 +427,63 @@
             if (tipField) tipField.innerText = seq || "No Entry";
         }
 
-       // Updated CLOUD SYNC LOGIC with Formula Builder
-async function syncToCloud() {
-    const btn = document.getElementById('syncBtn');
-    btn.innerText = "⏳ PUSHING FORMULAS...";
-    btn.disabled = true;
+        // --- OPTIMIZED CLOUD SYNC LOGIC ---
+        async function syncToCloud() {
+            const btn = document.getElementById('syncBtn');
+            btn.innerText = "⏳ PUSHING FORMULAS...";
+            btn.disabled = true;
 
-    // 1. Prepare the "Clean Payload" for Google Sheets
-    // We strip spaces and add the "=" so the sheet treats it as a calculation
-    const formulaPayload = {};
-    
-    for (const [id, data] of Object.entries(physCounts)) {
-        if (data.sequence) {
-            // Remove all spaces: "5 + 5" becomes "5+5"
-            const cleanSeq = data.sequence.toString().replace(/\s+/g, '');
+            const formulaPayload = {};
             
-            // If it's a math sequence (has + - * /), add the "=" prefix
-            if (/[+\-*/]/.test(cleanSeq)) {
-                formulaPayload[id] = {
-                    total: data.total,
-                    formula: "=" + cleanSeq 
-                };
-            } else {
-                formulaPayload[id] = {
-                    total: data.total,
-                    formula: cleanSeq // Just a number
-                };
+            for (const [id, data] of Object.entries(physCounts)) {
+                if (data.sequence) {
+                    // 1. Remove all spaces for clean math
+                    let cleanSeq = data.sequence.toString().replace(/\s+/g, '');
+                    
+                    // 2. Add prefix if math operators are present
+                    if (/[+\-*/]/.test(cleanSeq)) {
+                        formulaPayload[id] = "=" + cleanSeq;
+                    } else {
+                        formulaPayload[id] = cleanSeq;
+                    }
+                }
+            }
+
+            try {
+                if (Object.keys(formulaPayload).length === 0) {
+                    showToast("⚠️ NOTHING TO SYNC");
+                    btn.innerText = "☁️ SYNC TO SHEET";
+                    btn.disabled = false;
+                    return;
+                }
+
+                await fetch(CLOUD_API, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    cache: 'no-cache',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formulaPayload)
+                });
+                
+                showToast("✅ FORMULAS SYNCED");
+                btn.innerText = "☁️ SYNC SUCCESS";
+                setTimeout(() => { 
+                    btn.innerText = "☁️ SYNC TO SHEET"; 
+                    btn.disabled = false; 
+                }, 2000);
+            } catch (error) {
+                showToast("❌ SYNC FAILED");
+                btn.innerText = "❌ RETRY";
+                btn.disabled = false;
             }
         }
-    }
-
-    try {
-        await fetch(CLOUD_API, {
-            method: 'POST',
-            mode: 'no-cors',
-            cache: 'no-cache',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(formulaPayload)
-        });
-        
-        showToast("✅ FORMULAS SYNCED");
-        btn.innerText = "☁️ SYNC SUCCESS";
-        setTimeout(() => { 
-            btn.innerText = "☁️ SYNC TO SHEET"; 
-            btn.disabled = false; 
-        }, 2000);
-    } catch (error) {
-        showToast("❌ SYNC FAILED");
-        btn.innerText = "❌ RETRY";
-        btn.disabled = false;
-    }
-}
 
         function clearPhysicalCounts() {
             if(confirm("Wipe all physical stock data?")) {
                 localStorage.removeItem('c2c_phys_store');
                 physCounts = {};
                 render(db);
+                showToast("DATA WIPED");
             }
         }
 
@@ -503,4 +504,3 @@ async function syncToCloud() {
     </script>
 </body>
 </html>
-

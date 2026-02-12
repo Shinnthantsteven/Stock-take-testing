@@ -463,11 +463,11 @@
         let physCounts = JSON.parse(localStorage.getItem('c2c_phys_store')) || {};
         // API URL from user
         const CLOUD_API = "https://script.google.com/macros/s/AKfycbz_-ZsQFOouAj19B6DH5EXGbTGVsZZCl5PuGHrI69vAm-aEo7A4be2-gROtXLmkgyTx/exec";
-        function toggleMenu() {
-            document.getElementById('sideMenu').classList.toggle('active');
-            const overlay = document.getElementById('overlay');
-            overlay.style.display = overlay.style.display === 'block' ? 'none' : 'block';
-        }
+          function toggleMenu() {
+    document.getElementById('sideMenu').classList.toggle('active');
+    const overlay = document.getElementById('overlay');
+    overlay.style.display = overlay.style.display === 'block' ? 'none' : 'block';
+}
         function toggleTheme() {
             const doc = document.documentElement;
             const next = doc.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
@@ -585,102 +585,112 @@
                 </tr>
             `}).join('');
         }
-        // CALCULATOR logic
-        function runCalc(id, el) {
-            const inputVal = el.value.trim();
-            if (!inputVal) return;
-            if (!physCounts[id]) physCounts[id] = { total: 0, sequence: "" };
-            let currentSeq = physCounts[id].sequence || "";
-            if (currentSeq === "") {
-                physCounts[id].sequence = inputVal;
-            } else {
-                physCounts[id].sequence = `${currentSeq} + ${inputVal}`;
-            }
-            recalculateTotal(id);
-            el.value = "";
+// ------------------ CALCULATOR LOGIC ------------------
+function normalizeSequence(sequence) {
+    return (sequence || "")
+        .toString()
+        .replace(/[^0-9+\-*/.]/g, '')              // remove invalid chars
+        .replace(/([+\-*/]){2,}/g, (ops) => ops.slice(-1)) // collapse repeated operators
+        .replace(/^[+*/]+/, '')                     // remove leading +*/
+        .replace(/[+\-*/]+$/, '');                  // remove trailing operators
+}
+
+function runCalc(id, el) {
+    const inputVal = normalizeSequence(el.value.trim());
+    if (!inputVal) return;
+    if (!physCounts[id]) physCounts[id] = { total: 0, sequence: "" };
+    let currentSeq = physCounts[id].sequence || "";
+    physCounts[id].sequence = currentSeq === "" ? inputVal : `${currentSeq} + ${inputVal}`;
+    recalculateTotal(id);
+    el.value = "";
+}
+
+function editHistory(id, tipEl) {
+    const currentSeq = physCounts[id]?.sequence || "";
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.className = 'history-editor';
+    input.value = currentSeq;
+    input.onblur = () => saveHistoryEdit(id, input);
+    input.onkeydown = (e) => { if (e.key === 'Enter') input.blur(); };
+    tipEl.innerHTML = '';
+    tipEl.appendChild(input);
+    input.focus();
+}
+
+function saveHistoryEdit(id, inputEl) {
+    const newSeq = normalizeSequence(inputEl.value.trim());
+    if (!physCounts[id]) physCounts[id] = { total: 0, sequence: "" };
+    physCounts[id].sequence = newSeq;
+    recalculateTotal(id);
+}
+
+function recalculateTotal(id) {
+    const seq = physCounts[id]?.sequence || "";
+    let result = 0;
+    if (seq) {
+        try {
+            result = new Function(`return ${seq}`)();
+            if (!Number.isInteger(result)) result = parseFloat(result.toFixed(3));
+        } catch (e) {
+            console.error("Math Error", e);
+            result = physCounts[id]?.total || 0;
         }
-        function editHistory(id, tipEl) {
-            let currentSeq = physCounts[id]?.sequence || "";
-            const input = document.createElement('input');
-            input.type = 'text';
-            input.className = 'history-editor';
-            input.value = currentSeq;
-            input.onblur = () => saveHistoryEdit(id, input);
-            input.onkeydown = (e) => { if (e.key === 'Enter') input.blur(); };
-            tipEl.innerHTML = '';
-            tipEl.appendChild(input);
-            input.focus();
-        }
-        function saveHistoryEdit(id, inputEl) {
-            const newSeq = inputEl.value.trim();
-            if (!physCounts[id]) physCounts[id] = { total: 0, sequence: "" };
-            physCounts[id].sequence = newSeq;
-            recalculateTotal(id);
-        }
-        function recalculateTotal(id) {
-            let seq = physCounts[id].sequence;
-            let result = 0;
-            if (seq) {
-                try {
-                    const cleanSeq = seq.replace(/[^0-9+\-*/.]/g, '');
-                    result = new Function(`return ${cleanSeq}`)();
-                    if (!Number.isInteger(result)) result = parseFloat(result.toFixed(3));
-                } catch (e) {
-                    console.error("Math Error", e);
-                    result = physCounts[id].total;
-                }
-            }
-            physCounts[id].total = result;
-            localStorage.setItem('c2c_phys_store', JSON.stringify(physCounts));
-            const inputField = document.getElementById(`input-${id}`);
-            const tipField = document.getElementById(`tip-${id}`);
-            if (inputField) inputField.placeholder = result;
-            if (tipField) tipField.innerText = seq || "No Entry";
-        }
+    }
+    physCounts[id].total = result;
+    localStorage.setItem('c2c_phys_store', JSON.stringify(physCounts));
+
+    const inputField = document.getElementById(`input-${id}`);
+    const tipField = document.getElementById(`tip-${id}`);
+    if (inputField) inputField.placeholder = result;
+    if (tipField) tipField.innerText = seq || "No Entry";
+}
         // --- OPTIMIZED CLOUD SYNC LOGIC ---
-        async function syncToCloud() {
-            const btn = document.getElementById('syncBtn');
-            btn.innerText = "⏳ PUSHING FORMULAS...";
-            btn.disabled = true;
-            const formulaPayload = {};
-            for (const [id, data] of Object.entries(physCounts)) {
-                if (data.sequence) {
-                    // 1. Remove all spaces for clean math
-                    let cleanSeq = data.sequence.toString().replace(/\s+/g, '');
-                    // 2. Add prefix if math operators are present
-                    if (/[+\-*/]/.test(cleanSeq)) {
-                        formulaPayload[id] = "=" + cleanSeq;
-                    } else {
-                        formulaPayload[id] = cleanSeq;
-                    }
-                }
-            }
-            try {
-                if (Object.keys(formulaPayload).length === 0) {
-                    showToast("⚠️ NOTHING TO SYNC");
-                    btn.innerText = "☁️ SYNC TO SHEET";
-                    btn.disabled = false;
-                    return;
-                }
-                await fetch(CLOUD_API, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    cache: 'no-cache',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(formulaPayload)
-                });
-                showToast("✅ FORMULAS SYNCED");
-                btn.innerText = "☁️ SYNC SUCCESS";
-                setTimeout(() => {
-                    btn.innerText = "☁️ SYNC TO SHEET";
-                    btn.disabled = false;
-                }, 2000);
-            } catch (error) {
-                showToast("❌ SYNC FAILED");
-                btn.innerText = "❌ RETRY";
-                btn.disabled = false;
-            }
+async function syncToCloud() {
+    const btn = document.getElementById('syncBtn');
+    btn.innerText = "⏳ PUSHING FORMULAS...";
+    btn.disabled = true;
+
+    const formulaPayload = {};
+    for (const [id, data] of Object.entries(physCounts)) {
+        if (data.sequence) {
+            const cleanSeq = normalizeSequence(data.sequence);
+            if (!cleanSeq) continue;
+            formulaPayload[id] = /[+\-*/]/.test(cleanSeq) ? "=" + cleanSeq : cleanSeq;
         }
+    }
+
+    try {
+        if (Object.keys(formulaPayload).length === 0) {
+            showToast("⚠️ NOTHING TO SYNC");
+            btn.innerText = "☁️ SYNC TO SHEET";
+            btn.disabled = false;
+            return;
+        }
+
+        await fetch(CLOUD_API, {
+            method: 'POST',
+            mode: 'no-cors',
+            cache: 'no-cache',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(formulaPayload)
+        });
+
+        showToast("✅ FORMULAS SYNCED");
+        btn.innerText = "☁️ SYNC SUCCESS";
+        setTimeout(() => {
+            btn.innerText = "☁️ SYNC TO SHEET";
+            btn.disabled = false;
+        }, 2000);
+
+    } catch (error) {
+        console.error(error);
+        showToast("❌ SYNC FAILED");
+        btn.innerText = "❌ RETRY";
+        btn.disabled = false;
+    }
+}
+
         function clearPhysicalCounts() {
             if (confirm("Wipe all physical stock data?")) {
                 localStorage.removeItem('c2c_phys_store');
@@ -705,4 +715,5 @@
     </script>
 </body>
 </html>
+
 

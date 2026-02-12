@@ -524,16 +524,21 @@
                 render(db);
             } catch (e) { console.log("Processing error."); }
         }
-        function highlight(text) {
-            if (!currentSearch || !text) return text;
-            const terms = currentSearch.split(/\s+/).filter(w => w.length > 0);
-            let h = text;
-            terms.forEach(word => {
-                const reg = new RegExp([(${word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})](cci:1://file:///Users/shinnthantsteven/Documents/All%20in%20One/Stock-take-testing/index.html:563:12-563:72), 'gi');
-                h = h.replace(reg, '<mark>$1</mark>');
-            });
-            return h;
-        }
+       function highlight(text) {
+    if (!currentSearch || !text) return text;
+
+    const terms = currentSearch.split(/\s+/).filter(Boolean);
+    let result = text;
+
+    terms.forEach(word => {
+        const escaped = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const regex = new RegExp("(" + escaped + ")", "gi");
+        result = result.replace(regex, "<mark>$1</mark>");
+    });
+
+    return result;
+}
+
         document.getElementById('searchIn').addEventListener('input', (e) => {
             currentSearch = e.target.value.toLowerCase().trim();
             const terms = currentSearch.split(/\s+/);
@@ -700,3 +705,4 @@
     </script>
 </body>
 </html>
+

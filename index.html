@@ -645,8 +645,7 @@ function recalculateTotal(id) {
     if (inputField) inputField.placeholder = result;
     if (tipField) tipField.innerText = seq || "No Entry";
 }
-     // --- OPTIMIZED CLOUD SYNC LOGIC ---
-async function syncToCloud() {
+     async function syncToCloud() {
     const btn = document.getElementById('syncBtn');
     btn.innerText = "⏳ PUSHING FORMULAS...";
     btn.disabled = true;
@@ -655,10 +654,8 @@ async function syncToCloud() {
     const formulaPayload = {};
     for (const [id, data] of Object.entries(physCounts)) {
         if (!data.sequence) continue;
-
         const cleanSeq = normalizeSequence(data.sequence);
         if (!cleanSeq) continue;
-
         // If contains operators, prefix '=' for Google Sheet formula
         formulaPayload[id] = /[+\-*/]/.test(cleanSeq) ? "=" + cleanSeq : cleanSeq;
     }
@@ -671,28 +668,31 @@ async function syncToCloud() {
     }
 
     try {
-        await fetch(CLOUD_API, {
+        const res = await fetch(CLOUD_API, {
             method: 'POST',
-            mode: 'no-cors',  // Google Apps Script allows CORS-less POST
-            cache: 'no-cache',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(formulaPayload)
         });
 
-        showToast("✅ FORMULAS SYNCED");
-        btn.innerText = "☁️ SYNC SUCCESS";
-        setTimeout(() => {
-            btn.innerText = "☁️ SYNC TO SHEET";
-            btn.disabled = false;
-        }, 2000);
+        // Parse JSON response from Apps Script
+        const json = await res.json();
+        if (json.status === "success") {
+            showToast(`✅ SYNCED ${json.updated} ITEMS`);
+        } else {
+            showToast(`❌ SYNC FAILED: ${json.message}`);
+        }
+
+        btn.innerText = "☁️ SYNC TO SHEET";
+        btn.disabled = false;
 
     } catch (error) {
         console.error(error);
-        showToast("❌ SYNC FAILED");
-        btn.innerText = "❌ RETRY";
+        showToast("❌ SYNC ERROR");
+        btn.innerText = "☁️ SYNC TO SHEET";
         btn.disabled = false;
     }
 }
+
 
         function clearPhysicalCounts() {
             if (confirm("Wipe all physical stock data?")) {
@@ -718,6 +718,7 @@ async function syncToCloud() {
     </script>
 </body>
 </html>
+
 
 
 

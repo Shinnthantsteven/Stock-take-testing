@@ -1,263 +1,554 @@
-<!DOCTYPE html>
-<html lang="en" data-theme="dark">
+!DOCTYPE html>
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>C2C STOCK SYSTEM</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Chef2Chef | Stock Engine</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --brand: #10b981;
+            --brand-deep: #059669;
+            --bg-color: #020617;
+            --card-bg: #0f172a;
+            --text: #f1f5f9;
+            --glass-edge: rgba(255,255,255,0.12);
+            --danger: #ef4444;
+            --hl: #fbbf24;
+        }
 
-<style>
-:root{
-  --bg:#111;
-  --card:#1b1b1b;
-  --text:#fff;
-  --accent:#00ff99;
-  --danger:#ff4d4d;
-}
-[data-theme="light"]{
-  --bg:#f5f5f5;
-  --card:#ffffff;
-  --text:#000;
-}
-*{box-sizing:border-box}
-body{
-  margin:0;
-  font-family:Arial,Helvetica,sans-serif;
-  background:var(--bg);
-  color:var(--text);
-}
-header{
-  padding:15px;
-  background:var(--card);
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  position:sticky;
-  top:0;
-  z-index:5;
-}
-button{
-  cursor:pointer;
-  border:none;
-  padding:8px 12px;
-  background:var(--accent);
-  color:#000;
-  font-weight:bold;
-  border-radius:4px;
-}
-button:disabled{opacity:.5}
-input{
-  padding:6px;
-  border-radius:4px;
-  border:1px solid #333;
-}
-#search{
-  width:250px;
-}
-table{
-  width:100%;
-  border-collapse:collapse;
-  margin-top:10px;
-}
-th,td{
-  padding:8px;
-  border-bottom:1px solid #333;
-  text-align:left;
-}
-tr:hover{
-  background:rgba(255,255,255,0.05);
-}
-.toast{
-  position:fixed;
-  bottom:20px;
-  right:20px;
-  background:var(--accent);
-  color:#000;
-  padding:10px 15px;
-  border-radius:5px;
-  display:none;
-}
-.login{
-  position:fixed;
-  inset:0;
-  background:#000;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  flex-direction:column;
-  z-index:10;
-}
-</style>
+        *, *::before, *::after { box-sizing: border-box; }
+
+        body, html {
+            margin: 0; padding: 0;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: var(--bg-color); color: var(--text);
+            height: 100vh; overflow: hidden;
+        }
+
+        /* ── GLASS NAV ── */
+        .top-nav {
+            padding: 12px 32px;
+            display: flex; justify-content: space-between; align-items: center;
+            background: transparent;
+            border-bottom: 1.5px solid rgba(255,255,255,0.18);
+            position: sticky; top: 0; z-index: 2000;
+        }
+        .logo-wrap {
+            width: 38px; height: 38px; background: #fff; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            overflow: hidden; border: 2px solid var(--brand);
+            box-shadow: 0 0 12px rgba(16,185,129,0.4); flex-shrink: 0;
+        }
+        .logo-wrap img { width: 100%; height: 100%; object-fit: cover; }
+        .logo-text { font-weight: 800; font-size: 18px; display: flex; align-items: center; gap: 12px; text-decoration: none; color: inherit; letter-spacing: -0.5px; }
+
+        /* ── TABLE ── */
+        .content-container {
+            overflow-y: auto; padding: 0 32px 180px 32px; height: calc(100vh - 70px);
+            mask-image: linear-gradient(to bottom, black 78%, rgba(0,0,0,0.15) 93%, rgba(0,0,0,0.08) 100%);
+            -webkit-mask-image: linear-gradient(to bottom, black 78%, rgba(0,0,0,0.15) 93%, rgba(0,0,0,0.08) 100%);
+        }
+
+        table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+
+        thead tr th {
+            position: sticky; top: 8px;
+            background: #0d1829;
+            padding: 16px 12px;
+            text-align: left; font-size: 10px;
+            color: #94a3b8; text-transform: uppercase;
+            z-index: 50; letter-spacing: 1px;
+            border-top: 1px solid rgba(255,255,255,0.08);
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            border-left: none; border-right: none;
+        }
+        thead tr th:first-child { border-radius: 20px 0 0 20px; border-left: 1px solid rgba(255,255,255,0.08); padding-left: 22px; }
+        thead tr th:last-child  { border-radius: 0 20px 20px 0; border-right: 1px solid rgba(255,255,255,0.08); padding-right: 22px; }
+
+        th:nth-child(1) { width: 70px; }   /* UID */
+        th:nth-child(2) { width: 32%; }    /* Description */
+        th:nth-child(3) { width: 130px; }  /* Physical Stock ← new */
+        th:nth-child(4) { width: 65px; }   /* Cost */
+        th:nth-child(5) { width: 45px; }   /* U/M */
+        th:nth-child(6) { width: 85px; }   /* Case Pack */
+        th:nth-child(7) { width: 12%; }    /* Supplier */
+        th:nth-child(8) { width: 120px; }  /* Brand/Origin */
+
+        td {
+            padding: 12px 12px; border-bottom: 1px solid var(--glass-edge);
+            font-size: 13px; vertical-align: middle;
+            transition: background 0.15s; overflow: hidden; text-overflow: ellipsis;
+        }
+        tr:hover td { background: rgba(255,255,255,0.02); }
+
+        .desc-name { font-weight: 700; font-size: 14px; line-height: 1.4; margin-bottom: 4px; }
+        .pack-cell { display: flex; flex-direction: column; gap: 4px; align-items: flex-start; }
+        .pack-value { color: #818cf8; font-weight: 700; }
+        .sup-cell { color: #e2e8f0; font-size: 14px; font-weight: 700; white-space: normal; line-height: 1.4; }
+
+        .cat-pill    { background: rgba(251,191,36,0.12);  color: #fbbf24; padding: 3px 8px; border-radius: 20px; font-weight: 800; font-size: 10px; display: inline-block; border: 1px solid rgba(251,191,36,0.3); }
+        .state-pill  { background: rgba(6,182,212,0.12);   color: #22d3ee; padding: 3px 8px; border-radius: 20px; font-weight: 800; font-size: 10px; display: inline-block; border: 1px solid rgba(6,182,212,0.3); }
+        .brand-pill  { background: rgba(59,130,246,0.10);  color: #60a5fa; padding: 3px 8px; border-radius: 20px; font-weight: 800; font-size: 10px; display: inline-block; border: 1px solid rgba(59,130,246,0.25); }
+        .origin-pill { background: rgba(16,185,129,0.10);  color: #10b981; padding: 3px 8px; border-radius: 20px; font-weight: 800; font-size: 10px; display: inline-block; border: 1px solid rgba(16,185,129,0.25); }
+
+        mark { background: var(--hl); color: #000; border-radius: 4px; padding: 2px 4px; font-weight: 800; }
+
+        /* ── STOCK CELL ── */
+        .stock-cell {
+            cursor: pointer;
+        }
+        .stock-btn {
+            display: flex; flex-direction: column; gap: 2px;
+            align-items: flex-start;
+        }
+        .stock-qty {
+            font-size: 18px; font-weight: 800; color: var(--brand);
+            line-height: 1;
+        }
+        .stock-qty.empty { color: rgba(255,255,255,0.2); font-size: 14px; }
+        .stock-total {
+            font-size: 10px; font-weight: 700; color: #64748b;
+        }
+        .stock-total.has-value { color: #fbbf24; }
+        .stock-tap-hint {
+            font-size: 9px; color: rgba(255,255,255,0.2); font-weight: 600; margin-top: 2px;
+        }
+
+        /* ══ APPLE LIQUID GLASS NUMPAD ══ */
+        .numpad-popup {
+            position: fixed;
+            z-index: 9000;
+            display: none;
+            flex-direction: column;
+            width: 148px;
+            border-radius: 20px;
+            /* Apple liquid glass — very transparent */
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(40px) saturate(200%) brightness(1.1);
+            -webkit-backdrop-filter: blur(40px) saturate(200%) brightness(1.1);
+            border: 1px solid rgba(255,255,255,0.25);
+            box-shadow:
+                0 1px 0 rgba(255,255,255,0.35) inset,  /* top shine */
+                0 8px 32px rgba(0,0,0,0.25),
+                0 2px 8px rgba(0,0,0,0.15);
+            overflow: hidden;
+            animation: popIn 0.22s cubic-bezier(0.16,1,0.3,1);
+            user-select: none;
+        }
+        .numpad-popup.open { display: flex; }
+
+        @keyframes popIn {
+            from { transform: scale(0.88); opacity: 0; }
+            to   { transform: scale(1);   opacity: 1; }
+        }
+
+        /* Bubble shine line */
+        .numpad-popup::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 12%; right: 12%; height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.9) 40%, rgba(255,255,255,1) 50%, rgba(255,255,255,0.9) 60%, transparent);
+            pointer-events: none; z-index: 10;
+        }
+
+        /* Drag bar */
+        .numpad-drag-bar {
+            padding: 7px 7px 6px 9px;
+            cursor: grab;
+            display: flex; align-items: center; justify-content: space-between; gap: 4px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            background: rgba(255,255,255,0.04);
+        }
+        .numpad-drag-bar:active { cursor: grabbing; }
+        .numpad-drag-left {
+            display: flex; align-items: center; gap: 5px; flex: 1; min-width: 0;
+        }
+        .numpad-drag-dots {
+            display: grid; grid-template-columns: repeat(3,3px); gap: 2px; flex-shrink: 0;
+        }
+        .numpad-drag-dots span {
+            width: 3px; height: 3px; border-radius: 50%;
+            background: rgba(255,255,255,0.3); display: block;
+        }
+        .numpad-item-name {
+            font-size: 9px; font-weight: 800; color: rgba(255,255,255,0.5);
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+
+        /* ✓ confirm circle */
+        .numpad-confirm {
+            width: 24px; height: 24px; border-radius: 50%;
+            background: var(--brand); border: none;
+            color: #fff; font-size: 12px; font-weight: 900;
+            cursor: pointer; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 2px 8px rgba(16,185,129,0.5);
+            transition: transform 0.1s;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .numpad-confirm:active { transform: scale(0.88); }
+
+        .numpad-existing {
+            font-size: 8px; font-weight: 700; color: rgba(255,255,255,0.3);
+            padding: 2px 9px 0; text-align: right;
+        }
+        .numpad-existing span { color: var(--brand); }
+
+        /* Display */
+        .numpad-display {
+            padding: 5px 10px 3px; text-align: right;
+        }
+        .numpad-number {
+            font-size: 28px; font-weight: 700; line-height: 1;
+            letter-spacing: -1px; color: rgba(255,255,255,0.95);
+            transition: color 0.1s;
+        }
+        .numpad-number.typing { color: #fff; text-shadow: 0 0 20px rgba(16,185,129,0.6); }
+        .numpad-add-preview {
+            font-size: 8px; font-weight: 700; color: rgba(251,191,36,0.8);
+            text-align: right; min-height: 11px; margin-top: 1px;
+        }
+
+        /* Apple-style grid — each button is its own glass pill */
+        .numpad-grid {
+            display: grid; grid-template-columns: repeat(3, 1fr);
+            gap: 6px; padding: 6px;
+        }
+        .np-btn {
+            border: none;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            height: 38px; font-size: 17px; font-weight: 600;
+            color: rgba(255,255,255,0.95); cursor: pointer;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            transition: background 0.12s, transform 0.08s;
+            -webkit-tap-highlight-color: transparent;
+            /* tiny top shine per button */
+            box-shadow: 0 1px 0 rgba(255,255,255,0.15) inset;
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+        .np-btn:active {
+            background: rgba(255,255,255,0.22);
+            transform: scale(0.92);
+        }
+        .np-btn.back { color: rgba(255,255,255,0.5); font-size: 15px; }
+        .np-btn.dot  { color: rgba(255,255,255,0.7); font-size: 20px; }
+
+        /* ══ GLASS SEARCH BAR ══ */
+        .portal-bar {
+            position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%);
+            width: 82%; max-width: 1060px;
+            border-radius: 100px;
+            background: transparent;
+            border: 1.5px solid rgba(255,255,255,0.28);
+            display: flex; align-items: center;
+            z-index: 1000; transition: border-color 0.3s;
+        }
+        .portal-bar::before {
+            content: '';
+            position: absolute;
+            top: -1.5px; left: 12%; right: 12%; height: 3px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.9) 40%, rgba(255,255,255,1.0) 50%, rgba(255,255,255,0.9) 60%, transparent);
+            border-radius: 999px; pointer-events: none; z-index: 10;
+        }
+        .portal-bar:focus-within { border-color: rgba(16,185,129,0.6); }
+        .bar-upload-btn { display:flex; align-items:center; justify-content:center; width:56px; height:56px; flex-shrink:0; background:none; border:none; border-right:1px solid rgba(255,255,255,0.15); cursor:pointer; font-size:20px; opacity:0.6; transition:opacity 0.2s; }
+        .bar-upload-btn:hover { opacity:1; }
+        .bar-search-wrap { flex:1; display:flex; align-items:center; gap:10px; padding:0 18px; }
+        .bar-search-icon { font-size:15px; opacity:0.5; flex-shrink:0; }
+        #searchIn { background:transparent; border:none; color:var(--text); font-size:15px; font-weight:700; outline:none; flex:1; padding:18px 0; font-family:'Plus Jakarta Sans',sans-serif; }
+        #searchIn::placeholder { color:var(--text); opacity:0.4; font-weight:600; }
+        .bar-count { font-size:11px; font-weight:800; color:var(--brand); background:rgba(16,185,129,0.15); border:1px solid rgba(16,185,129,0.35); border-radius:50px; padding:4px 12px; white-space:nowrap; flex-shrink:0; }
+        .bar-exit-btn { background:var(--danger); border:none; color:white; padding:0 28px; height:56px; border-radius:0 100px 100px 0; font-weight:800; font-size:13px; cursor:pointer; flex-shrink:0; font-family:'Plus Jakarta Sans',sans-serif; transition:background 0.2s; box-shadow:0 1px 0 rgba(255,255,255,0.2) inset; }
+        .bar-exit-btn:hover { background:#dc2626; }
+
+        #toast { position:fixed; bottom:170px; left:50%; transform:translateX(-50%); background:rgba(16,185,129,0.15); backdrop-filter:blur(20px); border:1px solid rgba(16,185,129,0.35); color:var(--brand); padding:10px 28px; border-radius:50px; font-weight:800; font-size:13px; display:none; z-index:9999; box-shadow:0 8px 24px rgba(0,0,0,0.25); }
+    </style>
 </head>
-
 <body>
 
-<div id="loginScreen" class="login">
-  <h2>ENTER ACCESS CODE</h2>
-  <input type="password" id="passIn">
-  <button onclick="checkAuth()">ENTER</button>
-  <div id="err" style="color:red;margin-top:10px;"></div>
+<div id="toast">✓ DATA COPIED</div>
+
+<!-- NAV -->
+<nav class="top-nav">
+    <div style="display:flex;align-items:center;gap:18px;">
+        <a href="https://chef2chef.ae" target="_blank" class="logo-text">
+            <div class="logo-wrap">
+                <img src="https://raw.githubusercontent.com/Shinnthantsteven/Chef2Chef-Master-Code/main/logo.png" alt="Logo">
+            </div>
+            <span>CHEF2CHEF <span style="color:var(--brand)">STOCK</span></span>
+        </a>
+    </div>
+    <div style="font-size:11px;font-weight:800;color:#64748b;">PHYSICAL STOCK MODULE — DEMO</div>
+</nav>
+
+<!-- TABLE -->
+<div class="content-container">
+    <table>
+        <thead>
+            <tr>
+                <th>UID</th>
+                <th>Item Description</th>
+                <th>📦 Physical Stock</th>
+                <th>Cost</th>
+                <th>U/M</th>
+                <th>Case Pack</th>
+                <th>Supplier</th>
+                <th>Brand / Origin</th>
+            </tr>
+        </thead>
+        <tbody id="list"></tbody>
+    </table>
 </div>
 
-<header>
-  <div>
-    <button onclick="toggleTheme()">🌙</button>
-    <button onclick="clearPhysicalCounts()">CLEAR</button>
-    <button id="syncBtn" onclick="syncToCloud()">☁️ SYNC</button>
-  </div>
-  <input id="search" placeholder="Search..." oninput="searchData()">
-</header>
+<!-- SEARCH BAR -->
+<div class="portal-bar">
+    <div class="bar-search-wrap">
+        <span class="bar-search-icon">🔍</span>
+        <input type="text" id="searchIn" placeholder="Search items, suppliers, categories…">
+        <span class="bar-count" id="resultCount">20 items</span>
+    </div>
+    <button class="bar-exit-btn" onclick="location.reload()">EXIT</button>
+</div>
 
-<table id="table">
-  <thead>
-    <tr>
-      <th>Item</th>
-      <th>System</th>
-      <th>Physical</th>
-      <th>Diff</th>
-    </tr>
-  </thead>
-  <tbody></tbody>
-</table>
-
-<div id="toast" class="toast"></div>
+<!-- FLOATING DRAGGABLE NUMBER PAD -->
+<div class="numpad-popup" id="numpadPopup">
+    <div class="numpad-drag-bar" id="numpadDragBar">
+        <div class="numpad-drag-left">
+            <div class="numpad-drag-dots">
+                <span></span><span></span><span></span>
+                <span></span><span></span><span></span>
+            </div>
+            <div class="numpad-item-name" id="numpadItemName">—</div>
+        </div>
+        <button class="numpad-confirm" onclick="npConfirm()">✓</button>
+    </div>
+    <div class="numpad-existing" id="numpadExisting"></div>
+    <div class="numpad-display">
+        <div class="numpad-number" id="numpadDisplay">0</div>
+        <div class="numpad-add-preview" id="numpadPreview"></div>
+    </div>
+    <div class="numpad-grid">
+        <button class="np-btn" onclick="npNum('1')">1</button>
+        <button class="np-btn" onclick="npNum('2')">2</button>
+        <button class="np-btn" onclick="npNum('3')">3</button>
+        <button class="np-btn" onclick="npNum('4')">4</button>
+        <button class="np-btn" onclick="npNum('5')">5</button>
+        <button class="np-btn" onclick="npNum('6')">6</button>
+        <button class="np-btn" onclick="npNum('7')">7</button>
+        <button class="np-btn" onclick="npNum('8')">8</button>
+        <button class="np-btn" onclick="npNum('9')">9</button>
+        <button class="np-btn dot"  onclick="npDot()">.</button>
+        <button class="np-btn" onclick="npNum('0')">0</button>
+        <button class="np-btn back" onclick="npBack()">⌫</button>
+    </div>
+</div>
 
 <script>
-/* =========================
-   STATE
-========================= */
-let db=[];
-let physCounts=JSON.parse(localStorage.getItem('c2c_phys_store'))||{};
-const CLOUD_API="YOUR_GOOGLE_SCRIPT_URL";
+const DEMO = [
+    { id:"C2C-1021", desc:"Roast Chicken & Asparagus Quiche",   cost:13.50, um:"PC",  pack:"300g+/-", cat:"Pastry",     state:"Frozen",  sup:"Alannahs Pastry",    brand:"Chef2Chef", origin:"UAE"       },
+    { id:"C2C-1022", desc:"Beef Wellington Slice",              cost:18.00, um:"PC",  pack:"250g",    cat:"Pastry",     state:"Frozen",  sup:"Alannahs Pastry",    brand:"Chef2Chef", origin:"UAE"       },
+    { id:"C2C-1033", desc:"Wild Salmon Fillet Portion",         cost:42.00, um:"KG",  pack:"2x500g",  cat:"Seafood",    state:"Chilled", sup:"Ocean Select",       brand:"AquaFresh", origin:"Norway"    },
+    { id:"C2C-1044", desc:"Hass Avocado Premium Grade A",       cost:9.75,  um:"KG",  pack:"4kg Box", cat:"Vegetables", state:"Fresh",   sup:"Fresh Fields UAE",   brand:"ProFresh",  origin:"Peru"      },
+    { id:"C2C-1055", desc:"Truffle Butter Compound 84%",        cost:65.00, um:"KG",  pack:"1kg",     cat:"Dairy",      state:"Chilled", sup:"Lactalis ME",        brand:"President", origin:"France"    },
+    { id:"C2C-1066", desc:"Smoked Duck Breast Sliced",          cost:55.00, um:"KG",  pack:"500g",    cat:"Poultry",    state:"Chilled", sup:"Emirates Fine Food", brand:"Canard+",   origin:"France"    },
+    { id:"C2C-1077", desc:"Portobello Mushroom XL",             cost:14.50, um:"KG",  pack:"3kg",     cat:"Vegetables", state:"Fresh",   sup:"Fresh Fields UAE",   brand:"ProFresh",  origin:"UAE"       },
+    { id:"C2C-1088", desc:"Lobster Tail 200-250g IQF",          cost:120.00,um:"KG",  pack:"1kg",     cat:"Seafood",    state:"Frozen",  sup:"Ocean Select",       brand:"BlueWater", origin:"Canada"    },
+    { id:"C2C-1099", desc:"Sourdough Boule 400g",               cost:7.50,  um:"PC",  pack:"10pcs",   cat:"Bakery",     state:"Fresh",   sup:"Bread Lab",          brand:"Artisan Co",origin:"UAE"       },
+    { id:"C2C-1100", desc:"Baby Spinach Washed 500g",           cost:8.25,  um:"BAG", pack:"12 Bags", cat:"Vegetables", state:"Fresh",   sup:"Fresh Fields UAE",   brand:"GreenLine", origin:"UAE"       },
+    { id:"C2C-1111", desc:"Camembert De Normandie AOC 250g",    cost:38.00, um:"PC",  pack:"6pcs",    cat:"Dairy",      state:"Chilled", sup:"Lactalis ME",        brand:"Le Chatel", origin:"France"    },
+    { id:"C2C-1122", desc:"Chicken Breast Free Range Halal",    cost:22.00, um:"KG",  pack:"5kg",     cat:"Poultry",    state:"Chilled", sup:"Emirates Fine Food", brand:"Tanmiah",   origin:"UAE"       },
+    { id:"C2C-1133", desc:"Porcini Mushroom Dried Grade A",     cost:95.00, um:"KG",  pack:"500g",    cat:"Dry Goods",  state:"Ambient", sup:"Gourmet Arabia",     brand:"Funghi+",   origin:"Italy"     },
+    { id:"C2C-1144", desc:"Black Tiger Prawn 16/20 IQF",        cost:68.00, um:"KG",  pack:"2kg",     cat:"Seafood",    state:"Frozen",  sup:"Ocean Select",       brand:"BlueWater", origin:"Vietnam"   },
+    { id:"C2C-1155", desc:"Lamb Rack French Trimmed",           cost:140.00,um:"KG",  pack:"1.8kg",   cat:"Meat",       state:"Chilled", sup:"Emirates Fine Food", brand:"HalalPrem", origin:"NZ"        },
+    { id:"C2C-1166", desc:"Mango Alphonso Puree 1kg",           cost:24.00, um:"KG",  pack:"1kg",     cat:"Pastry",     state:"Frozen",  sup:"Alannahs Pastry",    brand:"Ravifruit", origin:"India"     },
+    { id:"C2C-1177", desc:"Extra Virgin Olive Oil PDO 5L",      cost:85.00, um:"CTN", pack:"4x5L",    cat:"Dry Goods",  state:"Ambient", sup:"Gourmet Arabia",     brand:"Borges",    origin:"Spain"     },
+    { id:"C2C-1188", desc:"Vanilla Bean Tahitian Grade A",      cost:210.00,um:"KG",  pack:"100g",    cat:"Pastry",     state:"Ambient", sup:"Alannahs Pastry",    brand:"Norohy",    origin:"Tahiti"    },
+    { id:"C2C-1199", desc:"Wagyu Beef Striploin MB6+",          cost:320.00,um:"KG",  pack:"3-4kg",   cat:"Meat",       state:"Chilled", sup:"Emirates Fine Food", brand:"AUS Wagyu", origin:"Australia" },
+    { id:"C2C-1200", desc:"Burrata Pugliese 125g",              cost:19.50, um:"PC",  pack:"6pcs",    cat:"Dairy",      state:"Chilled", sup:"Lactalis ME",        brand:"Delizie",   origin:"Italy"     },
+];
 
-/* =========================
-   AUTH
-========================= */
-function checkAuth(){
-  if(document.getElementById('passIn').value==="C2C2026"){
-    document.getElementById('loginScreen').style.display="none";
-    autoLoad();
-  }else{
-    document.getElementById('err').innerText="INVALID ACCESS CODE";
-  }
+// Stock values stored per item id
+const stockData = {};
+
+let np = { val: '0', itemId: null, cost: 0, um: '' };
+let npDragging = false, npDragOffX = 0, npDragOffY = 0;
+// Default position — right side near Brand/Origin column, vertically centered
+let npPos = { x: window.innerWidth - 210, y: Math.round(window.innerHeight * 0.35) };
+
+function openCalc(itemId, event) {
+    const item = DEMO.find(r => r.id === itemId);
+    if (!item) return;
+    np.itemId = itemId; np.cost = item.cost; np.um = item.um; np.val = '0';
+
+    const popup = document.getElementById('numpadPopup');
+    popup.style.left = npPos.x + 'px';
+    popup.style.top  = npPos.y + 'px';
+
+    const existing = stockData[itemId] || 0;
+    document.getElementById('numpadItemName').textContent = item.desc;
+    document.getElementById('numpadExisting').innerHTML = existing > 0
+        ? `Stock: <span>${existing} ${item.um}</span>`
+        : '';
+
+    npUpdateDisplay();
+    popup.classList.add('open');
+    setTimeout(() => document.addEventListener('click', npOutsideClick), 50);
 }
 
-/* =========================
-   LOAD CSV
-========================= */
-async function autoLoad(){
-  try{
-    const res=await fetch('data.csv?v='+Date.now());
-    const text=await res.text();
-    processData(text);
-  }catch(e){
-    console.error("Load failed");
-  }
+function npOutsideClick(e) {
+    const popup = document.getElementById('numpadPopup');
+    if (!popup.contains(e.target) && !e.target.closest('[data-stock-id]')) {
+        popup.classList.remove('open');
+        document.removeEventListener('click', npOutsideClick);
+    }
 }
 
-function processData(csv){
-  const rows=csv.split('\n').map(r=>r.split(','));
-  db=rows.slice(1).map(r=>({
-    id:r[0],
-    name:r[1],
-    systemQty:Number(r[2]||0)
-  }));
-  render(db);
+function npUpdateDisplay() {
+    const el = document.getElementById('numpadDisplay');
+    el.textContent = np.val;
+    el.className = 'numpad-number' + (parseFloat(np.val) > 0 ? ' typing' : '');
+    const adding = parseFloat(np.val) || 0;
+    const existing = stockData[np.itemId] || 0;
+    const preview = document.getElementById('numpadPreview');
+    if (adding > 0 && existing > 0) {
+        preview.textContent = `${existing} + ${adding} = ${parseFloat((existing+adding).toFixed(4))} ${np.um}`;
+    } else if (adding > 0) {
+        preview.textContent = `→ ${adding} ${np.um}`;
+    } else {
+        preview.textContent = '';
+    }
 }
 
-/* =========================
-   RENDER
-========================= */
-function render(data){
-  const tbody=document.querySelector('#table tbody');
-  tbody.innerHTML="";
-  data.slice(0,500).forEach(item=>{
-    const phys=physCounts[item.id]?.value||0;
-    const diff=phys-item.systemQty;
-    const tr=document.createElement('tr');
-    tr.innerHTML=`
-      <td>${item.name}</td>
-      <td>${item.systemQty}</td>
-      <td><input type="number" value="${phys}" 
-          oninput="updatePhys('${item.id}',this.value)"></td>
-      <td style="color:${diff!==0?'var(--danger)':'var(--accent)'}">${diff}</td>
-    `;
-    tbody.appendChild(tr);
-  });
+function npNum(n) { np.val = np.val === '0' ? n : np.val + n; npUpdateDisplay(); }
+function npDot()  { if (!np.val.includes('.')) np.val += '.'; npUpdateDisplay(); }
+function npBack() { np.val = np.val.length > 1 ? np.val.slice(0,-1) : '0'; npUpdateDisplay(); }
+
+function npConfirm() {
+    const adding = parseFloat(np.val) || 0;
+    if (adding > 0) {
+        stockData[np.itemId] = parseFloat(((stockData[np.itemId] || 0) + adding).toFixed(4));
+        updateStockCell(np.itemId, stockData[np.itemId], np.cost);
+        if (navigator.vibrate) navigator.vibrate(40);
+    }
+    document.getElementById('numpadPopup').classList.remove('open');
+    document.removeEventListener('click', npOutsideClick);
 }
 
-/* =========================
-   SEARCH
-========================= */
-function searchData(){
-  const q=document.getElementById('search').value.toLowerCase();
-  const filtered=db.filter(i=>i.name.toLowerCase().includes(q));
-  render(filtered);
+// ── DRAG ──
+const dragBar = document.getElementById('numpadDragBar');
+dragBar.addEventListener('mousedown', dragStart);
+dragBar.addEventListener('touchstart', dragStart, { passive: true });
+
+function dragStart(e) {
+    npDragging = true;
+    const popup = document.getElementById('numpadPopup');
+    const rect = popup.getBoundingClientRect();
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    npDragOffX = clientX - rect.left;
+    npDragOffY = clientY - rect.top;
+    document.addEventListener('mousemove', dragMove);
+    document.addEventListener('mouseup',   dragEnd);
+    document.addEventListener('touchmove', dragMove, { passive: true });
+    document.addEventListener('touchend',  dragEnd);
 }
 
-/* =========================
-   UPDATE PHYSICAL
-========================= */
-function updatePhys(id,val){
-  physCounts[id]={value:Number(val)};
-  localStorage.setItem('c2c_phys_store',JSON.stringify(physCounts));
-  searchData();
+function dragMove(e) {
+    if (!npDragging) return;
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    const popup = document.getElementById('numpadPopup');
+    let x = clientX - npDragOffX;
+    let y = clientY - npDragOffY;
+    x = Math.max(0, Math.min(window.innerWidth  - popup.offsetWidth,  x));
+    y = Math.max(0, Math.min(window.innerHeight - popup.offsetHeight, y));
+    npPos.x = x; npPos.y = y;
+    popup.style.left = x + 'px';
+    popup.style.top  = y + 'px';
 }
 
-/* =========================
-   SYNC
-========================= */
-async function syncToCloud(){
-  const btn=document.getElementById('syncBtn');
-  btn.disabled=true;
-  btn.innerText="SYNCING...";
-
-  try{
-    await fetch(CLOUD_API,{
-      method:"POST",
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify(physCounts)
-    });
-    showToast("SYNCED");
-  }catch(e){
-    showToast("FAILED");
-  }
-
-  btn.disabled=false;
-  btn.innerText="☁️ SYNC";
+function dragEnd() {
+    npDragging = false;
+    document.removeEventListener('mousemove', dragMove);
+    document.removeEventListener('mouseup',   dragEnd);
+    document.removeEventListener('touchmove', dragMove);
+    document.removeEventListener('touchend',  dragEnd);
 }
 
-/* =========================
-   CLEAR
-========================= */
-function clearPhysicalCounts(){
-  if(confirm("Clear all physical data?")){
-    physCounts={};
-    localStorage.removeItem('c2c_phys_store');
-    render(db);
-  }
+function updateStockCell(id, qty, cost) {
+    const cell = document.querySelector(`[data-stock-id="${id}"]`);
+    if (!cell) return;
+    const total = qty * cost;
+    if (qty > 0) {
+        cell.innerHTML = `
+            <div class="stock-btn">
+                <div class="stock-qty">${qty % 1 === 0 ? qty : qty.toFixed(2)}</div>
+                <div class="stock-total has-value">AED ${total.toLocaleString('en',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
+                <div class="stock-tap-hint">tap to edit</div>
+            </div>`;
+    } else {
+        cell.innerHTML = `
+            <div class="stock-btn">
+                <div class="stock-qty empty">— tap —</div>
+            </div>`;
+    }
 }
 
-/* =========================
-   THEME
-========================= */
-function toggleTheme(){
-  const root=document.documentElement;
-  root.setAttribute(
-    "data-theme",
-    root.getAttribute("data-theme")==="dark"?"light":"dark"
-  );
+// ── SEARCH ──
+let currentSearch = '';
+document.getElementById('searchIn').addEventListener('input', e => {
+    currentSearch = e.target.value.toLowerCase().trim();
+    const terms = currentSearch.split(/\s+/);
+    const filtered = currentSearch
+        ? DEMO.filter(r => {
+            const t = `${r.id} ${r.desc} ${r.pack} ${r.cat} ${r.state} ${r.sup} ${r.brand}`.toLowerCase();
+            return terms.every(term => t.includes(term));
+          })
+        : DEMO;
+    render(filtered);
+    document.getElementById('resultCount').textContent = currentSearch ? `${filtered.length} / ${DEMO.length}` : `${DEMO.length} items`;
+});
+
+function render(data) {
+    document.getElementById('list').innerHTML = data.map(r => {
+        const qty = stockData[r.id];
+        const hasStock = qty !== undefined && qty > 0;
+        const total = hasStock ? qty * r.cost : 0;
+        const stockCellHtml = hasStock
+            ? `<div class="stock-btn">
+                <div class="stock-qty">${qty % 1 === 0 ? qty : qty.toFixed(2)}</div>
+                <div class="stock-total has-value">AED ${total.toLocaleString('en',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
+                <div class="stock-tap-hint">tap to edit</div>
+               </div>`
+            : `<div class="stock-btn"><div class="stock-qty empty">— tap —</div></div>`;
+
+        return `<tr>
+            <td style="color:#64748b;font-family:monospace;font-weight:700;font-size:11px;">${r.id}</td>
+            <td>
+                <div class="desc-name">${r.desc}</div>
+                ${r.cat ? `<span class="cat-pill">${r.cat}</span>` : ''}
+            </td>
+            <td class="stock-cell" data-stock-id="${r.id}" onclick="openCalc('${r.id}', event)">${stockCellHtml}</td>
+            <td style="color:var(--brand);font-weight:800;font-size:15px;">${r.cost.toFixed(2)}</td>
+            <td style="font-weight:700;">${r.um}</td>
+            <td>
+                <div class="pack-cell">
+                    <span class="pack-value">${r.pack}</span>
+                    ${r.state ? `<span class="state-pill">${r.state}</span>` : ''}
+                </div>
+            </td>
+            <td class="sup-cell">${r.sup}</td>
+            <td>
+                <span class="brand-pill">${r.brand}</span>
+                <span class="origin-pill">${r.origin}</span>
+            </td>
+        </tr>`;
+    }).join('');
 }
 
-/* =========================
-   TOAST
-========================= */
-function showToast(msg){
-  const t=document.getElementById('toast');
-  t.innerText=msg;
-  t.style.display="block";
-  setTimeout(()=>t.style.display="none",1500);
-}
+render(DEMO);
 </script>
-
 </body>
 </html>

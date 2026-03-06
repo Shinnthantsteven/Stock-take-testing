@@ -15,6 +15,35 @@
             --danger: #ef4444;
             --hl: #fbbf24;
         }
+        body.light {
+            --bg-color: #f1f5f9;
+            --text: #0f172a;
+            --glass-edge: rgba(0,0,0,0.08);
+        }
+        body.light .top-nav { border-bottom-color: rgba(0,0,0,0.1); }
+        body.light thead tr th { background: #e2e8f0; color: #64748b; border-color: rgba(0,0,0,0.08); }
+        body.light td { border-bottom-color: rgba(0,0,0,0.07); }
+        body.light tr:hover td { background: rgba(0,0,0,0.02); }
+        body.light .desc-name { color: #0f172a; }
+        body.light .sup-cell { color: #1e293b; }
+        body.light .loading-screen { background: #f1f5f9; }
+        body.light .loading-bar-wrap { background: rgba(0,0,0,0.08); }
+        body.light .loading-text { color: #94a3b8; }
+        body.light .stock-empty { border-color: rgba(0,0,0,0.15); background: rgba(0,0,0,0.02); }
+        body.light .stock-empty:hover { border-color: rgba(16,185,129,0.5); background: rgba(16,185,129,0.05); }
+        body.light .eq-input { background: rgba(0,0,0,0.04); border-color: rgba(0,0,0,0.12); color: rgba(0,0,0,0.4); }
+        body.light .eq-input:focus { background: rgba(251,191,36,0.08); }
+        body.light .numpad-popup { background: rgba(255,255,255,0.7); border-color: rgba(0,0,0,0.15); }
+        body.light .numpad-drag-bar { background: rgba(0,0,0,0.04); border-bottom-color: rgba(0,0,0,0.08); }
+        body.light .np-btn { background: rgba(0,0,0,0.07); border-color: rgba(0,0,0,0.1); color: #0f172a; }
+        body.light .np-btn:active { background: rgba(0,0,0,0.15); }
+        body.light .np-op { background: rgba(16,185,129,0.12); }
+        body.light .numpad-number { color: #0f172a; }
+        body.light .numpad-item-name { color: rgba(0,0,0,0.4); }
+        body.light .numpad-drag-dots span { background: rgba(0,0,0,0.2); }
+        body.light .portal-bar { border-color: rgba(0,0,0,0.2); }
+        body.light #searchIn { color: #0f172a; }
+        body.light #searchIn::placeholder { color: #0f172a; }
         *, *::before, *::after { box-sizing: border-box; }
         body, html {
             margin: 0; padding: 0;
@@ -195,6 +224,7 @@
     </a>
     <div style="display:flex;align-items:center;gap:12px;">
         <span id="syncBadge" class="sync-badge">● READY</span>
+        <button id="modeToggle" onclick="toggleMode()" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:var(--text);border-radius:20px;padding:4px 12px;font-size:11px;font-weight:800;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;">🌙 DARK</button>
         <div style="font-size:11px;font-weight:800;color:#64748b;">PHYSICAL STOCK MODULE</div>
     </div>
 </nav>
@@ -541,8 +571,20 @@ document.getElementById('searchIn').addEventListener('input', e => {
     }, 150);
 });
 
+// ── DARK / LIGHT MODE ──
+function toggleMode() {
+    const isLight = document.body.classList.toggle('light');
+    const btn = document.getElementById('modeToggle');
+    btn.textContent = isLight ? '☀️ LIGHT' : '🌙 DARK';
+    btn.style.background = isLight ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.08)';
+    btn.style.borderColor = isLight ? 'rgba(0,0,0,0.15)' : 'rgba(255,255,255,0.15)';
+    localStorage.setItem('c2c_mode', isLight ? 'light' : 'dark');
+}
+
 // ── BOOT ──
 window.addEventListener('load', () => {
+    // restore saved mode
+    if (localStorage.getItem('c2c_mode') === 'light') { document.body.classList.add('light'); const b=document.getElementById('modeToggle'); if(b){ b.textContent='☀️ LIGHT'; b.style.background='rgba(0,0,0,0.08)'; b.style.borderColor='rgba(0,0,0,0.15)'; } }
     let p=0;
     const bar=document.getElementById('loadBar'), txt=document.getElementById('loadTxt');
     const iv=setInterval(()=>{ p=Math.min(p+Math.random()*14,90); bar.style.width=p+'%'; },60);

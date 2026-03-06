@@ -260,49 +260,98 @@ function setSync(state, msg) {
     el.className = 'sync-badge' + (state==='ok' ? '' : ' '+state);
     el.textContent = msg;
 }
+// ── PERMANENT MEMORY: save all stock to localStorage on every change ──
+function saveLocal() {
+    try { localStorage.setItem('c2c_stock', JSON.stringify(stockData)); } catch(e){}
+}
+function loadLocal() {
+    try {
+        const s = localStorage.getItem('c2c_stock');
+        if (s) { const d=JSON.parse(s); Object.assign(stockData,d); Object.keys(d).forEach(k=>{if(!equationData[k])equationData[k]=String(d[k]);}); }
+    } catch(e){}
+}
+
+// ── RETRY QUEUE: if write fails, keep retrying every 3s until success ──
+let retryQ = {};
+function flushRetry() {
+    if (!Object.keys(retryQ).length) return;
+    const entries = Object.entries(retryQ);
+    Promise.all(entries.map(([u,q]) =>
+        fetch(SHEETS_URL, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({uid: u, qty: q})
+        }).then(r=>r.json())
+    )).then(res => {
+        res.forEach((d,i) => { if (d.ok) delete retryQ[entries[i][0]]; });
+        if (!Object.keys(retryQ).length) setSync('ok','● SYNCED');
+        else setSync('error','✕ RETRYING…');
+    }).catch(()=>setSync('error','✕ RETRYING…'));
+}
+setInterval(flushRetry, 3000);
+
 function syncToSheet(uid, qty) {
     setSync('syncing','⟳ SAVING');
+    // save locally immediately — permanent memory
+    saveLocal();
     syncQ[uid] = qty;
     clearTimeout(syncT);
     syncT = setTimeout(()=>{
         const entries = Object.entries(syncQ); syncQ = {};
         Promise.all(entries.map(([u,q]) =>
-            // ── FIX: cache-bust so write always reaches the server ──
-            fetch(SHEETS_URL+'?uid='+encodeURIComponent(u)+'&qty='+encodeURIComponent(q)+'&_t='+Date.now())
-                .then(r=>r.json())
+            fetch(SHEETS_URL, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({uid: u, qty: q})
+            }).then(r=>r.json())
         ))
         .then(res => {
-            const fail = res.find(d=>!d.ok);
-            if (fail) setSync('error','✕ '+(fail.error||'FAIL'));
+            res.forEach((d,i) => {
+                if (!d.ok) retryQ[entries[i][0]] = entries[i][1]; // queue failed writes for retry
+                else delete retryQ[entries[i][0]];
+            });
+            const anyFail = res.find(d=>!d.ok);
+            if (anyFail) setSync('error','✕ RETRYING…');
             else setSync('ok','● SYNCED');
         })
-        // ── FIX: show the actual error instead of silently swallowing it ──
-        .catch(err=>setSync('error','✕ '+(err.message||'NETWORK FAIL')));
+        .catch(()=>{
+            // network down — queue all for retry
+            entries.forEach(([u,q])=>retryQ[u]=q);
+            setSync('error','✕ RETRYING…');
+        });
     }, 200);
 }
 
 // ── POLL sheet → website every 5s ──
 function startPolling() {
     setInterval(()=>{
-        // ── FIX: cache-bust so every poll fetches fresh data from the sheet ──
-        fetch(SHEETS_URL+'?action=getAll&_t='+Date.now())
+        // ── FIX: POST bypasses Google CDN cache entirely — GET is cached even with _t= ──
+        fetch(SHEETS_URL, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({action: 'getAll'})
+        })
             .then(r=>r.json())
             .then(d=>{
                 if (!d.ok||!d.items) return;
                 let changed = false;
                 d.items.forEach(item=>{
                     const sq = parseFloat(item.stock)||0;
+                    // sheet is always source of truth — overwrite local
                     if (sq !== (stockData[item.id]||0)) {
                         stockData[item.id]    = sq;
                         equationData[item.id] = String(sq);
                         changed = true;
                     }
                 });
-                if (changed) { renderTable(); setSync('ok','● SYNCED'); }
+                if (changed) {
+                    saveLocal(); // persist sheet values to localStorage
+                    renderTable();
+                    setSync('ok','● SYNCED');
+                }
             })
-            // ── FIX: show poll errors in the badge ──
             .catch(err=>setSync('error','✕ POLL: '+(err.message||'FAIL')));
-    }, 5000);
+    }, 2500);
 }
 
 // ── MATH ──
@@ -434,8 +483,8 @@ function npDraw() {
     if (!np.val||np.val==='0'){pv.textContent=ex>0?'Current: '+ex+' '+np.um:'';return;}
     try {
         let nt;
-        if (/^[*\/]/.test(np.val)) nt=parseFloat(Function('return ('+ex+np.val+')')().toFixed(4));
-        else {const d=parseFloat(Function('return ('+np.val+')')().toFixed(4));nt=parseFloat((ex+d).toFixed(4));}
+        if (/^[+\-*\/]/.test(np.val)) nt=parseFloat(Function('return ('+ex+np.val+')')().toFixed(4));
+        else nt=parseFloat(Function('return ('+np.val+')')().toFixed(4));
         if (!isFinite(nt)){pv.textContent='?';return;}
         nt=Math.max(0,nt);
         const diff=parseFloat((nt-ex).toFixed(4));
@@ -459,15 +508,19 @@ function npConfirm() {
     const ex=stockData[np.id]||0,v=np.val;
     let nt;
     try {
-        if (/^[*\/]/.test(v)) nt=parseFloat(Function('return ('+ex+v+')')().toFixed(4));
-        else {const d=parseFloat(Function('return ('+v+')')().toFixed(4));nt=parseFloat((ex+d).toFixed(4));}
+        // if starts with operator (+5 -3 *2 /2) → apply to existing
+        // otherwise → SET as absolute new value
+        if (/^[+\-*\/]/.test(v)) {
+            nt=parseFloat(Function('return ('+ex+v+')')().toFixed(4));
+        } else {
+            nt=parseFloat(Function('return ('+v+')')().toFixed(4));
+        }
     } catch(e){nt=ex;}
     nt=Math.max(0,isFinite(nt)?nt:ex);
-    if (nt!==ex){
-        stockData[np.id]=nt; equationData[np.id]=String(nt);
-        if (navigator.vibrate) navigator.vibrate(35);
-        syncToSheet(np.id,nt); refreshCell(np.id);
-    }
+    // always save — even if same value, force sync so sheet stays in step
+    stockData[np.id]=nt; equationData[np.id]=String(nt);
+    if (navigator.vibrate) navigator.vibrate(35);
+    syncToSheet(np.id,nt); refreshCell(np.id);
     document.getElementById('numpadPopup').classList.remove('open');
     document.removeEventListener('click',npOut);
 }
@@ -515,24 +568,32 @@ window.addEventListener('load', ()=>{
         document.body.classList.add('light');
         document.getElementById('modeBtn').textContent='☀️ LIGHT';
     }
+
+    // ── PERMANENT MEMORY: load last-known stock instantly before sheet responds ──
+    loadLocal();
+
     let p=0;
     const bar=document.getElementById('loadBar'), txt=document.getElementById('loadTxt');
     const iv=setInterval(()=>{p=Math.min(p+Math.random()*14,90);bar.style.width=p+'%';},60);
 
-    // ── FIX: cache-bust the initial load fetch ──
-    fetch(SHEETS_URL+'?action=getAll&_t='+Date.now())
+    // ── POST bypasses Google CDN cache — sheet is always source of truth ──
+    fetch(SHEETS_URL, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({action: 'getAll'})
+    })
         .then(r=>r.json())
         .then(d=>{
             clearInterval(iv); bar.style.width='100%';
             if (!d.ok||!d.items) throw new Error(d.error||'No data');
             ITEMS = d.items;
+            // sheet is source of truth — overwrite local with sheet values
             ITEMS.forEach(item=>{
-                if (item.stock>0){
-                    stockData[item.id]=item.stock;
-                    equationData[item.id]=String(item.stock);
-                }
+                const sq = parseFloat(item.stock)||0;
+                stockData[item.id] = sq;
+                equationData[item.id] = String(sq);
             });
-            // show first 30
+            saveLocal(); // persist latest sheet values locally
             displayItems = ITEMS.slice(0, PAGE_SIZE);
             txt.textContent = ITEMS.length.toLocaleString()+' items loaded ✓';
             document.getElementById('barCount').textContent = PAGE_SIZE+' of '+ITEMS.length.toLocaleString();

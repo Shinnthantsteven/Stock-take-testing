@@ -240,11 +240,10 @@
 
 <script>
 const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbzL8oZN3Ab5xhX2SFB-KsQF6L60vFyVQZYIUHHXxnJNwIuK4GQoZ0cZmj0KIj3kn-KD/exec';
-const PAGE_SIZE  = 15; // items shown at one time
+const PAGE_SIZE  = 15;
 
 let ITEMS = [];
-const stockData    = {};
-const equationData = {};
+const stockData = {};    // id → current qty (number, sheet is source of truth)
 
 // ── MODE ──
 function toggleMode() {
@@ -253,122 +252,144 @@ function toggleMode() {
     localStorage.setItem('c2c_mode', light ? 'light' : 'dark');
 }
 
-// ── SYNC website → sheet ──
-let syncQ = {}, syncT = null;
+// ── BADGE ──
 function setSync(state, msg) {
     const el = document.getElementById('syncBadge');
-    el.className = 'sync-badge' + (state==='ok' ? '' : ' '+state);
+    el.className = 'sync-badge' + (state === 'ok' ? '' : ' ' + state);
     el.textContent = msg;
 }
-// ── PERMANENT MEMORY: save all stock to localStorage on every change ──
+
+// ── PERMANENT MEMORY ──
 function saveLocal() {
-    try { localStorage.setItem('c2c_stock', JSON.stringify(stockData)); } catch(e){}
+    try { localStorage.setItem('c2c_stock', JSON.stringify(stockData)); } catch(e) {}
 }
 function loadLocal() {
     try {
         const s = localStorage.getItem('c2c_stock');
-        if (s) { const d=JSON.parse(s); Object.assign(stockData,d); Object.keys(d).forEach(k=>{if(!equationData[k])equationData[k]=String(d[k]);}); }
-    } catch(e){}
+        if (s) Object.assign(stockData, JSON.parse(s));
+    } catch(e) {}
 }
 
-// ── RETRY QUEUE: if write fails, keep retrying every 3s until success ──
-let retryQ = {};
-function flushRetry() {
+// ── WRITE: website → sheet ──
+// Uses a queue so rapid taps batch into one request
+let writeQ = {}, writeTimer = null, retryQ = {};
+
+function writeToSheet(uid, qty) {
+    // update locally + save to localStorage immediately
+    stockData[uid] = qty;
+    saveLocal();
+    updateCellDisplay(uid);   // update display instantly — no flicker
+    setSync('syncing', '⟳ SAVING');
+    writeQ[uid] = qty;
+    clearTimeout(writeTimer);
+    writeTimer = setTimeout(flushWrites, 150);
+}
+
+function flushWrites() {
+    const entries = Object.entries(writeQ);
+    writeQ = {};
+    if (!entries.length) return;
+    Promise.all(entries.map(([u, q]) =>
+        fetch(SHEETS_URL + '?uid=' + encodeURIComponent(u) + '&qty=' + encodeURIComponent(q) + '&_t=' + Date.now() + Math.random(), {cache: 'no-store'})
+            .then(r => r.json())
+    )).then(results => {
+        results.forEach((d, i) => {
+            if (!d.ok) retryQ[entries[i][0]] = entries[i][1];
+            else delete retryQ[entries[i][0]];
+        });
+        if (Object.keys(retryQ).length) setSync('error', '✕ RETRYING…');
+        else setSync('ok', '● SYNCED');
+    }).catch(() => {
+        entries.forEach(([u, q]) => retryQ[u] = q);
+        setSync('error', '✕ RETRYING…');
+    });
+}
+
+// retry failed writes every 2s
+setInterval(() => {
     if (!Object.keys(retryQ).length) return;
     const entries = Object.entries(retryQ);
-    Promise.all(entries.map(([u,q]) =>
-        fetch(SHEETS_URL+'?uid='+encodeURIComponent(u)+'&qty='+encodeURIComponent(q)+'&_t='+Date.now()+Math.random(), {cache:'no-store'})
-            .then(r=>r.json())
-    )).then(res => {
-        res.forEach((d,i) => { if (d.ok) delete retryQ[entries[i][0]]; });
-        if (!Object.keys(retryQ).length) setSync('ok','● SYNCED');
-        else setSync('error','✕ RETRYING…');
-    }).catch(()=>setSync('error','✕ RETRYING…'));
-}
-setInterval(flushRetry, 3000);
+    Promise.all(entries.map(([u, q]) =>
+        fetch(SHEETS_URL + '?uid=' + encodeURIComponent(u) + '&qty=' + encodeURIComponent(q) + '&_t=' + Date.now() + Math.random(), {cache: 'no-store'})
+            .then(r => r.json())
+    )).then(results => {
+        results.forEach((d, i) => { if (d.ok) delete retryQ[entries[i][0]]; });
+        if (!Object.keys(retryQ).length) setSync('ok', '● SYNCED');
+    }).catch(() => {});
+}, 2000);
 
-function syncToSheet(uid, qty) {
-    setSync('syncing','⟳ SAVING');
-    // save locally immediately — permanent memory
-    saveLocal();
-    syncQ[uid] = qty;
-    clearTimeout(syncT);
-    syncT = setTimeout(()=>{
-        const entries = Object.entries(syncQ); syncQ = {};
-        Promise.all(entries.map(([u,q]) =>
-            fetch(SHEETS_URL+'?uid='+encodeURIComponent(u)+'&qty='+encodeURIComponent(q)+'&_t='+Date.now()+Math.random(), {cache:'no-store'})
-                .then(r=>r.json())
-        ))
-        .then(res => {
-            res.forEach((d,i) => {
-                if (!d.ok) retryQ[entries[i][0]] = entries[i][1]; // queue failed writes for retry
-                else delete retryQ[entries[i][0]];
-            });
-            const anyFail = res.find(d=>!d.ok);
-            if (anyFail) setSync('error','✕ RETRYING…');
-            else setSync('ok','● SYNCED');
-        })
-        .catch(()=>{
-            // network down — queue all for retry
-            entries.forEach(([u,q])=>retryQ[u]=q);
-            setSync('error','✕ RETRYING…');
-        });
-    }, 200);
-}
-
-// ── POLL sheet → website every 5s ──
+// ── READ POLL: sheet → website every 1.5s ──
+// CRITICAL: never rebuilds DOM — only updates text in existing elements
 function startPolling() {
-    setInterval(()=>{
-        // ── FIX: POST bypasses Google CDN cache entirely — GET is cached even with _t= ──
-        fetch(SHEETS_URL+'?action=getAll&_t='+Date.now()+Math.random(), {cache:'no-store'})
-            .then(r=>r.json())
-            .then(d=>{
-                if (!d.ok||!d.items) return;
-                let changed = false;
-                d.items.forEach(item=>{
-                    const sq = parseFloat(item.stock)||0;
-                    // sheet is always source of truth — overwrite local
-                    if (sq !== (stockData[item.id]||0)) {
-                        stockData[item.id]    = sq;
-                        equationData[item.id] = String(sq);
-                        changed = true;
+    setInterval(() => {
+        fetch(SHEETS_URL + '?action=getAll&_t=' + Date.now() + Math.random(), {cache: 'no-store'})
+            .then(r => r.json())
+            .then(d => {
+                if (!d.ok || !d.items) return;
+                let anyChange = false;
+                d.items.forEach(item => {
+                    const sheetQty = parseFloat(item.stock) || 0;
+                    const localQty = stockData[item.id] || 0;
+                    if (sheetQty !== localQty) {
+                        stockData[item.id] = sheetQty;
+                        updateCellDisplay(item.id);  // surgical update — no flicker
+                        anyChange = true;
                     }
                 });
-                if (changed) {
-                    saveLocal(); // persist sheet values to localStorage
-                    renderTable();
-                    setSync('ok','● SYNCED');
+                if (anyChange) {
+                    saveLocal();
+                    setSync('ok', '● SYNCED');
                 }
             })
-            .catch(err=>setSync('error','✕ POLL: '+(err.message||'FAIL')));
-    }, 2500);
+            .catch(() => {});
+    }, 1500);
 }
 
-// ── MATH ──
-function evalExpr(s) {
-    try {
-        const c=s.replace(/[^0-9.+\-*\/()]/g,'');
-        if (!c) return 0;
-        const r=Function('return ('+c+')')();
-        return parseFloat((isFinite(r)?r:0).toFixed(4));
-    } catch(e){return 0;}
+// ── DISPLAY: update ONE cell without touching anything else ──
+// This is the key to zero flicker — we never rebuild the table
+function updateCellDisplay(id) {
+    const sid = id.replace(/[^a-zA-Z0-9_-]/g, '_');
+    const qty = stockData[id] || 0;
+    const disp = qty % 1 === 0 ? qty : qty.toFixed(2);
+
+    const qtyEl  = document.getElementById('sqty-' + sid);
+    const eqEl   = document.getElementById('eq-' + sid);
+    const wrapEl = document.getElementById('swrap-' + sid);
+    const tdEl   = document.getElementById('std-' + sid);
+
+    if (!tdEl) return; // cell not currently rendered
+
+    if (qty > 0) {
+        if (qtyEl) {
+            // cell already showing a number — just update the text
+            qtyEl.textContent = disp;
+            if (eqEl && document.activeElement !== eqEl) eqEl.value = String(qty);
+        } else {
+            // was empty — build the stock cell
+            tdEl.innerHTML = stockCellHtml(id);
+        }
+    } else {
+        if (wrapEl) {
+            // was showing a number — reset to empty dashed box
+            tdEl.innerHTML = `<div class="stock-empty" onclick="openCalc('${id}')"></div>`;
+        }
+        // if already empty, do nothing
+    }
 }
 
-// ── RENDER — always max PAGE_SIZE rows ──
+// ── RENDER HELPERS ──
 let displayItems = [];
-
-function xe(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function xe(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
 function stockCellHtml(id) {
-    const qty = stockData[id]||0;
-    const sid = id.replace(/[^a-zA-Z0-9_-]/g,'_');
-    if (qty>0) {
-        const disp = qty%1===0?qty:qty.toFixed(2);
-        const eq   = equationData[id]||String(qty);
-        return `<div class="stock-wrap">
-            <span class="stock-qty" onclick="openCalc('${id}')">${disp}</span>
+    const qty = stockData[id] || 0;
+    const sid = id.replace(/[^a-zA-Z0-9_-]/g, '_');
+    if (qty > 0) {
+        const disp = qty % 1 === 0 ? qty : qty.toFixed(2);
+        return `<div class="stock-wrap" id="swrap-${sid}">
+            <span class="stock-qty" id="sqty-${sid}" onclick="openCalc('${id}')">${disp}</span>
             <div class="eq-wrap">
-                <input class="eq-input" id="eq-${sid}" type="text" value="${xe(eq)}"
+                <input class="eq-input" id="eq-${sid}" type="text" value="${xe(String(qty))}"
                     oninput="onEqIn('${id}','${sid}')"
                     onkeydown="onEqKd(event,'${id}','${sid}')"
                     onclick="event.stopPropagation()">
@@ -380,220 +401,192 @@ function stockCellHtml(id) {
 }
 
 function renderTable() {
-    document.getElementById('tbody').innerHTML = displayItems.map(r=>`<tr>
+    document.getElementById('tbody').innerHTML = displayItems.map(r => `<tr>
         <td class="cell-uid">${xe(r.id)}</td>
         <td>
             <div class="desc-name">${xe(r.desc)}</div>
             <div style="margin-top:2px;">
-                ${r.cat   ?`<span class="cat-pill">${xe(r.cat)}</span>`:''}
-                ${r.state ?`<span class="state-pill">${xe(r.state)}</span>`:''}
+                ${r.cat   ? `<span class="cat-pill">${xe(r.cat)}</span>` : ''}
+                ${r.state ? `<span class="state-pill">${xe(r.state)}</span>` : ''}
             </div>
         </td>
-        <td>${stockCellHtml(r.id)}</td>
-        <td class="cell-cost">${r.cost>0?r.cost.toFixed(2):'—'}</td>
+        <td id="std-${r.id.replace(/[^a-zA-Z0-9_-]/g,'_')}">${stockCellHtml(r.id)}</td>
+        <td class="cell-cost">${r.cost > 0 ? r.cost.toFixed(2) : '—'}</td>
         <td style="font-weight:700;font-size:11px;">${xe(r.um)}</td>
         <td class="cell-pack">${xe(r.pack)}</td>
         <td class="cell-sup">${xe(r.sup)}</td>
         <td>
-            ${r.brand  ?`<span class="brand-pill">${xe(r.brand)}</span>`:''}
-            ${r.origin ?`<span class="origin-pill">${xe(r.origin)}</span>`:''}
+            ${r.brand  ? `<span class="brand-pill">${xe(r.brand)}</span>` : ''}
+            ${r.origin ? `<span class="origin-pill">${xe(r.origin)}</span>` : ''}
         </td>
     </tr>`).join('');
 }
 
-function refreshCell(id) {
-    const sid = id.replace(/[^a-zA-Z0-9_-]/g,'_');
-    const inp = document.getElementById('eq-'+sid);
-    if (inp) {
-        const td = inp.closest('td');
-        if (td) td.innerHTML = stockCellHtml(id);
-    } else {
-        // find row by UID
-        const rows = document.querySelectorAll('#tbody tr');
-        for (const row of rows) {
-            if (row.cells[0]?.textContent.trim()===id) {
-                row.cells[2].innerHTML = stockCellHtml(id);
-                break;
-            }
-        }
+// ── EQUATION EDIT ──
+function onEqIn(id, sid) {
+    const inp = document.getElementById('eq-' + sid);
+    const btn = document.getElementById('eqok-' + sid);
+    if (!inp || !btn) return;
+    btn.classList.add('on');
+}
+function onEqKd(e, id, sid) {
+    if (e.key === 'Enter') { e.preventDefault(); confirmEq(id, sid); }
+    if (e.key === 'Escape') {
+        const inp = document.getElementById('eq-' + sid);
+        if (inp) inp.value = String(stockData[id] || 0);
+        document.getElementById('eqok-' + sid)?.classList.remove('on');
     }
 }
-
-// ── EQUATION EDIT ──
-function onEqIn(id,sid) {
-    const inp=document.getElementById('eq-'+sid), btn=document.getElementById('eqok-'+sid);
-    if (!inp||!btn) return;
-    btn.classList.add('on');
-    const v=evalExpr(inp.value);
-    const qe=inp.closest('.stock-wrap')?.querySelector('.stock-qty');
-    if (qe) qe.textContent=isNaN(v)?'?':(v%1===0?v:v.toFixed(2));
-}
-function onEqKd(e,id,sid) {
-    if (e.key==='Enter'){e.preventDefault();confirmEq(id,sid);}
-    if (e.key==='Escape'){const i=document.getElementById('eq-'+sid);if(i)i.value=equationData[id]||'';document.getElementById('eqok-'+sid)?.classList.remove('on');}
-}
-function confirmEq(id,sid) {
-    const inp=document.getElementById('eq-'+sid); if (!inp) return;
-    const clean=inp.value.replace(/[^0-9.+\-*\/()]/g,'');
-    inp.value=clean;
-    const v=evalExpr(clean);
-    equationData[id]=clean; stockData[id]=Math.max(0,v);
-    document.getElementById('eqok-'+sid)?.classList.remove('on');
-    inp.blur(); syncToSheet(id,stockData[id]); refreshCell(id);
+function confirmEq(id, sid) {
+    const inp = document.getElementById('eq-' + sid);
+    if (!inp) return;
+    const raw = inp.value.replace(/[^0-9.+\-*\/()]/g, '');
+    let qty;
+    try { qty = Math.max(0, parseFloat(Function('return (' + raw + ')')().toFixed(4))); }
+    catch(e) { qty = stockData[id] || 0; }
+    inp.value = String(qty);
+    document.getElementById('eqok-' + sid)?.classList.remove('on');
+    inp.blur();
+    writeToSheet(id, qty);
 }
 
 // ── NUMPAD ──
-let np={val:'0',id:null,um:''};
-let npDrg=false,npOX=0,npOY=0;
-let npPos={x:window.innerWidth-180,y:Math.round(window.innerHeight*0.28)};
+let np = {val: '0', id: null, um: ''};
+let npDrg = false, npOX = 0, npOY = 0;
+let npPos = {x: window.innerWidth - 180, y: Math.round(window.innerHeight * 0.28)};
 
 function openCalc(id) {
-    const item=ITEMS.find(r=>r.id===id); if (!item) return;
-    np.id=id; np.um=item.um; np.val='0';
-    const el=document.getElementById('numpadPopup');
-    el.style.left=npPos.x+'px'; el.style.top=npPos.y+'px';
-    document.getElementById('npName').textContent=item.desc;
-    const ex=stockData[id]||0;
-    document.getElementById('npExisting').innerHTML=ex>0?`Current: <span>${ex} ${item.um}</span>`:'';
-    npDraw(); el.classList.add('open');
-    setTimeout(()=>document.addEventListener('click',npOut),50);
+    const item = ITEMS.find(r => r.id === id);
+    if (!item) return;
+    np.id = id; np.um = item.um; np.val = '0';
+    const el = document.getElementById('numpadPopup');
+    el.style.left = npPos.x + 'px'; el.style.top = npPos.y + 'px';
+    document.getElementById('npName').textContent = item.desc;
+    const ex = stockData[id] || 0;
+    document.getElementById('npExisting').innerHTML = ex > 0 ? `Current: <span>${ex} ${item.um}</span>` : '';
+    npDraw();
+    el.classList.add('open');
+    setTimeout(() => document.addEventListener('click', npOut), 50);
 }
 function npOut(e) {
-    if (!document.getElementById('numpadPopup').contains(e.target)&&!e.target.closest('.stock-empty')&&!e.target.closest('.stock-qty')) {
+    if (!document.getElementById('numpadPopup').contains(e.target) &&
+        !e.target.closest('.stock-empty') && !e.target.closest('.stock-qty')) {
         document.getElementById('numpadPopup').classList.remove('open');
-        document.removeEventListener('click',npOut);
+        document.removeEventListener('click', npOut);
     }
 }
 function npDraw() {
-    const el=document.getElementById('npVal');
-    el.textContent=np.val;
-    el.className='np-val'+(np.val!=='0'?' on':'');
-    const pv=document.getElementById('npPreview');
-    const ex=stockData[np.id]||0;
-    if (!np.val||np.val==='0'){pv.textContent=ex>0?'Current: '+ex+' '+np.um:'';return;}
+    const el = document.getElementById('npVal');
+    el.textContent = np.val;
+    el.className = 'np-val' + (np.val !== '0' ? ' on' : '');
+    const pv = document.getElementById('npPreview');
+    const ex = stockData[np.id] || 0;
+    if (!np.val || np.val === '0') { pv.textContent = ex > 0 ? 'Current: ' + ex + ' ' + np.um : ''; return; }
     try {
         let nt;
-        if (/^[+\-*\/]/.test(np.val)) nt=parseFloat(Function('return ('+ex+np.val+')')().toFixed(4));
-        else nt=parseFloat(Function('return ('+np.val+')')().toFixed(4));
-        if (!isFinite(nt)){pv.textContent='?';return;}
-        nt=Math.max(0,nt);
-        const diff=parseFloat((nt-ex).toFixed(4));
-        pv.textContent=ex+(diff>=0?' +':' ')+diff+' = '+nt+' '+np.um;
-    } catch(e){pv.textContent='...';}
+        if (/^[+\-*\/]/.test(np.val)) nt = parseFloat(Function('return (' + ex + np.val + ')')().toFixed(4));
+        else nt = parseFloat(Function('return (' + np.val + ')')().toFixed(4));
+        if (!isFinite(nt)) { pv.textContent = '?'; return; }
+        nt = Math.max(0, nt);
+        const diff = parseFloat((nt - ex).toFixed(4));
+        pv.textContent = ex + (diff >= 0 ? ' +' : ' ') + diff + ' = ' + nt + ' ' + np.um;
+    } catch(e) { pv.textContent = '...'; }
 }
 function npKey(k) {
-    const ops=['+','-','*','/'];
-    if (k==='back'){np.val=np.val.length>1?np.val.slice(0,-1):'0';}
-    else if (ops.includes(k)){
-        if (np.val==='0'&&k==='-') np.val='-';
-        else if (ops.includes(np.val.slice(-1))) np.val=np.val.slice(0,-1)+k;
-        else np.val+=k;
-    } else if (k==='.'){
-        const parts=np.val.split(/[+\-*\/]/);
-        if (!parts[parts.length-1].includes('.')) np.val+='.';
-    } else {np.val=(np.val==='0')?k:np.val+k;}
+    const ops = ['+', '-', '*', '/'];
+    if (k === 'back') { np.val = np.val.length > 1 ? np.val.slice(0, -1) : '0'; }
+    else if (ops.includes(k)) {
+        if (np.val === '0' && k === '-') np.val = '-';
+        else if (ops.includes(np.val.slice(-1))) np.val = np.val.slice(0, -1) + k;
+        else np.val += k;
+    } else if (k === '.') {
+        const parts = np.val.split(/[+\-*\/]/);
+        if (!parts[parts.length - 1].includes('.')) np.val += '.';
+    } else { np.val = (np.val === '0') ? k : np.val + k; }
     npDraw();
 }
 function npConfirm() {
-    const ex=stockData[np.id]||0,v=np.val;
+    const ex = stockData[np.id] || 0, v = np.val;
     let nt;
     try {
-        // if starts with operator (+5 -3 *2 /2) → apply to existing
-        // otherwise → SET as absolute new value
-        if (/^[+\-*\/]/.test(v)) {
-            nt=parseFloat(Function('return ('+ex+v+')')().toFixed(4));
-        } else {
-            nt=parseFloat(Function('return ('+v+')')().toFixed(4));
-        }
-    } catch(e){nt=ex;}
-    nt=Math.max(0,isFinite(nt)?nt:ex);
-    // always save — even if same value, force sync so sheet stays in step
-    stockData[np.id]=nt; equationData[np.id]=String(nt);
+        if (/^[+\-*\/]/.test(v)) nt = parseFloat(Function('return (' + ex + v + ')')().toFixed(4));
+        else nt = parseFloat(Function('return (' + v + ')')().toFixed(4));
+    } catch(e) { nt = ex; }
+    nt = Math.max(0, isFinite(nt) ? nt : ex);
     if (navigator.vibrate) navigator.vibrate(35);
-    syncToSheet(np.id,nt); refreshCell(np.id);
+    writeToSheet(np.id, nt);
     document.getElementById('numpadPopup').classList.remove('open');
-    document.removeEventListener('click',npOut);
+    document.removeEventListener('click', npOut);
 }
-document.addEventListener('keydown',e=>{
-    if (e.key==='Enter'&&document.getElementById('numpadPopup').classList.contains('open')){e.preventDefault();npConfirm();}
+document.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && document.getElementById('numpadPopup').classList.contains('open')) {
+        e.preventDefault(); npConfirm();
+    }
 });
 
 // DRAG
-document.getElementById('npDrag').addEventListener('mousedown',dS);
-document.getElementById('npDrag').addEventListener('touchstart',dS,{passive:true});
-function dS(e){npDrg=true;const r=document.getElementById('numpadPopup').getBoundingClientRect();const cx=e.touches?e.touches[0].clientX:e.clientX,cy=e.touches?e.touches[0].clientY:e.clientY;npOX=cx-r.left;npOY=cy-r.top;document.addEventListener('mousemove',dM);document.addEventListener('mouseup',dE);document.addEventListener('touchmove',dM,{passive:true});document.addEventListener('touchend',dE);}
-function dM(e){if(!npDrg)return;const cx=e.touches?e.touches[0].clientX:e.clientX,cy=e.touches?e.touches[0].clientY:e.clientY;const el=document.getElementById('numpadPopup');const nx=Math.max(0,Math.min(window.innerWidth-el.offsetWidth,cx-npOX));const ny=Math.max(0,Math.min(window.innerHeight-el.offsetHeight,cy-npOY));npPos.x=nx;npPos.y=ny;el.style.left=nx+'px';el.style.top=ny+'px';}
-function dE(){npDrg=false;document.removeEventListener('mousemove',dM);document.removeEventListener('mouseup',dE);document.removeEventListener('touchmove',dM);document.removeEventListener('touchend',dE);}
+document.getElementById('npDrag').addEventListener('mousedown', dS);
+document.getElementById('npDrag').addEventListener('touchstart', dS, {passive: true});
+function dS(e) { npDrg=true; const r=document.getElementById('numpadPopup').getBoundingClientRect(); const cx=e.touches?e.touches[0].clientX:e.clientX,cy=e.touches?e.touches[0].clientY:e.clientY; npOX=cx-r.left; npOY=cy-r.top; document.addEventListener('mousemove',dM); document.addEventListener('mouseup',dE); document.addEventListener('touchmove',dM,{passive:true}); document.addEventListener('touchend',dE); }
+function dM(e) { if(!npDrg)return; const cx=e.touches?e.touches[0].clientX:e.clientX,cy=e.touches?e.touches[0].clientY:e.clientY; const el=document.getElementById('numpadPopup'); const nx=Math.max(0,Math.min(window.innerWidth-el.offsetWidth,cx-npOX)); const ny=Math.max(0,Math.min(window.innerHeight-el.offsetHeight,cy-npOY)); npPos.x=nx; npPos.y=ny; el.style.left=nx+'px'; el.style.top=ny+'px'; }
+function dE() { npDrg=false; document.removeEventListener('mousemove',dM); document.removeEventListener('mouseup',dE); document.removeEventListener('touchmove',dM); document.removeEventListener('touchend',dE); }
 
-// ── SEARCH — filter all items, show top 30 ──
+// ── SEARCH ──
 let sT;
-document.getElementById('searchIn').addEventListener('input', e=>{
+document.getElementById('searchIn').addEventListener('input', e => {
     clearTimeout(sT);
-    sT = setTimeout(()=>{
+    sT = setTimeout(() => {
         const q = e.target.value.toLowerCase().trim();
         const terms = q.split(/\s+/).filter(Boolean);
-        let filtered = q ? ITEMS.filter(r=>{
-            const t=(r.id+' '+r.desc+' '+r.sup+' '+r.cat+' '+r.brand+' '+r.origin+' '+(r.state||'')).toLowerCase();
-            return terms.every(w=>t.includes(w));
+        let filtered = q ? ITEMS.filter(r => {
+            const t = (r.id+' '+r.desc+' '+r.sup+' '+r.cat+' '+r.brand+' '+r.origin+' '+(r.state||'')).toLowerCase();
+            return terms.every(w => t.includes(w));
         }) : ITEMS;
-
         const total = filtered.length;
         displayItems = filtered.slice(0, PAGE_SIZE);
-
         document.getElementById('barCount').textContent = q
-            ? (total > PAGE_SIZE
-                ? `${PAGE_SIZE} of ${total.toLocaleString()}`
-                : total.toLocaleString()+' found')
+            ? (total > PAGE_SIZE ? `${PAGE_SIZE} of ${total.toLocaleString()}` : total.toLocaleString() + ' found')
             : `${PAGE_SIZE} of ${ITEMS.length.toLocaleString()}`;
-
         document.getElementById('tblWrap').scrollTop = 0;
         renderTable();
     }, 150);
 });
 
 // ── BOOT ──
-window.addEventListener('load', ()=>{
-    // restore mode
-    if (localStorage.getItem('c2c_mode')==='light'){
+window.addEventListener('load', () => {
+    if (localStorage.getItem('c2c_mode') === 'light') {
         document.body.classList.add('light');
-        document.getElementById('modeBtn').textContent='☀️ LIGHT';
+        document.getElementById('modeBtn').textContent = '☀️ LIGHT';
     }
+    loadLocal(); // show last-known stock instantly
 
-    // ── PERMANENT MEMORY: load last-known stock instantly before sheet responds ──
-    loadLocal();
+    let p = 0;
+    const bar = document.getElementById('loadBar'), txt = document.getElementById('loadTxt');
+    const iv = setInterval(() => { p = Math.min(p + Math.random() * 14, 90); bar.style.width = p + '%'; }, 60);
 
-    let p=0;
-    const bar=document.getElementById('loadBar'), txt=document.getElementById('loadTxt');
-    const iv=setInterval(()=>{p=Math.min(p+Math.random()*14,90);bar.style.width=p+'%';},60);
-
-    // ── GET with unique cache-bust — no CORS issues ──
-    fetch(SHEETS_URL+'?action=getAll&_t='+Date.now()+Math.random(), {cache:'no-store'})
-        .then(r=>r.json())
-        .then(d=>{
-            clearInterval(iv); bar.style.width='100%';
-            if (!d.ok||!d.items) throw new Error(d.error||'No data');
+    fetch(SHEETS_URL + '?action=getAll&_t=' + Date.now() + Math.random(), {cache: 'no-store'})
+        .then(r => r.json())
+        .then(d => {
+            clearInterval(iv); bar.style.width = '100%';
+            if (!d.ok || !d.items) throw new Error(d.error || 'No data');
             ITEMS = d.items;
-            // sheet is source of truth — overwrite local with sheet values
-            ITEMS.forEach(item=>{
-                const sq = parseFloat(item.stock)||0;
-                stockData[item.id] = sq;
-                equationData[item.id] = String(sq);
-            });
-            saveLocal(); // persist latest sheet values locally
+            // sheet is always source of truth
+            ITEMS.forEach(item => { stockData[item.id] = parseFloat(item.stock) || 0; });
+            saveLocal();
             displayItems = ITEMS.slice(0, PAGE_SIZE);
-            txt.textContent = ITEMS.length.toLocaleString()+' items loaded ✓';
-            document.getElementById('barCount').textContent = PAGE_SIZE+' of '+ITEMS.length.toLocaleString();
-            setSync('ok','● SYNCED');
-            setTimeout(()=>{
+            txt.textContent = ITEMS.length.toLocaleString() + ' items loaded ✓';
+            document.getElementById('barCount').textContent = PAGE_SIZE + ' of ' + ITEMS.length.toLocaleString();
+            setSync('ok', '● SYNCED');
+            setTimeout(() => {
                 renderTable();
-                document.getElementById('loadScreen').style.display='none';
+                document.getElementById('loadScreen').style.display = 'none';
                 startPolling();
             }, 300);
         })
-        .catch(err=>{
-            clearInterval(iv); bar.style.width='100%';
-            txt.textContent='✕ '+err.message;
-            setSync('error','✕ ERROR');
+        .catch(err => {
+            clearInterval(iv); bar.style.width = '100%';
+            txt.textContent = '✕ ' + err.message;
+            setSync('error', '✕ ERROR');
         });
 });
 </script>

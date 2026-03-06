@@ -267,7 +267,8 @@ function syncToSheet(uid, qty) {
     syncT = setTimeout(()=>{
         const entries = Object.entries(syncQ); syncQ = {};
         Promise.all(entries.map(([u,q]) =>
-            fetch(SHEETS_URL+'?uid='+encodeURIComponent(u)+'&qty='+encodeURIComponent(q))
+            // ── FIX: cache-bust so write always reaches the server ──
+            fetch(SHEETS_URL+'?uid='+encodeURIComponent(u)+'&qty='+encodeURIComponent(q)+'&_t='+Date.now())
                 .then(r=>r.json())
         ))
         .then(res => {
@@ -275,14 +276,16 @@ function syncToSheet(uid, qty) {
             if (fail) setSync('error','✕ '+(fail.error||'FAIL'));
             else setSync('ok','● SYNCED');
         })
-        .catch(()=>setSync('error','✕ FAIL'));
+        // ── FIX: show the actual error instead of silently swallowing it ──
+        .catch(err=>setSync('error','✕ '+(err.message||'NETWORK FAIL')));
     }, 200);
 }
 
 // ── POLL sheet → website every 5s ──
 function startPolling() {
     setInterval(()=>{
-        fetch(SHEETS_URL+'?action=getAll')
+        // ── FIX: cache-bust so every poll fetches fresh data from the sheet ──
+        fetch(SHEETS_URL+'?action=getAll&_t='+Date.now())
             .then(r=>r.json())
             .then(d=>{
                 if (!d.ok||!d.items) return;
@@ -297,7 +300,8 @@ function startPolling() {
                 });
                 if (changed) { renderTable(); setSync('ok','● SYNCED'); }
             })
-            .catch(()=>{});
+            // ── FIX: show poll errors in the badge ──
+            .catch(err=>setSync('error','✕ POLL: '+(err.message||'FAIL')));
     }, 5000);
 }
 
@@ -515,7 +519,8 @@ window.addEventListener('load', ()=>{
     const bar=document.getElementById('loadBar'), txt=document.getElementById('loadTxt');
     const iv=setInterval(()=>{p=Math.min(p+Math.random()*14,90);bar.style.width=p+'%';},60);
 
-    fetch(SHEETS_URL+'?action=getAll')
+    // ── FIX: cache-bust the initial load fetch ──
+    fetch(SHEETS_URL+'?action=getAll&_t='+Date.now())
         .then(r=>r.json())
         .then(d=>{
             clearInterval(iv); bar.style.width='100%';

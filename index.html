@@ -277,11 +277,8 @@ function flushRetry() {
     if (!Object.keys(retryQ).length) return;
     const entries = Object.entries(retryQ);
     Promise.all(entries.map(([u,q]) =>
-        fetch(SHEETS_URL, {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({uid: u, qty: q})
-        }).then(r=>r.json())
+        fetch(SHEETS_URL+'?uid='+encodeURIComponent(u)+'&qty='+encodeURIComponent(q)+'&_t='+Date.now()+Math.random(), {cache:'no-store'})
+            .then(r=>r.json())
     )).then(res => {
         res.forEach((d,i) => { if (d.ok) delete retryQ[entries[i][0]]; });
         if (!Object.keys(retryQ).length) setSync('ok','● SYNCED');
@@ -299,11 +296,8 @@ function syncToSheet(uid, qty) {
     syncT = setTimeout(()=>{
         const entries = Object.entries(syncQ); syncQ = {};
         Promise.all(entries.map(([u,q]) =>
-            fetch(SHEETS_URL, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({uid: u, qty: q})
-            }).then(r=>r.json())
+            fetch(SHEETS_URL+'?uid='+encodeURIComponent(u)+'&qty='+encodeURIComponent(q)+'&_t='+Date.now()+Math.random(), {cache:'no-store'})
+                .then(r=>r.json())
         ))
         .then(res => {
             res.forEach((d,i) => {
@@ -326,11 +320,7 @@ function syncToSheet(uid, qty) {
 function startPolling() {
     setInterval(()=>{
         // ── FIX: POST bypasses Google CDN cache entirely — GET is cached even with _t= ──
-        fetch(SHEETS_URL, {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({action: 'getAll'})
-        })
+        fetch(SHEETS_URL+'?action=getAll&_t='+Date.now()+Math.random(), {cache:'no-store'})
             .then(r=>r.json())
             .then(d=>{
                 if (!d.ok||!d.items) return;
@@ -576,12 +566,8 @@ window.addEventListener('load', ()=>{
     const bar=document.getElementById('loadBar'), txt=document.getElementById('loadTxt');
     const iv=setInterval(()=>{p=Math.min(p+Math.random()*14,90);bar.style.width=p+'%';},60);
 
-    // ── POST bypasses Google CDN cache — sheet is always source of truth ──
-    fetch(SHEETS_URL, {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({action: 'getAll'})
-    })
+    // ── GET with unique cache-bust — no CORS issues ──
+    fetch(SHEETS_URL+'?action=getAll&_t='+Date.now()+Math.random(), {cache:'no-store'})
         .then(r=>r.json())
         .then(d=>{
             clearInterval(iv); bar.style.width='100%';

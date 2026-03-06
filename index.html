@@ -7,157 +7,226 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --brand: #10b981; --brand-deep: #059669;
-            --bg-color: #020617; --text: #f1f5f9;
+            --brand: #10b981;
+            --brand-deep: #059669;
+            --bg-color: #020617;
+            --text: #f1f5f9;
             --glass-edge: rgba(255,255,255,0.12);
-            --danger: #ef4444; --hl: #fbbf24;
+            --danger: #ef4444;
+            --hl: #fbbf24;
         }
         *, *::before, *::after { box-sizing: border-box; }
-        body, html { margin:0; padding:0; font-family:'Plus Jakarta Sans',sans-serif; background:var(--bg-color); color:var(--text); height:100vh; overflow:hidden; }
+        body, html {
+            margin: 0; padding: 0;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: var(--bg-color); color: var(--text);
+            height: 100vh; overflow: hidden;
+        }
 
-        /* NAV */
-        .top-nav { padding:10px 24px; display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px solid rgba(255,255,255,0.18); position:sticky; top:0; z-index:2000; }
-        .logo-wrap { width:34px; height:34px; background:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; overflow:hidden; border:2px solid var(--brand); box-shadow:0 0 12px rgba(16,185,129,0.4); flex-shrink:0; }
-        .logo-wrap img { width:100%; height:100%; object-fit:cover; }
-        .logo-text { font-weight:800; font-size:17px; display:flex; align-items:center; gap:10px; text-decoration:none; color:inherit; }
-        .sync-status { font-size:10px; font-weight:800; padding:3px 10px; border-radius:20px; background:rgba(16,185,129,0.12); border:1px solid rgba(16,185,129,0.3); color:var(--brand); transition:all 0.3s; }
-        .sync-status.syncing { background:rgba(251,191,36,0.12); border-color:rgba(251,191,36,0.3); color:#fbbf24; }
-        .sync-status.error   { background:rgba(239,68,68,0.12);  border-color:rgba(239,68,68,0.3);  color:#ef4444; }
+        /* ── NAV ── */
+        .top-nav {
+            padding: 12px 32px;
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1.5px solid rgba(255,255,255,0.18);
+            position: sticky; top: 0; z-index: 2000;
+        }
+        .logo-wrap {
+            width: 38px; height: 38px; background: #fff; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            overflow: hidden; border: 2px solid var(--brand);
+            box-shadow: 0 0 12px rgba(16,185,129,0.4); flex-shrink: 0;
+        }
+        .logo-wrap img { width: 100%; height: 100%; object-fit: cover; }
+        .logo-text { font-weight: 800; font-size: 18px; display: flex; align-items: center; gap: 12px; text-decoration: none; color: inherit; letter-spacing: -0.5px; }
+        .sync-badge { font-size: 10px; font-weight: 800; padding: 3px 12px; border-radius: 20px; transition: all 0.3s; background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.3); color: var(--brand); }
+        .sync-badge.syncing { background: rgba(251,191,36,0.12); border-color: rgba(251,191,36,0.3); color: #fbbf24; }
+        .sync-badge.error   { background: rgba(239,68,68,0.12);  border-color: rgba(239,68,68,0.3);  color: #ef4444; }
 
-        /* VIRTUAL SCROLL CONTAINER */
-        .vs-wrap { position:relative; height:calc(100vh - 130px); overflow-y:auto; padding:0 24px; }
-        .vs-wrap::-webkit-scrollbar { width:4px; }
-        .vs-wrap::-webkit-scrollbar-track { background:transparent; }
-        .vs-wrap::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.12); border-radius:2px; }
+        /* ── LOADING ── */
+        .loading-screen { position: fixed; inset: 0; background: var(--bg-color); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; gap: 18px; }
+        .loading-bar-wrap { width: 280px; height: 3px; background: rgba(255,255,255,0.08); border-radius: 3px; overflow: hidden; }
+        .loading-bar { height: 100%; background: var(--brand); border-radius: 3px; width: 0%; transition: width 0.25s; }
+        .loading-text { font-size: 12px; font-weight: 700; color: #475569; }
 
-        /* sticky header inside scroll */
-        .tbl-header { position:sticky; top:0; z-index:100; display:grid; grid-template-columns: 90px 1fr 150px 60px 50px 80px 140px 130px; background:#0d1829; border-radius:12px; margin:8px 0 4px; border:1px solid rgba(255,255,255,0.08); }
-        .tbl-header div { padding:10px 10px; font-size:9px; color:#94a3b8; text-transform:uppercase; letter-spacing:1px; font-weight:800; }
+        /* ── TABLE CONTAINER ── */
+        .content-container {
+            overflow-y: auto;
+            padding: 0 32px 180px 32px;
+            height: calc(100vh - 70px);
+            mask-image: linear-gradient(to bottom, black 78%, rgba(0,0,0,0.15) 93%, rgba(0,0,0,0.08) 100%);
+            -webkit-mask-image: linear-gradient(to bottom, black 78%, rgba(0,0,0,0.15) 93%, rgba(0,0,0,0.08) 100%);
+        }
+        .content-container::-webkit-scrollbar { width: 3px; }
+        .content-container::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
 
-        /* Virtual spacer + rows container */
-        .vs-spacer-top { width:100%; }
-        .vs-rows { }
-        .vs-spacer-bot { width:100%; }
+        table { width: 100%; border-collapse: collapse; table-layout: fixed; }
 
-        /* ROW */
-        .tbl-row { display:grid; grid-template-columns:90px 1fr 150px 60px 50px 80px 140px 130px; border-bottom:1px solid var(--glass-edge); transition:background 0.12s; min-height:56px; align-items:center; }
-        .tbl-row:hover { background:rgba(255,255,255,0.02); }
-        .tbl-cell { padding:8px 10px; font-size:12px; overflow:hidden; text-overflow:ellipsis; }
-        .cell-uid  { color:#475569; font-family:monospace; font-size:10px; font-weight:700; }
-        .cell-desc { }
-        .desc-name { font-weight:700; font-size:13px; line-height:1.3; }
-        .cat-pill  { background:rgba(251,191,36,0.12); color:#fbbf24; padding:2px 6px; border-radius:20px; font-weight:800; font-size:9px; display:inline-block; border:1px solid rgba(251,191,36,0.3); margin-top:3px; }
-        .state-pill{ background:rgba(6,182,212,0.12);  color:#22d3ee; padding:2px 6px; border-radius:20px; font-weight:800; font-size:9px; display:inline-block; border:1px solid rgba(6,182,212,0.3); }
-        .brand-pill{ background:rgba(59,130,246,0.10); color:#60a5fa; padding:2px 6px; border-radius:20px; font-weight:800; font-size:9px; display:inline-block; border:1px solid rgba(59,130,246,0.25); }
-        .origin-pill{background:rgba(16,185,129,0.10); color:#10b981; padding:2px 6px; border-radius:20px; font-weight:800; font-size:9px; display:inline-block; border:1px solid rgba(16,185,129,0.25); }
-        .cell-cost { color:var(--brand); font-weight:800; font-size:14px; }
-        .cell-sup  { font-size:12px; font-weight:700; line-height:1.3; }
-        .cell-pack { color:#818cf8; font-weight:700; font-size:12px; }
+        thead tr th {
+            position: sticky; top: 8px;
+            background: #0d1829;
+            padding: 16px 12px;
+            text-align: left; font-size: 10px;
+            color: #94a3b8; text-transform: uppercase;
+            z-index: 50; letter-spacing: 1px;
+            border-top: 1px solid rgba(255,255,255,0.08);
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            border-left: none; border-right: none;
+        }
+        thead tr th:first-child { border-radius: 20px 0 0 20px; border-left: 1px solid rgba(255,255,255,0.08); padding-left: 22px; }
+        thead tr th:last-child  { border-radius: 0 20px 20px 0; border-right: 1px solid rgba(255,255,255,0.08); padding-right: 22px; }
 
-        /* STOCK CELL */
-        .stock-empty-box { display:inline-block; width:76px; height:30px; border:1.5px dashed rgba(255,255,255,0.15); border-radius:7px; background:rgba(255,255,255,0.03); cursor:pointer; transition:border-color 0.2s,background 0.2s; }
-        .stock-empty-box:hover { border-color:rgba(16,185,129,0.5); background:rgba(16,185,129,0.05); }
-        .stock-filled { display:flex; flex-direction:column; gap:3px; }
-        .stock-total-row { display:flex; align-items:center; gap:5px; }
-        .stock-qty { font-size:17px; font-weight:800; color:var(--brand); cursor:pointer; line-height:1; }
-        .stock-equation { font-size:10px; font-weight:700; color:rgba(255,255,255,0.3); background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:5px; padding:2px 5px; min-width:55px; max-width:130px; outline:none; font-family:monospace; caret-color:var(--brand); cursor:text; transition:border-color 0.2s,color 0.2s; white-space:nowrap; overflow:hidden; }
-        .stock-equation:focus { border-color:rgba(251,191,36,0.5); color:rgba(255,255,255,0.85); background:rgba(251,191,36,0.05); }
-        .eq-confirm { display:none; width:18px; height:18px; border-radius:50%; background:var(--brand); border:none; color:#fff; font-size:10px; font-weight:900; cursor:pointer; align-items:center; justify-content:center; box-shadow:0 2px 6px rgba(16,185,129,0.5); flex-shrink:0; }
-        .eq-confirm.visible { display:flex; }
+        th:nth-child(1) { width: 80px; }
+        th:nth-child(2) { width: 30%; }
+        th:nth-child(3) { width: 155px; }
+        th:nth-child(4) { width: 65px; }
+        th:nth-child(5) { width: 50px; }
+        th:nth-child(6) { width: 85px; }
+        th:nth-child(7) { width: 13%; }
+        th:nth-child(8) { width: 130px; }
 
-        /* NUMPAD */
-        .numpad-popup { position:fixed; z-index:9000; display:none; flex-direction:column; width:148px; border-radius:20px; background:rgba(255,255,255,0.08); backdrop-filter:blur(40px) saturate(200%); -webkit-backdrop-filter:blur(40px) saturate(200%); border:1px solid rgba(255,255,255,0.25); box-shadow:0 1px 0 rgba(255,255,255,0.35) inset,0 8px 32px rgba(0,0,0,0.25); overflow:hidden; animation:popIn 0.22s cubic-bezier(0.16,1,0.3,1); user-select:none; }
-        .numpad-popup.open { display:flex; }
-        @keyframes popIn { from{transform:scale(0.88);opacity:0} to{transform:scale(1);opacity:1} }
-        .numpad-popup::before { content:''; position:absolute; top:0; left:12%; right:12%; height:1px; background:linear-gradient(90deg,transparent,rgba(255,255,255,0.9) 40%,white 50%,rgba(255,255,255,0.9) 60%,transparent); pointer-events:none; z-index:10; }
-        .numpad-drag-bar { padding:7px 7px 6px 9px; cursor:grab; display:flex; align-items:center; justify-content:space-between; gap:4px; border-bottom:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.04); }
-        .numpad-drag-bar:active { cursor:grabbing; }
-        .numpad-drag-left { display:flex; align-items:center; gap:5px; flex:1; min-width:0; }
-        .numpad-drag-dots { display:grid; grid-template-columns:repeat(3,3px); gap:2px; flex-shrink:0; }
-        .numpad-drag-dots span { width:3px; height:3px; border-radius:50%; background:rgba(255,255,255,0.3); display:block; }
-        .numpad-item-name { font-size:9px; font-weight:800; color:rgba(255,255,255,0.5); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-        .numpad-confirm { width:24px; height:24px; border-radius:50%; background:var(--brand); border:none; color:#fff; font-size:12px; font-weight:900; cursor:pointer; flex-shrink:0; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 8px rgba(16,185,129,0.5); transition:transform 0.1s; -webkit-tap-highlight-color:transparent; }
-        .numpad-confirm:active { transform:scale(0.88); }
-        .numpad-mode-bar { padding:4px 9px 0; }
-        .numpad-mode-badge { font-size:8px; font-weight:800; letter-spacing:0.12em; text-transform:uppercase; padding:2px 7px; border-radius:20px; background:rgba(16,185,129,0.15); color:var(--brand); border:1px solid rgba(16,185,129,0.3); }
-        .numpad-existing { font-size:8px; font-weight:700; color:rgba(255,255,255,0.3); padding:2px 9px 0; text-align:right; }
-        .numpad-existing span { color:var(--brand); }
-        .numpad-display { padding:5px 10px 3px; text-align:right; }
-        .numpad-number { font-size:22px; font-weight:700; line-height:1; letter-spacing:-0.5px; color:rgba(255,255,255,0.95); transition:color 0.1s; word-break:break-all; }
-        .numpad-number.typing { color:#fff; text-shadow:0 0 20px rgba(16,185,129,0.6); }
-        .numpad-add-preview { font-size:8px; font-weight:700; color:rgba(251,191,36,0.8); text-align:right; min-height:11px; margin-top:1px; }
-        .numpad-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; padding:6px; }
-        .np-btn { border:1px solid rgba(255,255,255,0.08); background:rgba(255,255,255,0.1); border-radius:10px; height:38px; font-size:17px; font-weight:600; color:rgba(255,255,255,0.95); cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif; transition:background 0.12s,transform 0.08s; -webkit-tap-highlight-color:transparent; box-shadow:0 1px 0 rgba(255,255,255,0.15) inset; }
-        .np-btn:active { background:rgba(255,255,255,0.22); transform:scale(0.92); }
-        .np-btn.back  { color:rgba(255,255,255,0.5); font-size:15px; }
-        .np-btn.np-func { background:rgba(16,185,129,0.15); color:var(--brand); border-color:rgba(16,185,129,0.25); font-size:15px; font-weight:800; }
-        .np-btn.np-func:active { background:rgba(16,185,129,0.35); }
+        td {
+            padding: 12px 12px; border-bottom: 1px solid var(--glass-edge);
+            font-size: 13px; vertical-align: middle;
+            transition: background 0.15s; overflow: hidden; text-overflow: ellipsis;
+        }
+        tr:hover td { background: rgba(255,255,255,0.02); }
 
-        /* SEARCH BAR */
-        .portal-bar { position:fixed; bottom:24px; left:50%; transform:translateX(-50%); width:88%; max-width:1100px; border-radius:100px; background:transparent; border:1.5px solid rgba(255,255,255,0.28); display:flex; align-items:center; z-index:1000; transition:border-color 0.3s; }
-        .portal-bar::before { content:''; position:absolute; top:-1.5px; left:12%; right:12%; height:3px; background:linear-gradient(90deg,transparent,rgba(255,255,255,0.9) 40%,white 50%,rgba(255,255,255,0.9) 60%,transparent); border-radius:999px; pointer-events:none; z-index:10; }
-        .portal-bar:focus-within { border-color:rgba(16,185,129,0.6); }
+        .desc-name { font-weight: 700; font-size: 14px; line-height: 1.4; margin-bottom: 4px; }
+        .pack-cell { display: flex; flex-direction: column; gap: 4px; align-items: flex-start; }
+        .pack-value { color: #818cf8; font-weight: 700; }
+        .sup-cell { color: #e2e8f0; font-size: 13px; font-weight: 700; white-space: normal; line-height: 1.4; }
+
+        .cat-pill    { background: rgba(251,191,36,0.12);  color: #fbbf24; padding: 3px 8px; border-radius: 20px; font-weight: 800; font-size: 10px; display: inline-block; border: 1px solid rgba(251,191,36,0.3); }
+        .state-pill  { background: rgba(6,182,212,0.12);   color: #22d3ee; padding: 3px 8px; border-radius: 20px; font-weight: 800; font-size: 10px; display: inline-block; border: 1px solid rgba(6,182,212,0.3); }
+        .brand-pill  { background: rgba(59,130,246,0.10);  color: #60a5fa; padding: 3px 8px; border-radius: 20px; font-weight: 800; font-size: 10px; display: inline-block; border: 1px solid rgba(59,130,246,0.25); }
+        .origin-pill { background: rgba(16,185,129,0.10);  color: #10b981; padding: 3px 8px; border-radius: 20px; font-weight: 800; font-size: 10px; display: inline-block; border: 1px solid rgba(16,185,129,0.25); }
+
+        /* ── STOCK CELL ── */
+        .stock-empty {
+            display: inline-block; width: 78px; height: 32px;
+            border: 1.5px dashed rgba(255,255,255,0.14); border-radius: 8px;
+            background: rgba(255,255,255,0.02); cursor: pointer;
+            transition: border-color 0.2s, background 0.2s;
+        }
+        .stock-empty:hover { border-color: rgba(16,185,129,0.5); background: rgba(16,185,129,0.05); }
+        .stock-wrap { display: flex; flex-direction: column; gap: 4px; }
+        .stock-qty  { font-size: 18px; font-weight: 800; color: var(--brand); line-height: 1; cursor: pointer; display: inline-block; }
+        .eq-wrap    { display: flex; align-items: center; gap: 3px; }
+        .eq-input {
+            font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.3);
+            background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 6px; padding: 2px 6px; min-width: 55px; max-width: 120px;
+            outline: none; font-family: monospace; caret-color: var(--brand); cursor: text;
+            transition: border-color 0.2s, color 0.2s; white-space: nowrap; overflow: hidden;
+        }
+        .eq-input:focus { border-color: rgba(251,191,36,0.5); color: rgba(255,255,255,0.85); background: rgba(251,191,36,0.05); }
+        .eq-ok { display: none; width: 18px; height: 18px; border-radius: 50%; background: var(--brand); border: none; color: #fff; font-size: 10px; font-weight: 900; cursor: pointer; align-items: center; justify-content: center; box-shadow: 0 2px 6px rgba(16,185,129,0.4); flex-shrink: 0; }
+        .eq-ok.on { display: flex; }
+
+        /* ══ APPLE GLASS NUMPAD ══ */
+        .numpad-popup {
+            position: fixed; z-index: 9000; display: none; flex-direction: column;
+            width: 160px; border-radius: 22px;
+            background: rgba(255,255,255,0.08);
+            backdrop-filter: blur(40px) saturate(200%) brightness(1.1);
+            -webkit-backdrop-filter: blur(40px) saturate(200%) brightness(1.1);
+            border: 1px solid rgba(255,255,255,0.25);
+            box-shadow: 0 1px 0 rgba(255,255,255,0.35) inset, 0 8px 32px rgba(0,0,0,0.25), 0 2px 8px rgba(0,0,0,0.15);
+            overflow: hidden; animation: popIn 0.22s cubic-bezier(0.16,1,0.3,1); user-select: none;
+        }
+        .numpad-popup.open { display: flex; }
+        @keyframes popIn { from { transform: scale(0.88); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .numpad-popup::before { content: ''; position: absolute; top: 0; left: 12%; right: 12%; height: 1px; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.9) 40%, rgba(255,255,255,1) 50%, rgba(255,255,255,0.9) 60%, transparent); pointer-events: none; z-index: 10; }
+
+        .numpad-drag-bar { padding: 7px 7px 6px 9px; cursor: grab; display: flex; align-items: center; justify-content: space-between; gap: 4px; border-bottom: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.04); }
+        .numpad-drag-bar:active { cursor: grabbing; }
+        .numpad-drag-left { display: flex; align-items: center; gap: 5px; flex: 1; min-width: 0; }
+        .numpad-drag-dots { display: grid; grid-template-columns: repeat(3,3px); gap: 2px; flex-shrink: 0; }
+        .numpad-drag-dots span { width: 3px; height: 3px; border-radius: 50%; background: rgba(255,255,255,0.3); display: block; }
+        .numpad-item-name { font-size: 9px; font-weight: 800; color: rgba(255,255,255,0.5); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .numpad-confirm { width: 24px; height: 24px; border-radius: 50%; background: var(--brand); border: none; color: #fff; font-size: 12px; font-weight: 900; cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(16,185,129,0.5); transition: transform 0.1s; -webkit-tap-highlight-color: transparent; }
+        .numpad-confirm:active { transform: scale(0.88); }
+
+        .numpad-existing { font-size: 8px; font-weight: 700; color: rgba(255,255,255,0.3); padding: 3px 10px 0; text-align: right; }
+        .numpad-existing span { color: var(--brand); }
+        .numpad-display { padding: 5px 10px 2px; text-align: right; }
+        .numpad-number { font-size: 24px; font-weight: 700; line-height: 1; letter-spacing: -0.5px; color: rgba(255,255,255,0.95); word-break: break-all; transition: color 0.1s; }
+        .numpad-number.typing { color: #fff; text-shadow: 0 0 20px rgba(16,185,129,0.6); }
+        .numpad-add-preview { font-size: 8px; font-weight: 700; color: rgba(251,191,36,0.8); text-align: right; min-height: 11px; margin-top: 1px; padding: 0 10px 4px; }
+
+        .numpad-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; padding: 6px; }
+        .np-btn { border: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.1); border-radius: 10px; height: 36px; font-size: 15px; font-weight: 600; color: rgba(255,255,255,0.95); cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; transition: background 0.12s, transform 0.08s; -webkit-tap-highlight-color: transparent; box-shadow: 0 1px 0 rgba(255,255,255,0.15) inset; }
+        .np-btn:active { background: rgba(255,255,255,0.22); transform: scale(0.92); }
+        .np-op   { background: rgba(16,185,129,0.13); color: var(--brand); border-color: rgba(16,185,129,0.22); font-weight: 800; }
+        .np-op:active { background: rgba(16,185,129,0.28); }
+        .np-back { color: rgba(255,255,255,0.5); font-size: 13px; }
+
+        /* ── SEARCH BAR ── */
+        .portal-bar {
+            position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%);
+            width: 82%; max-width: 1060px; border-radius: 100px;
+            background: transparent; border: 1.5px solid rgba(255,255,255,0.28);
+            display: flex; align-items: center; z-index: 1000; transition: border-color 0.3s;
+        }
+        .portal-bar::before { content: ''; position: absolute; top: -1.5px; left: 12%; right: 12%; height: 3px; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.9) 40%, rgba(255,255,255,1.0) 50%, rgba(255,255,255,0.9) 60%, transparent); border-radius: 999px; pointer-events: none; z-index: 10; }
+        .portal-bar:focus-within { border-color: rgba(16,185,129,0.6); }
         .bar-search-wrap { flex:1; display:flex; align-items:center; gap:10px; padding:0 18px; }
         .bar-search-icon { font-size:15px; opacity:0.5; flex-shrink:0; }
-        #searchIn { background:transparent; border:none; color:var(--text); font-size:15px; font-weight:700; outline:none; flex:1; padding:16px 0; font-family:'Plus Jakarta Sans',sans-serif; }
+        #searchIn { background:transparent; border:none; color:var(--text); font-size:15px; font-weight:700; outline:none; flex:1; padding:18px 0; font-family:'Plus Jakarta Sans',sans-serif; }
         #searchIn::placeholder { color:var(--text); opacity:0.4; font-weight:600; }
         .bar-count { font-size:11px; font-weight:800; color:var(--brand); background:rgba(16,185,129,0.15); border:1px solid rgba(16,185,129,0.35); border-radius:50px; padding:4px 12px; white-space:nowrap; flex-shrink:0; }
-        .bar-exit-btn { background:var(--danger); border:none; color:white; padding:0 24px; height:52px; border-radius:0 100px 100px 0; font-weight:800; font-size:13px; cursor:pointer; flex-shrink:0; font-family:'Plus Jakarta Sans',sans-serif; transition:background 0.2s; }
+        .bar-exit-btn { background:var(--danger); border:none; color:white; padding:0 28px; height:56px; border-radius:0 100px 100px 0; font-weight:800; font-size:13px; cursor:pointer; flex-shrink:0; font-family:'Plus Jakarta Sans',sans-serif; transition:background 0.2s; box-shadow:0 1px 0 rgba(255,255,255,0.2) inset; }
         .bar-exit-btn:hover { background:#dc2626; }
-
-        /* loading */
-        .loading-screen { position:fixed; inset:0; background:var(--bg-color); display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:9999; gap:16px; }
-        .loading-bar-wrap { width:280px; height:4px; background:rgba(255,255,255,0.08); border-radius:4px; overflow:hidden; }
-        .loading-bar { height:100%; background:var(--brand); border-radius:4px; width:0%; transition:width 0.3s; }
-        .loading-text { font-size:13px; font-weight:700; color:#64748b; }
     </style>
 </head>
 <body>
 
 <!-- Loading -->
-<div class="loading-screen" id="loadingScreen">
-    <div style="font-size:22px;font-weight:800;">CHEF2CHEF <span style="color:var(--brand)">STOCK</span></div>
+<div class="loading-screen" id="loadScreen">
+    <div style="font-size:22px;font-weight:800;letter-spacing:-0.5px;">CHEF2CHEF <span style="color:var(--brand)">STOCK</span></div>
     <div class="loading-bar-wrap"><div class="loading-bar" id="loadBar"></div></div>
-    <div class="loading-text" id="loadText">Loading inventory…</div>
+    <div class="loading-text" id="loadTxt">Connecting to Google Sheet…</div>
 </div>
 
 <nav class="top-nav">
-    <a href="https://chef2chef.ae" target="_blank" class="logo-text" style="text-decoration:none;color:inherit;">
-        <div class="logo-wrap"><img src="https://raw.githubusercontent.com/Shinnthantsteven/Chef2Chef-Master-Code/main/logo.png" alt="Logo"></div>
+    <a href="https://chef2chef.ae" target="_blank" class="logo-text">
+        <div class="logo-wrap"><img src="https://raw.githubusercontent.com/Shinnthantsteven/Chef2Chef-Master-Code/main/logo.png" alt=""></div>
         CHEF2CHEF <span style="color:var(--brand)">STOCK</span>
     </a>
     <div style="display:flex;align-items:center;gap:12px;">
-        <span id="syncStatus" class="sync-status">● READY</span>
-        <div style="font-size:10px;font-weight:800;color:#64748b;">STOCK TAKE — 27.02.2026</div>
+        <span id="syncBadge" class="sync-badge">● READY</span>
+        <div style="font-size:11px;font-weight:800;color:#64748b;">PHYSICAL STOCK MODULE</div>
     </div>
 </nav>
 
-<div class="vs-wrap" id="vsWrap">
-    <div class="tbl-header">
-        <div>UID</div>
-        <div>Item Description</div>
-        <div>📦 Physical Stock</div>
-        <div>Cost</div>
-        <div>U/M</div>
-        <div>Pack</div>
-        <div>Supplier</div>
-        <div>Brand / Origin</div>
-    </div>
-    <div class="vs-spacer-top" id="spacerTop"></div>
-    <div class="vs-rows" id="vsRows"></div>
-    <div class="vs-spacer-bot" id="spacerBot"></div>
+<div class="content-container" id="tableWrap">
+    <table>
+        <thead>
+            <tr>
+                <th>UID</th>
+                <th>Item Description</th>
+                <th>📦 Physical Stock</th>
+                <th>Cost</th>
+                <th>U/M</th>
+                <th>Case Pack</th>
+                <th>Supplier</th>
+                <th>Brand / Origin</th>
+            </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+    </table>
 </div>
 
 <div class="portal-bar">
     <div class="bar-search-wrap">
         <span class="bar-search-icon">🔍</span>
-        <input type="text" id="searchIn" placeholder="Search by UID, description, supplier, category…">
-        <span class="bar-count" id="resultCount">—</span>
+        <input type="text" id="searchIn" placeholder="Search UID, description, supplier, category…">
+        <span class="bar-count" id="barCount">—</span>
     </div>
     <button class="bar-exit-btn" onclick="location.reload()">EXIT</button>
 </div>
 
-<!-- NUMPAD -->
+<!-- Numpad -->
 <div class="numpad-popup" id="numpadPopup">
     <div class="numpad-drag-bar" id="numpadDragBar">
         <div class="numpad-drag-left">
@@ -166,485 +235,336 @@
         </div>
         <button class="numpad-confirm" onclick="npConfirm()">✓</button>
     </div>
-    <div class="numpad-mode-bar"><span class="numpad-mode-badge">+ ADD STOCK</span></div>
     <div class="numpad-existing" id="numpadExisting"></div>
     <div class="numpad-display">
         <div class="numpad-number" id="numpadDisplay">0</div>
-        <div class="numpad-add-preview" id="numpadPreview"></div>
     </div>
+    <div class="numpad-add-preview" id="numpadPreview"></div>
     <div class="numpad-grid">
-        <button class="np-btn" onclick="npOp('7')">7</button>
-        <button class="np-btn" onclick="npOp('8')">8</button>
-        <button class="np-btn" onclick="npOp('9')">9</button>
-        <button class="np-btn np-func" onclick="npOp('+')">+</button>
-        <button class="np-btn" onclick="npOp('4')">4</button>
-        <button class="np-btn" onclick="npOp('5')">5</button>
-        <button class="np-btn" onclick="npOp('6')">6</button>
-        <button class="np-btn np-func" onclick="npOp('-')">−</button>
-        <button class="np-btn" onclick="npOp('1')">1</button>
-        <button class="np-btn" onclick="npOp('2')">2</button>
-        <button class="np-btn" onclick="npOp('3')">3</button>
-        <button class="np-btn np-func" onclick="npOp('*')">×</button>
-        <button class="np-btn" onclick="npOp('.')">.</button>
-        <button class="np-btn" onclick="npOp('0')">0</button>
-        <button class="np-btn back" onclick="npBack()">⌫</button>
-        <button class="np-btn np-func" onclick="npOp('/')">÷</button>
+        <button class="np-btn" onclick="npKey('7')">7</button>
+        <button class="np-btn" onclick="npKey('8')">8</button>
+        <button class="np-btn" onclick="npKey('9')">9</button>
+        <button class="np-btn np-op" onclick="npKey('+')">+</button>
+        <button class="np-btn" onclick="npKey('4')">4</button>
+        <button class="np-btn" onclick="npKey('5')">5</button>
+        <button class="np-btn" onclick="npKey('6')">6</button>
+        <button class="np-btn np-op" onclick="npKey('-')">−</button>
+        <button class="np-btn" onclick="npKey('1')">1</button>
+        <button class="np-btn" onclick="npKey('2')">2</button>
+        <button class="np-btn" onclick="npKey('3')">3</button>
+        <button class="np-btn np-op" onclick="npKey('*')">×</button>
+        <button class="np-btn" onclick="npKey('.')">.</button>
+        <button class="np-btn" onclick="npKey('0')">0</button>
+        <button class="np-btn np-back" onclick="npKey('back')">⌫</button>
+        <button class="np-btn np-op" onclick="npKey('/')">÷</button>
     </div>
 </div>
 
-
 <script>
-// ── CONFIG ──
-const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbybG-_0zT8zhT3_-HvO-hmx-0ynPIAWTUT5YbE9QILd3chRpMKu0gd6HO7mQYtqaWR_/exec';
+const SHEETS_URL = 'https://script.google.com/macros/s/AKfycby2j1CBY_lwxzlUqj2yxzRtlAGlH_tYWeQj-kqiMeQYK1GJnZZF301jyyRzCI49l5I5/exec';
 
-// ── STATE ──
-let ITEMS          = [];   // loaded from data.csv
-const stockData    = {};   // id → current total
-const equationData = {};   // id → equation string e.g. "5+3"
+let ITEMS = [];
+const stockData    = {};
+const equationData = {};
 
-// ── GOOGLE SHEETS SYNC ──
-function setSyncStatus(state, msg) {
-    const el = document.getElementById('syncStatus');
-    el.className = 'sync-status' + (state === 'ok' ? '' : ' ' + state);
+// ── SYNC ──
+let syncQ = {}, syncT = null;
+function setSync(state, msg) {
+    const el = document.getElementById('syncBadge');
+    el.className = 'sync-badge' + (state === 'ok' ? '' : ' ' + state);
     el.textContent = msg;
 }
-
-// Sync queue - batch rapid entries, fire after 600ms idle
-let syncQueue = {};
-let syncTimer = null;
-
-function syncToSheets(uid, qty) {
-    if (!SHEETS_URL) return;
-    // Instant UI feedback
-    setSyncStatus('ok', '⟳ SAVING');
-    // Queue this update - if more come in 600ms, batch them
-    syncQueue[uid] = qty;
-    clearTimeout(syncTimer);
-    syncTimer = setTimeout(flushSync, 600);
-}
-
-function flushSync() {
-    const entries = Object.entries(syncQueue);
-    syncQueue = {};
-    if (!entries.length) return;
-    // Fire all queued updates in parallel
-    const requests = entries.map(([uid, qty]) => {
-        const url = SHEETS_URL + '?uid=' + encodeURIComponent(uid) + '&qty=' + encodeURIComponent(qty);
-        return fetch(url).then(r => r.json());
-    });
-    Promise.all(requests)
-        .then(results => {
-            const failed = results.filter(d => !d.ok);
-            if (failed.length) setSyncStatus('error', '✕ ' + failed[0].error);
-            else setSyncStatus('ok', '● SYNCED');
+function syncToSheet(uid, qty) {
+    setSync('syncing', '⟳ SAVING');
+    syncQ[uid] = qty;
+    clearTimeout(syncT);
+    syncT = setTimeout(() => {
+        const entries = Object.entries(syncQ); syncQ = {};
+        Promise.all(entries.map(([u, q]) =>
+            fetch(SHEETS_URL + '?uid=' + encodeURIComponent(u) + '&qty=' + encodeURIComponent(q)).then(r => r.json())
+        ))
+        .then(res => {
+            const fail = res.find(d => !d.ok);
+            if (fail) setSync('error', '✕ ' + (fail.error || 'FAIL'));
+            else setSync('ok', '● SYNCED');
         })
-        .catch(() => setSyncStatus('error', '✕ SYNC FAIL'));
+        .catch(() => setSync('error', '✕ FAIL'));
+    }, 200);
 }
 
-// ── VIRTUAL SCROLL ──
-const ROW_H     = 58;   // px per row
-const OVERSCAN  = 10;   // extra rows above/below
-
-let allItems     = [];
-let filteredItems= [];
-let vsStart      = 0;
-let vsEnd        = 0;
-
-function initVS() {
-    allItems      = ITEMS;
-    filteredItems = allItems;
-    document.getElementById('resultCount').textContent = allItems.length.toLocaleString() + ' items';
-
-    const wrap = document.getElementById('vsWrap');
-    wrap.addEventListener('scroll', onScroll);
-    loadFromSheet();
-}
-
-function loadFromSheet() {
-    const txt = document.getElementById('loadText');
-    if (txt) txt.textContent = 'Syncing from Google Sheet...';
-    fetch(SHEETS_URL + '?action=getAll')
-        .then(r => r.json())
-        .then(d => {
-            if (d.ok && d.data) {
-                d.data.forEach(row => {
-                    if (row.uid && row.qty > 0) {
-                        stockData[row.uid]    = row.qty;
-                        equationData[row.uid] = String(row.qty);
+// ── SHEET → WEBSITE: poll every 5s ──
+function startPolling() {
+    setInterval(() => {
+        fetch(SHEETS_URL + '?action=getAll')
+            .then(r => r.json())
+            .then(d => {
+                if (!d.ok || !d.items) return;
+                let changed = false;
+                d.items.forEach(item => {
+                    const sq = parseFloat(item.stock) || 0;
+                    if (sq !== (stockData[item.id] || 0)) {
+                        stockData[item.id]    = sq;
+                        equationData[item.id] = String(sq);
+                        changed = true;
                     }
                 });
-                setSyncStatus('ok', '● SYNCED');
-            }
-        })
-        .catch(() => setSyncStatus('ok', '● READY'))
-        .finally(() => {
-            renderVS();
-            document.getElementById('loadingScreen').style.display = 'none';
-        });
+                if (changed) { renderTable(filteredItems); setSync('ok', '● SYNCED'); }
+            })
+            .catch(() => {});
+    }, 5000);
 }
 
-function onScroll() {
-    renderVS();
-}
-
-function renderVS() {
-    const wrap      = document.getElementById('vsWrap');
-    const scrollTop = wrap.scrollTop;
-    const viewH     = wrap.clientHeight;
-    const total     = filteredItems.length;
-
-    const startIdx  = Math.max(0, Math.floor(scrollTop / ROW_H) - OVERSCAN);
-    const endIdx    = Math.min(total, Math.ceil((scrollTop + viewH) / ROW_H) + OVERSCAN);
-
-    if (startIdx === vsStart && endIdx === vsEnd) return;
-    vsStart = startIdx; vsEnd = endIdx;
-
-    document.getElementById('spacerTop').style.height = (startIdx * ROW_H) + 'px';
-    document.getElementById('spacerBot').style.height = ((total - endIdx) * ROW_H) + 'px';
-
-    const rows = filteredItems.slice(startIdx, endIdx);
-    document.getElementById('vsRows').innerHTML = rows.map(r => buildRowHtml(r)).join('');
-}
-
-function buildRowHtml(r) {
-    const qty = stockData[r.id] || 0;
-    return `<div class="tbl-row">
-        <div class="tbl-cell cell-uid">${esc(r.id)}</div>
-        <div class="tbl-cell cell-desc">
-            <div class="desc-name">${esc(r.desc)}</div>
-            <div style="margin-top:3px;display:flex;gap:3px;flex-wrap:wrap;">
-                ${r.cat   ? `<span class="cat-pill">${esc(r.cat)}</span>` : ''}
-                ${r.state ? `<span class="state-pill">${esc(r.state)}</span>` : ''}
-            </div>
-        </div>
-        <div class="tbl-cell">${buildStockCellHtml(r.id, qty)}</div>
-        <div class="tbl-cell cell-cost">${r.cost > 0 ? r.cost.toFixed(2) : '—'}</div>
-        <div class="tbl-cell" style="font-weight:700;">${esc(r.um)}</div>
-        <div class="tbl-cell cell-pack">${esc(r.pack)}</div>
-        <div class="tbl-cell cell-sup">${esc(r.sup)}</div>
-        <div class="tbl-cell">
-            ${r.brand  ? `<span class="brand-pill">${esc(r.brand)}</span>` : ''}
-            ${r.origin ? `<span class="origin-pill">${esc(r.origin)}</span>` : ''}
-        </div>
-    </div>`;
-}
-
-function esc(s) {
-    if (!s) return '';
-    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
-function buildStockCellHtml(id, qty) {
-    const safeId = id.replace(/[^a-zA-Z0-9_-]/g, '_');
-    if (qty > 0) {
-        const display = qty % 1 === 0 ? qty : qty.toFixed(2);
-        const eq = equationData[id] || String(qty);
-        const inputId = 'eq-' + safeId;
-        const btnId   = 'eb-' + safeId;
-        return `<div class="stock-filled">
-            <div class="stock-total-row">
-                <span class="stock-qty" onclick="openCalc('${id}')">${display}</span>
-            </div>
-            <div style="display:flex;align-items:center;gap:3px;">
-                <input id="${inputId}" class="stock-equation" type="text" value="${esc(eq)}"
-                    title="Edit equation directly — press Enter to confirm"
-                    oninput="onEqInput('${id}','${safeId}')"
-                    onkeydown="onEqKey(event,'${id}','${safeId}')"
-                    onclick="event.stopPropagation()">
-                <button id="${btnId}" class="eq-confirm" onclick="confirmEq('${id}','${safeId}')" title="Apply">✓</button>
-            </div>
-        </div>`;
-    }
-    return `<div class="stock-empty-box" onclick="openCalc('${id}')"></div>`;
-}
-
-// ── EQUATION EDIT ──
-function parseEq(str) {
+// ── SAFE MATH ──
+function evalExpr(s) {
     try {
-        const clean = str.replace(/[^0-9.+\-*\/()]/g, '');
-        if (!clean) return 0;
-        const result = Function('return (' + clean + ')')();
-        return parseFloat((isFinite(result) ? result : 0).toFixed(4));
+        const c = s.replace(/[^0-9.+\-*\/()]/g, '');
+        if (!c) return 0;
+        const r = Function('return (' + c + ')')();
+        return parseFloat((isFinite(r) ? r : 0).toFixed(4));
     } catch(e) { return 0; }
 }
 
-function onEqInput(id, safeId) {
-    const inp = document.getElementById('eq-' + safeId);
-    const btn = document.getElementById('eb-' + safeId);
-    if (!inp || !btn) return;
-    btn.classList.add('visible');
-    const newQty = parseEq(inp.value);
-    const qtyEl = inp.closest('.stock-filled')?.querySelector('.stock-qty');
-    if (qtyEl) qtyEl.textContent = isNaN(newQty) ? '?' : (newQty % 1 === 0 ? newQty : newQty.toFixed(2));
+// ── RENDER ──
+let filteredItems = [];
+
+function stockCellHtml(id) {
+    const qty = stockData[id] || 0;
+    const sid = id.replace(/[^a-zA-Z0-9_-]/g, '_');
+    if (qty > 0) {
+        const disp = qty % 1 === 0 ? qty : qty.toFixed(2);
+        const eq   = equationData[id] || String(qty);
+        return `<div class="stock-wrap">
+            <span class="stock-qty" onclick="openCalc('${id}')">${disp}</span>
+            <div class="eq-wrap">
+                <input class="eq-input" id="eq-${sid}" type="text" value="${xe(eq)}"
+                    title="Edit — supports + − * /, Enter to confirm"
+                    oninput="onEqIn('${id}','${sid}')"
+                    onkeydown="onEqKd(event,'${id}','${sid}')"
+                    onclick="event.stopPropagation()">
+                <button class="eq-ok" id="eqok-${sid}" onclick="confirmEq('${id}','${sid}')">✓</button>
+            </div>
+        </div>`;
+    }
+    return `<div class="stock-empty" onclick="openCalc('${id}')"></div>`;
 }
 
-function onEqKey(e, id, safeId) {
-    if (e.key === 'Enter')  { e.preventDefault(); confirmEq(id, safeId); }
-    if (e.key === 'Escape') { const inp = document.getElementById('eq-'+safeId); if(inp){ inp.value = equationData[id]||''; } document.getElementById('eb-'+safeId)?.classList.remove('visible'); }
-}
+function xe(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
-function confirmEq(id, safeId) {
-    const inp = document.getElementById('eq-' + safeId);
-    const btn = document.getElementById('eb-' + safeId);
-    if (!inp) return;
-    const clean = inp.value.replace(/[^0-9.+]/g, '');
-    inp.value = clean;
-    equationData[id] = clean;
-    stockData[id]    = parseEq(clean);
-    btn?.classList.remove('visible');
-    inp.blur();
-    syncToSheets(id, stockData[id]);
-    refreshCell(id);
+function renderTable(data) {
+    document.getElementById('tbody').innerHTML = data.map(r => `<tr>
+        <td style="color:#64748b;font-family:monospace;font-weight:700;font-size:11px;">${xe(r.id)}</td>
+        <td>
+            <div class="desc-name">${xe(r.desc)}</div>
+            <div style="display:flex;gap:4px;flex-wrap:wrap;">
+                ${r.cat   ? `<span class="cat-pill">${xe(r.cat)}</span>` : ''}
+                ${r.state ? `<span class="state-pill">${xe(r.state)}</span>` : ''}
+            </div>
+        </td>
+        <td>${stockCellHtml(r.id)}</td>
+        <td style="color:var(--brand);font-weight:800;font-size:15px;">${r.cost > 0 ? r.cost.toFixed(2) : '—'}</td>
+        <td style="font-weight:700;">${xe(r.um)}</td>
+        <td>
+            <div class="pack-cell">
+                <span class="pack-value">${xe(r.pack)}</span>
+            </div>
+        </td>
+        <td class="sup-cell">${xe(r.sup)}</td>
+        <td>
+            ${r.brand  ? `<span class="brand-pill">${xe(r.brand)}</span> ` : ''}
+            ${r.origin ? `<span class="origin-pill">${xe(r.origin)}</span>` : ''}
+        </td>
+    </tr>`).join('');
 }
 
 function refreshCell(id) {
-    // find the row in rendered DOM and update its stock cell
-    const rows = document.querySelectorAll('.tbl-row');
-    for (const row of rows) {
-        const uidEl = row.querySelector('.cell-uid');
-        if (uidEl && uidEl.textContent.trim() === id) {
-            const stockCell = row.querySelectorAll('.tbl-cell')[2];
-            if (stockCell) stockCell.innerHTML = buildStockCellHtml(id, stockData[id] || 0);
+    const sid = id.replace(/[^a-zA-Z0-9_-]/g, '_');
+    const inp = document.getElementById('eq-' + sid);
+    if (inp) {
+        const td = inp.closest('td');
+        if (td) td.innerHTML = stockCellHtml(id);
+    } else {
+        // find by UID text — row may have empty cell
+        const rows = document.querySelectorAll('#tbody tr');
+        for (const row of rows) {
+            if (row.cells[0]?.textContent.trim() === id) {
+                row.cells[2].innerHTML = stockCellHtml(id);
+                break;
+            }
         }
     }
+}
+
+// ── EQUATION EDIT ──
+function onEqIn(id, sid) {
+    const inp = document.getElementById('eq-'+sid), btn = document.getElementById('eqok-'+sid);
+    if (!inp||!btn) return;
+    btn.classList.add('on');
+    const v = evalExpr(inp.value);
+    const qe = inp.closest('.stock-wrap')?.querySelector('.stock-qty');
+    if (qe) qe.textContent = isNaN(v) ? '?' : (v%1===0 ? v : v.toFixed(2));
+}
+function onEqKd(e, id, sid) {
+    if (e.key==='Enter')  { e.preventDefault(); confirmEq(id, sid); }
+    if (e.key==='Escape') { const i=document.getElementById('eq-'+sid); if(i) i.value=equationData[id]||''; document.getElementById('eqok-'+sid)?.classList.remove('on'); }
+}
+function confirmEq(id, sid) {
+    const inp = document.getElementById('eq-'+sid);
+    if (!inp) return;
+    const clean = inp.value.replace(/[^0-9.+\-*\/()]/g,'');
+    inp.value = clean;
+    const v = evalExpr(clean);
+    equationData[id] = clean;
+    stockData[id]    = Math.max(0, v);
+    document.getElementById('eqok-'+sid)?.classList.remove('on');
+    inp.blur();
+    syncToSheet(id, stockData[id]);
+    refreshCell(id);
 }
 
 // ── NUMPAD ──
-let np = { val:'0', itemId:null, um:'' };
-let npDragging=false, npDragOffX=0, npDragOffY=0;
-let npPos = { x: window.innerWidth-210, y: Math.round(window.innerHeight*0.35) };
+let np = { val:'0', id:null, um:'' };
+let npDrg=false, npOX=0, npOY=0;
+let npPos = { x: window.innerWidth-180, y: Math.round(window.innerHeight*0.3) };
 
-function openCalc(itemId) {
-    const item = ITEMS.find(r => r.id === itemId);
+function openCalc(id) {
+    const item = ITEMS.find(r=>r.id===id);
     if (!item) return;
-    np.itemId = itemId; np.um = item.um; np.val = '0';
-
-    const popup = document.getElementById('numpadPopup');
-    popup.style.left = npPos.x + 'px'; popup.style.top = npPos.y + 'px';
-
-    const existing = stockData[itemId] || 0;
+    np.id=id; np.um=item.um; np.val='0';
+    const el = document.getElementById('numpadPopup');
+    el.style.left=npPos.x+'px'; el.style.top=npPos.y+'px';
     document.getElementById('numpadItemName').textContent = item.desc;
-    document.getElementById('numpadExisting').innerHTML = existing > 0
-        ? `Stock: <span>${existing} ${item.um}</span>` : '';
-
-    npUpdateDisplay();
-    popup.classList.add('open');
-    setTimeout(() => document.addEventListener('click', npOutsideClick), 50);
+    const ex = stockData[id]||0;
+    document.getElementById('numpadExisting').innerHTML = ex>0 ? `Current: <span>${ex} ${item.um}</span>` : '';
+    npDraw();
+    el.classList.add('open');
+    setTimeout(()=>document.addEventListener('click', npOut), 50);
 }
-
-function npOutsideClick(e) {
-    const popup = document.getElementById('numpadPopup');
-    if (!popup.contains(e.target) && !e.target.closest('.stock-empty-box') && !e.target.closest('.stock-qty')) {
-        popup.classList.remove('open');
-        document.removeEventListener('click', npOutsideClick);
+function npOut(e) {
+    if (!document.getElementById('numpadPopup').contains(e.target) && !e.target.closest('.stock-empty') && !e.target.closest('.stock-qty')) {
+        document.getElementById('numpadPopup').classList.remove('open');
+        document.removeEventListener('click', npOut);
     }
 }
-
-function npUpdateDisplay() {
+function npDraw() {
     const el = document.getElementById('numpadDisplay');
     el.textContent = np.val;
-    const preview = document.getElementById('numpadPreview');
-    const existing = stockData[np.itemId] || 0;
-
-    // try to evaluate what user typed as a delta
-    // e.g. "5" → +5, "-5" → -5, "*2" → existing*2, "/2" → existing/2
-    const val = np.val;
-    if (!val || val === '0' || val === '-') { 
-        el.className = 'numpad-number';
-        preview.textContent = existing > 0 ? 'Current: ' + existing + ' ' + np.um : '';
-        return; 
-    }
-
-    el.className = 'numpad-number typing';
-    let newTotal;
+    el.className = 'numpad-number' + (np.val!=='0' ? ' typing' : '');
+    const pv = document.getElementById('numpadPreview');
+    const ex = stockData[np.id]||0;
+    if (!np.val||np.val==='0') { pv.textContent = ex>0 ? 'Current: '+ex+' '+np.um : ''; return; }
     try {
-        // if starts with operator like *2 or /2, apply to existing
-        if (/^[*\/]/.test(val)) {
-            newTotal = parseFloat(Function('return (' + existing + val + ')')().toFixed(4));
-        } else {
-            // treat as delta: existing + val  (val can be -5, +5, 5, 5*2, etc)
-            const delta = parseFloat(Function('return (' + val + ')')().toFixed(4));
-            newTotal = parseFloat((existing + delta).toFixed(4));
-        }
-    } catch(e) { 
-        preview.textContent = '...';
-        return; 
-    }
-
-    if (!isFinite(newTotal)) { preview.textContent = '?'; return; }
-    const diff = parseFloat((newTotal - existing).toFixed(4));
-    const sign = diff >= 0 ? '+' : '';
-    preview.textContent = existing + ' ' + sign + diff + ' = ' + newTotal + ' ' + np.um;
+        let nt;
+        if (/^[*\/]/.test(np.val)) nt = parseFloat(Function('return ('+ex+np.val+')')().toFixed(4));
+        else { const d=parseFloat(Function('return ('+np.val+')')().toFixed(4)); nt=parseFloat((ex+d).toFixed(4)); }
+        if (!isFinite(nt)) { pv.textContent='?'; return; }
+        nt = Math.max(0, nt);
+        const diff = parseFloat((nt-ex).toFixed(4));
+        pv.textContent = ex + (diff>=0?' +':' ') + diff + ' = ' + nt + ' ' + np.um;
+    } catch(e) { pv.textContent='...'; }
 }
-
-function npOp(c) {
-    const ops = ['+','-','*','/'];
-    const isOp = ops.includes(c);
-    if (np.val === '0') {
-        // allow leading minus, otherwise replace 0 with digit
-        np.val = (c === '-') ? '-' : (isOp ? '0' + c : c);
-    } else if (isOp && ops.includes(np.val.slice(-1))) {
-        // replace trailing operator
-        np.val = np.val.slice(0,-1) + c;
+function npKey(k) {
+    const ops=['+','-','*','/'];
+    if (k==='back') { np.val = np.val.length>1 ? np.val.slice(0,-1):'0'; }
+    else if (ops.includes(k)) {
+        if (np.val==='0'&&k==='-') np.val='-';
+        else if (ops.includes(np.val.slice(-1))) np.val=np.val.slice(0,-1)+k;
+        else np.val+=k;
+    } else if (k==='.') {
+        const parts=np.val.split(/[+\-*\/]/);
+        if (!parts[parts.length-1].includes('.')) np.val+='.';
     } else {
-        np.val += c;
+        np.val = (np.val==='0') ? k : np.val+k;
     }
-    npUpdateDisplay();
+    npDraw();
 }
-function npBack() { np.val = np.val.length>1 ? np.val.slice(0,-1):'0'; npUpdateDisplay(); }
-
 function npConfirm() {
-    const val = np.val;
-    const existing = stockData[np.itemId] || 0;
-    let newTotal;
+    const ex=stockData[np.id]||0, v=np.val;
+    let nt;
     try {
-        if (/^[*\/]/.test(val)) {
-            newTotal = parseFloat(Function('return (' + existing + val + ')')().toFixed(4));
-        } else {
-            const delta = parseFloat(Function('return (' + val + ')')().toFixed(4));
-            newTotal = parseFloat((existing + delta).toFixed(4));
-        }
-    } catch(e) { newTotal = existing; }
-
-    if (isFinite(newTotal) && newTotal !== existing) {
-        stockData[np.itemId] = Math.max(0, newTotal); // don't go below 0
-        // record in equation as final value
-        equationData[np.itemId] = String(stockData[np.itemId]);
-        if (navigator.vibrate) navigator.vibrate(40);
-        syncToSheets(np.itemId, stockData[np.itemId]);
-        refreshCell(np.itemId);
+        if (/^[*\/]/.test(v)) nt=parseFloat(Function('return ('+ex+v+')')().toFixed(4));
+        else { const d=parseFloat(Function('return ('+v+')')().toFixed(4)); nt=parseFloat((ex+d).toFixed(4)); }
+    } catch(e) { nt=ex; }
+    nt = Math.max(0, isFinite(nt)?nt:ex);
+    if (nt!==ex) {
+        stockData[np.id]=nt; equationData[np.id]=String(nt);
+        if (navigator.vibrate) navigator.vibrate(35);
+        syncToSheet(np.id, nt);
+        refreshCell(np.id);
     }
     document.getElementById('numpadPopup').classList.remove('open');
-    document.removeEventListener('click', npOutsideClick);
+    document.removeEventListener('click', npOut);
 }
-
-// Enter key confirms numpad
 document.addEventListener('keydown', e => {
-    if (e.key==='Enter' && document.getElementById('numpadPopup').classList.contains('open')) {
-        e.preventDefault(); npConfirm();
-    }
+    if (e.key==='Enter' && document.getElementById('numpadPopup').classList.contains('open')) { e.preventDefault(); npConfirm(); }
 });
 
 // ── DRAG ──
-const dragBar = document.getElementById('numpadDragBar');
-dragBar.addEventListener('mousedown', dragStart);
-dragBar.addEventListener('touchstart', dragStart, { passive:true });
-
-function dragStart(e) {
-    npDragging=true;
-    const popup = document.getElementById('numpadPopup');
-    const rect = popup.getBoundingClientRect();
-    const cx = e.touches?e.touches[0].clientX:e.clientX;
-    const cy = e.touches?e.touches[0].clientY:e.clientY;
-    npDragOffX=cx-rect.left; npDragOffY=cy-rect.top;
-    document.addEventListener('mousemove',dragMove);
-    document.addEventListener('mouseup',dragEnd);
-    document.addEventListener('touchmove',dragMove,{passive:true});
-    document.addEventListener('touchend',dragEnd);
+document.getElementById('numpadDragBar').addEventListener('mousedown', dS);
+document.getElementById('numpadDragBar').addEventListener('touchstart', dS, {passive:true});
+function dS(e) {
+    npDrg=true;
+    const r=document.getElementById('numpadPopup').getBoundingClientRect();
+    const cx=e.touches?e.touches[0].clientX:e.clientX, cy=e.touches?e.touches[0].clientY:e.clientY;
+    npOX=cx-r.left; npOY=cy-r.top;
+    document.addEventListener('mousemove',dM); document.addEventListener('mouseup',dE);
+    document.addEventListener('touchmove',dM,{passive:true}); document.addEventListener('touchend',dE);
 }
-function dragMove(e) {
-    if (!npDragging) return;
-    const cx=e.touches?e.touches[0].clientX:e.clientX;
-    const cy=e.touches?e.touches[0].clientY:e.clientY;
-    const popup=document.getElementById('numpadPopup');
-    let x=Math.max(0,Math.min(window.innerWidth-popup.offsetWidth,cx-npDragOffX));
-    let y=Math.max(0,Math.min(window.innerHeight-popup.offsetHeight,cy-npDragOffY));
-    npPos.x=x; npPos.y=y;
-    popup.style.left=x+'px'; popup.style.top=y+'px';
+function dM(e) {
+    if (!npDrg) return;
+    const cx=e.touches?e.touches[0].clientX:e.clientX, cy=e.touches?e.touches[0].clientY:e.clientY;
+    const el=document.getElementById('numpadPopup');
+    const nx=Math.max(0,Math.min(window.innerWidth-el.offsetWidth,cx-npOX));
+    const ny=Math.max(0,Math.min(window.innerHeight-el.offsetHeight,cy-npOY));
+    npPos.x=nx; npPos.y=ny; el.style.left=nx+'px'; el.style.top=ny+'px';
 }
-function dragEnd() {
-    npDragging=false;
-    document.removeEventListener('mousemove',dragMove); document.removeEventListener('mouseup',dragEnd);
-    document.removeEventListener('touchmove',dragMove); document.removeEventListener('touchend',dragEnd);
+function dE() {
+    npDrg=false;
+    document.removeEventListener('mousemove',dM); document.removeEventListener('mouseup',dE);
+    document.removeEventListener('touchmove',dM); document.removeEventListener('touchend',dE);
 }
 
 // ── SEARCH ──
-let searchTimer;
+let sT;
 document.getElementById('searchIn').addEventListener('input', e => {
-    clearTimeout(searchTimer);
-    searchTimer = setTimeout(() => {
-        const q = e.target.value.toLowerCase().trim();
-        const terms = q.split(/\s+/).filter(Boolean);
-        filteredItems = q
-            ? ITEMS.filter(r => {
-                const t = `${r.id} ${r.desc} ${r.sup} ${r.cat} ${r.brand} ${r.origin} ${r.state}`.toLowerCase();
-                return terms.every(term => t.includes(term));
-              })
-            : ITEMS;
-        document.getElementById('resultCount').textContent = q
-            ? `${filteredItems.length.toLocaleString()} / ${ITEMS.length.toLocaleString()}`
-            : ITEMS.length.toLocaleString() + ' items';
-        vsStart=-1; vsEnd=-1;
-        document.getElementById('vsWrap').scrollTop=0;
-        renderVS();
-    }, 180);
+    clearTimeout(sT);
+    sT = setTimeout(() => {
+        const q=e.target.value.toLowerCase().trim();
+        const terms=q.split(/\s+/).filter(Boolean);
+        filteredItems = q ? ITEMS.filter(r => {
+            const t=(r.id+' '+r.desc+' '+r.sup+' '+r.cat+' '+r.brand+' '+r.origin+' '+r.state).toLowerCase();
+            return terms.every(w=>t.includes(w));
+        }) : ITEMS;
+        document.getElementById('barCount').textContent = q
+            ? filteredItems.length.toLocaleString()+' / '+ITEMS.length.toLocaleString()
+            : ITEMS.length.toLocaleString()+' items';
+        renderTable(filteredItems);
+    }, 150);
 });
 
 // ── BOOT ──
 window.addEventListener('load', () => {
-    let p = 0;
-    const bar = document.getElementById('loadBar');
-    const txt = document.getElementById('loadText');
-    const iv = setInterval(() => {
-        p = Math.min(p + Math.random() * 12, 88);
-        bar.style.width = p + '%';
-    }, 60);
-
-    txt.textContent = 'Loading inventory...';
-
-    fetch('data.csv')
-        .then(r => r.text())
-        .then(csvText => {
-            ITEMS = parseCSV(csvText);
-            clearInterval(iv);
-            bar.style.width = '100%';
-            txt.textContent = ITEMS.length.toLocaleString() + ' items loaded';
-            setTimeout(initVS, 250);
+    let p=0;
+    const bar=document.getElementById('loadBar'), txt=document.getElementById('loadTxt');
+    const iv=setInterval(()=>{ p=Math.min(p+Math.random()*14,90); bar.style.width=p+'%'; },60);
+    fetch(SHEETS_URL+'?action=getAll')
+        .then(r=>r.json())
+        .then(d=>{
+            clearInterval(iv); bar.style.width='100%';
+            if (!d.ok||!d.items) throw new Error(d.error||'No data');
+            ITEMS = d.items;
+            ITEMS.forEach(item=>{ if(item.stock>0){ stockData[item.id]=item.stock; equationData[item.id]=String(item.stock); } });
+            filteredItems = ITEMS;
+            txt.textContent = ITEMS.length.toLocaleString()+' items loaded ✓';
+            setSync('ok','● SYNCED');
+            setTimeout(()=>{
+                renderTable(ITEMS);
+                document.getElementById('barCount').textContent = ITEMS.length.toLocaleString()+' items';
+                document.getElementById('loadScreen').style.display='none';
+                startPolling();
+            }, 300);
         })
-        .catch(err => {
-            clearInterval(iv);
-            txt.textContent = 'Error loading data.csv — ' + err.message;
-            console.error(err);
-        });
+        .catch(err=>{ clearInterval(iv); bar.style.width='100%'; txt.textContent='✕ '+err.message; setSync('error','✕ ERROR'); });
 });
-
-// Parse CSV into ITEMS array
-function parseCSV(text) {
-    const lines = text.split(/\r?\n/);
-    // headers: Item, Description, Cost, Base U/M, Preferred Supplier, Case Packing, Brand, Origin, Cat 2, State
-    const items = [];
-    for (let i = 1; i < lines.length; i++) {
-        const cols = splitCSVLine(lines[i]);
-        if (!cols[0] || !cols[0].trim()) continue;
-        const cost = parseFloat(cols[2]) || 0;
-        items.push({
-            id:     cols[0].trim(),
-            desc:   cols[1] ? cols[1].trim() : '',
-            cost:   cost,
-            um:     cols[3] ? cols[3].trim() : '',
-            sup:    cols[4] ? cols[4].trim() : '',
-            pack:   cols[5] ? cols[5].trim() : '',
-            brand:  cols[6] ? cols[6].trim() : '',
-            origin: cols[7] ? cols[7].trim() : '',
-            cat:    cols[8] ? cols[8].trim() : '',
-            state:  cols[9] ? cols[9].trim() : '',
-        });
-    }
-    return items;
-}
-
-function splitCSVLine(line) {
-    const result = [];
-    let cur = '', inQ = false;
-    for (let i = 0; i < line.length; i++) {
-        const c = line[i];
-        if (c === '"') { inQ = !inQ; }
-        else if (c === ',' && !inQ) { result.push(cur); cur = ''; }
-        else { cur += c; }
-    }
-    result.push(cur);
-    return result;
-}
 </script>
 </body>
 </html>

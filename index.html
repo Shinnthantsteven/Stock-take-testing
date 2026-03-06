@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Chef2Chef | Stock Engine</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --brand: #10b981; --brand-deep: #059669;
+            --bg-color: #020617; --text: #f1f5f9;
+            --glass-edge: rgba(255,255,255,0.12);
+            --danger: #ef4444; --hl: #fbbf24;
+        }
+        *, *::before, *::after { box-sizing: border-box; }
+        body, html { margin:0; padding:0; font-family:'Plus Jakarta Sans',sans-serif; background:var(--bg-color); color:var(--text); height:100vh; overflow:hidden; }
+
+        /* NAV */
+        .top-nav { padding:10px 24px; display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px solid rgba(255,255,255,0.18); position:sticky; top:0; z-index:2000; }
+        .logo-wrap { width:34px; height:34px; background:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; overflow:hidden; border:2px solid var(--brand); box-shadow:0 0 12px rgba(16,185,129,0.4); flex-shrink:0; }
+        .logo-wrap img { width:100%; height:100%; object-fit:cover; }
+        .logo-text { font-weight:800; font-size:17px; display:flex; align-items:center; gap:10px; text-decoration:none; color:inherit; }
+        .sync-status { font-size:10px; font-weight:800; padding:3px 10px; border-radius:20px; background:rgba(16,185,129,0.12); border:1px solid rgba(16,185,129,0.3); color:var(--brand); transition:all 0.3s; }
+        .sync-status.syncing { background:rgba(251,191,36,0.12); border-color:rgba(251,191,36,0.3); color:#fbbf24; }
+        .sync-status.error   { background:rgba(239,68,68,0.12);  border-color:rgba(239,68,68,0.3);  color:#ef4444; }
+
+        /* VIRTUAL SCROLL CONTAINER */
+        .vs-wrap { position:relative; height:calc(100vh - 130px); overflow-y:auto; padding:0 24px; }
+        .vs-wrap::-webkit-scrollbar { width:4px; }
+        .vs-wrap::-webkit-scrollbar-track { background:transparent; }
+        .vs-wrap::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.12); border-radius:2px; }
+
+        /* sticky header inside scroll */
+        .tbl-header { position:sticky; top:0; z-index:100; display:grid; grid-template-columns: 90px 1fr 150px 60px 50px 80px 140px 130px; background:#0d1829; border-radius:12px; margin:8px 0 4px; border:1px solid rgba(255,255,255,0.08); }
+        .tbl-header div { padding:10px 10px; font-size:9px; color:#94a3b8; text-transform:uppercase; letter-spacing:1px; font-weight:800; }
+
+        /* Virtual spacer + rows container */
+        .vs-spacer-top { width:100%; }
+        .vs-rows { }
+        .vs-spacer-bot { width:100%; }
+
+        /* ROW */
+        .tbl-row { display:grid; grid-template-columns:90px 1fr 150px 60px 50px 80px 140px 130px; border-bottom:1px solid var(--glass-edge); transition:background 0.12s; min-height:56px; align-items:center; }
+        .tbl-row:hover { background:rgba(255,255,255,0.02); }
+        .tbl-cell { padding:8px 10px; font-size:12px; overflow:hidden; text-overflow:ellipsis; }
+        .cell-uid  { color:#475569; font-family:monospace; font-size:10px; font-weight:700; }
+        .cell-desc { }
+        .desc-name { font-weight:700; font-size:13px; line-height:1.3; }
+        .cat-pill  { background:rgba(251,191,36,0.12); color:#fbbf24; padding:2px 6px; border-radius:20px; font-weight:800; font-size:9px; display:inline-block; border:1px solid rgba(251,191,36,0.3); margin-top:3px; }
+        .state-pill{ background:rgba(6,182,212,0.12);  color:#22d3ee; padding:2px 6px; border-radius:20px; font-weight:800; font-size:9px; display:inline-block; border:1px solid rgba(6,182,212,0.3); }
+        .brand-pill{ background:rgba(59,130,246,0.10); color:#60a5fa; padding:2px 6px; border-radius:20px; font-weight:800; font-size:9px; display:inline-block; border:1px solid rgba(59,130,246,0.25); }
+        .origin-pill{background:rgba(16,185,129,0.10); color:#10b981; padding:2px 6px; border-radius:20px; font-weight:800; font-size:9px; display:inline-block; border:1px solid rgba(16,185,129,0.25); }
+        .cell-cost { color:var(--brand); font-weight:800; font-size:14px; }
+        .cell-sup  { font-size:12px; font-weight:700; line-height:1.3; }
+        .cell-pack { color:#818cf8; font-weight:700; font-size:12px; }
+
+        /* STOCK CELL */
+        .stock-empty-box { display:inline-block; width:76px; height:30px; border:1.5px dashed rgba(255,255,255,0.15); border-radius:7px; background:rgba(255,255,255,0.03); cursor:pointer; transition:border-color 0.2s,background 0.2s; }
+        .stock-empty-box:hover { border-color:rgba(16,185,129,0.5); background:rgba(16,185,129,0.05); }
+        .stock-filled { display:flex; flex-direction:column; gap:3px; }
+        .stock-total-row { display:flex; align-items:center; gap:5px; }
+        .stock-qty { font-size:17px; font-weight:800; color:var(--brand); cursor:pointer; line-height:1; }
+        .stock-equation { font-size:10px; font-weight:700; color:rgba(255,255,255,0.3); background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:5px; padding:2px 5px; min-width:55px; max-width:130px; outline:none; font-family:monospace; caret-color:var(--brand); cursor:text; transition:border-color 0.2s,color 0.2s; white-space:nowrap; overflow:hidden; }
+        .stock-equation:focus { border-color:rgba(251,191,36,0.5); color:rgba(255,255,255,0.85); background:rgba(251,191,36,0.05); }
+        .eq-confirm { display:none; width:18px; height:18px; border-radius:50%; background:var(--brand); border:none; color:#fff; font-size:10px; font-weight:900; cursor:pointer; align-items:center; justify-content:center; box-shadow:0 2px 6px rgba(16,185,129,0.5); flex-shrink:0; }
+        .eq-confirm.visible { display:flex; }
+
+        /* NUMPAD */
+        .numpad-popup { position:fixed; z-index:9000; display:none; flex-direction:column; width:148px; border-radius:20px; background:rgba(255,255,255,0.08); backdrop-filter:blur(40px) saturate(200%); -webkit-backdrop-filter:blur(40px) saturate(200%); border:1px solid rgba(255,255,255,0.25); box-shadow:0 1px 0 rgba(255,255,255,0.35) inset,0 8px 32px rgba(0,0,0,0.25); overflow:hidden; animation:popIn 0.22s cubic-bezier(0.16,1,0.3,1); user-select:none; }
+        .numpad-popup.open { display:flex; }
+        @keyframes popIn { from{transform:scale(0.88);opacity:0} to{transform:scale(1);opacity:1} }
+        .numpad-popup::before { content:''; position:absolute; top:0; left:12%; right:12%; height:1px; background:linear-gradient(90deg,transparent,rgba(255,255,255,0.9) 40%,white 50%,rgba(255,255,255,0.9) 60%,transparent); pointer-events:none; z-index:10; }
+        .numpad-drag-bar { padding:7px 7px 6px 9px; cursor:grab; display:flex; align-items:center; justify-content:space-between; gap:4px; border-bottom:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.04); }
+        .numpad-drag-bar:active { cursor:grabbing; }
+        .numpad-drag-left { display:flex; align-items:center; gap:5px; flex:1; min-width:0; }
+        .numpad-drag-dots { display:grid; grid-template-columns:repeat(3,3px); gap:2px; flex-shrink:0; }
+        .numpad-drag-dots span { width:3px; height:3px; border-radius:50%; background:rgba(255,255,255,0.3); display:block; }
+        .numpad-item-name { font-size:9px; font-weight:800; color:rgba(255,255,255,0.5); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .numpad-confirm { width:24px; height:24px; border-radius:50%; background:var(--brand); border:none; color:#fff; font-size:12px; font-weight:900; cursor:pointer; flex-shrink:0; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 8px rgba(16,185,129,0.5); transition:transform 0.1s; -webkit-tap-highlight-color:transparent; }
+        .numpad-confirm:active { transform:scale(0.88); }
+        .numpad-mode-bar { padding:4px 9px 0; }
+        .numpad-mode-badge { font-size:8px; font-weight:800; letter-spacing:0.12em; text-transform:uppercase; padding:2px 7px; border-radius:20px; background:rgba(16,185,129,0.15); color:var(--brand); border:1px solid rgba(16,185,129,0.3); }
+        .numpad-existing { font-size:8px; font-weight:700; color:rgba(255,255,255,0.3); padding:2px 9px 0; text-align:right; }
+        .numpad-existing span { color:var(--brand); }
+        .numpad-display { padding:5px 10px 3px; text-align:right; }
+        .numpad-number { font-size:22px; font-weight:700; line-height:1; letter-spacing:-0.5px; color:rgba(255,255,255,0.95); transition:color 0.1s; word-break:break-all; }
+        .numpad-number.typing { color:#fff; text-shadow:0 0 20px rgba(16,185,129,0.6); }
+        .numpad-add-preview { font-size:8px; font-weight:700; color:rgba(251,191,36,0.8); text-align:right; min-height:11px; margin-top:1px; }
+        .numpad-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; padding:6px; }
+        .np-btn { border:1px solid rgba(255,255,255,0.08); background:rgba(255,255,255,0.1); border-radius:10px; height:38px; font-size:17px; font-weight:600; color:rgba(255,255,255,0.95); cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif; transition:background 0.12s,transform 0.08s; -webkit-tap-highlight-color:transparent; box-shadow:0 1px 0 rgba(255,255,255,0.15) inset; }
+        .np-btn:active { background:rgba(255,255,255,0.22); transform:scale(0.92); }
+        .np-btn.back  { color:rgba(255,255,255,0.5); font-size:15px; }
+        .np-btn.np-func { background:rgba(16,185,129,0.15); color:var(--brand); border-color:rgba(16,185,129,0.25); font-size:15px; font-weight:800; }
+        .np-btn.np-func:active { background:rgba(16,185,129,0.35); }
+
+        /* SEARCH BAR */
+        .portal-bar { position:fixed; bottom:24px; left:50%; transform:translateX(-50%); width:88%; max-width:1100px; border-radius:100px; background:transparent; border:1.5px solid rgba(255,255,255,0.28); display:flex; align-items:center; z-index:1000; transition:border-color 0.3s; }
+        .portal-bar::before { content:''; position:absolute; top:-1.5px; left:12%; right:12%; height:3px; background:linear-gradient(90deg,transparent,rgba(255,255,255,0.9) 40%,white 50%,rgba(255,255,255,0.9) 60%,transparent); border-radius:999px; pointer-events:none; z-index:10; }
+        .portal-bar:focus-within { border-color:rgba(16,185,129,0.6); }
+        .bar-search-wrap { flex:1; display:flex; align-items:center; gap:10px; padding:0 18px; }
+        .bar-search-icon { font-size:15px; opacity:0.5; flex-shrink:0; }
+        #searchIn { background:transparent; border:none; color:var(--text); font-size:15px; font-weight:700; outline:none; flex:1; padding:16px 0; font-family:'Plus Jakarta Sans',sans-serif; }
+        #searchIn::placeholder { color:var(--text); opacity:0.4; font-weight:600; }
+        .bar-count { font-size:11px; font-weight:800; color:var(--brand); background:rgba(16,185,129,0.15); border:1px solid rgba(16,185,129,0.35); border-radius:50px; padding:4px 12px; white-space:nowrap; flex-shrink:0; }
+        .bar-exit-btn { background:var(--danger); border:none; color:white; padding:0 24px; height:52px; border-radius:0 100px 100px 0; font-weight:800; font-size:13px; cursor:pointer; flex-shrink:0; font-family:'Plus Jakarta Sans',sans-serif; transition:background 0.2s; }
+        .bar-exit-btn:hover { background:#dc2626; }
+
+        /* loading */
+        .loading-screen { position:fixed; inset:0; background:var(--bg-color); display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:9999; gap:16px; }
+        .loading-bar-wrap { width:280px; height:4px; background:rgba(255,255,255,0.08); border-radius:4px; overflow:hidden; }
+        .loading-bar { height:100%; background:var(--brand); border-radius:4px; width:0%; transition:width 0.3s; }
+        .loading-text { font-size:13px; font-weight:700; color:#64748b; }
+    </style>
+</head>
+<body>
+
+<!-- Loading -->
+<div class="loading-screen" id="loadingScreen">
+    <div style="font-size:22px;font-weight:800;">CHEF2CHEF <span style="color:var(--brand)">STOCK</span></div>
+    <div class="loading-bar-wrap"><div class="loading-bar" id="loadBar"></div></div>
+    <div class="loading-text" id="loadText">Loading inventory…</div>
+</div>
+
+<nav class="top-nav">
+    <a href="https://chef2chef.ae" target="_blank" class="logo-text" style="text-decoration:none;color:inherit;">
+        <div class="logo-wrap"><img src="https://raw.githubusercontent.com/Shinnthantsteven/Chef2Chef-Master-Code/main/logo.png" alt="Logo"></div>
+        CHEF2CHEF <span style="color:var(--brand)">STOCK</span>
+    </a>
+    <div style="display:flex;align-items:center;gap:12px;">
+        <span id="syncStatus" class="sync-status">● READY</span>
+        <div style="font-size:10px;font-weight:800;color:#64748b;">STOCK TAKE — 27.02.2026</div>
+    </div>
+</nav>
+
+<div class="vs-wrap" id="vsWrap">
+    <div class="tbl-header">
+        <div>UID</div>
+        <div>Item Description</div>
+        <div>📦 Physical Stock</div>
+        <div>Cost</div>
+        <div>U/M</div>
+        <div>Pack</div>
+        <div>Supplier</div>
+        <div>Brand / Origin</div>
+    </div>
+    <div class="vs-spacer-top" id="spacerTop"></div>
+    <div class="vs-rows" id="vsRows"></div>
+    <div class="vs-spacer-bot" id="spacerBot"></div>
+</div>
+
+<div class="portal-bar">
+    <div class="bar-search-wrap">
+        <span class="bar-search-icon">🔍</span>
+        <input type="text" id="searchIn" placeholder="Search by UID, description, supplier, category…">
+        <span class="bar-count" id="resultCount">—</span>
+    </div>
+    <button class="bar-exit-btn" onclick="location.reload()">EXIT</button>
+</div>
+
+<!-- NUMPAD -->
+<div class="numpad-popup" id="numpadPopup">
+    <div class="numpad-drag-bar" id="numpadDragBar">
+        <div class="numpad-drag-left">
+            <div class="numpad-drag-dots"><span></span><span></span><span></span><span></span><span></span><span></span></div>
+            <div class="numpad-item-name" id="numpadItemName">—</div>
+        </div>
+        <button class="numpad-confirm" onclick="npConfirm()">✓</button>
+    </div>
+    <div class="numpad-mode-bar"><span class="numpad-mode-badge">+ ADD STOCK</span></div>
+    <div class="numpad-existing" id="numpadExisting"></div>
+    <div class="numpad-display">
+        <div class="numpad-number" id="numpadDisplay">0</div>
+        <div class="numpad-add-preview" id="numpadPreview"></div>
+    </div>
+    <div class="numpad-grid">
+        <button class="np-btn" onclick="npOp('7')">7</button>
+        <button class="np-btn" onclick="npOp('8')">8</button>
+        <button class="np-btn" onclick="npOp('9')">9</button>
+        <button class="np-btn np-func" onclick="npOp('+')">+</button>
+        <button class="np-btn" onclick="npOp('4')">4</button>
+        <button class="np-btn" onclick="npOp('5')">5</button>
+        <button class="np-btn" onclick="npOp('6')">6</button>
+        <button class="np-btn np-func" onclick="npOp('-')">−</button>
+        <button class="np-btn" onclick="npOp('1')">1</button>
+        <button class="np-btn" onclick="npOp('2')">2</button>
+        <button class="np-btn" onclick="npOp('3')">3</button>
+        <button class="np-btn np-func" onclick="npOp('*')">×</button>
+        <button class="np-btn" onclick="npOp('.')">.</button>
+        <button class="np-btn" onclick="npOp('0')">0</button>
+        <button class="np-btn back" onclick="npBack()">⌫</button>
+        <button class="np-btn np-func" onclick="npOp('/')">÷</button>
+    </div>
+</div>
+
+
+<script>
+// ── CONFIG ──
+const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbybG-_0zT8zhT3_-HvO-hmx-0ynPIAWTUT5YbE9QILd3chRpMKu0gd6HO7mQYtqaWR_/exec';
+
+// ── STATE ──
+let ITEMS          = [];   // loaded from data.csv
+const stockData    = {};   // id → current total
+const equationData = {};   // id → equation string e.g. "5+3"
+
+// ── GOOGLE SHEETS SYNC ──
+function setSyncStatus(state, msg) {
+    const el = document.getElementById('syncStatus');
+    el.className = 'sync-status' + (state === 'ok' ? '' : ' ' + state);
+    el.textContent = msg;
+}
+
+// Sync queue - batch rapid entries, fire after 600ms idle
+let syncQueue = {};
+let syncTimer = null;
+
+function syncToSheets(uid, qty) {
+    if (!SHEETS_URL) return;
+    // Instant UI feedback
+    setSyncStatus('ok', '⟳ SAVING');
+    // Queue this update - if more come in 600ms, batch them
+    syncQueue[uid] = qty;
+    clearTimeout(syncTimer);
+    syncTimer = setTimeout(flushSync, 600);
+}
+
+function flushSync() {
+    const entries = Object.entries(syncQueue);
+    syncQueue = {};
+    if (!entries.length) return;
+    // Fire all queued updates in parallel
+    const requests = entries.map(([uid, qty]) => {
+        const url = SHEETS_URL + '?uid=' + encodeURIComponent(uid) + '&qty=' + encodeURIComponent(qty);
+        return fetch(url).then(r => r.json());
+    });
+    Promise.all(requests)
+        .then(results => {
+            const failed = results.filter(d => !d.ok);
+            if (failed.length) setSyncStatus('error', '✕ ' + failed[0].error);
+            else setSyncStatus('ok', '● SYNCED');
+        })
+        .catch(() => setSyncStatus('error', '✕ SYNC FAIL'));
+}
+
+// ── VIRTUAL SCROLL ──
+const ROW_H     = 58;   // px per row
+const OVERSCAN  = 10;   // extra rows above/below
+
+let allItems     = [];
+let filteredItems= [];
+let vsStart      = 0;
+let vsEnd        = 0;
+
+function initVS() {
+    allItems      = ITEMS;
+    filteredItems = allItems;
+    document.getElementById('resultCount').textContent = allItems.length.toLocaleString() + ' items';
+
+    const wrap = document.getElementById('vsWrap');
+    wrap.addEventListener('scroll', onScroll);
+    loadFromSheet();
+}
+
+function loadFromSheet() {
+    const txt = document.getElementById('loadText');
+    if (txt) txt.textContent = 'Syncing from Google Sheet...';
+    fetch(SHEETS_URL + '?action=getAll')
+        .then(r => r.json())
+        .then(d => {
+            if (d.ok && d.data) {
+                d.data.forEach(row => {
+                    if (row.uid && row.qty > 0) {
+                        stockData[row.uid]    = row.qty;
+                        equationData[row.uid] = String(row.qty);
+                    }
+                });
+                setSyncStatus('ok', '● SYNCED');
+            }
+        })
+        .catch(() => setSyncStatus('ok', '● READY'))
+        .finally(() => {
+            renderVS();
+            document.getElementById('loadingScreen').style.display = 'none';
+        });
+}
+
+function onScroll() {
+    renderVS();
+}
+
+function renderVS() {
+    const wrap      = document.getElementById('vsWrap');
+    const scrollTop = wrap.scrollTop;
+    const viewH     = wrap.clientHeight;
+    const total     = filteredItems.length;
+
+    const startIdx  = Math.max(0, Math.floor(scrollTop / ROW_H) - OVERSCAN);
+    const endIdx    = Math.min(total, Math.ceil((scrollTop + viewH) / ROW_H) + OVERSCAN);
+
+    if (startIdx === vsStart && endIdx === vsEnd) return;
+    vsStart = startIdx; vsEnd = endIdx;
+
+    document.getElementById('spacerTop').style.height = (startIdx * ROW_H) + 'px';
+    document.getElementById('spacerBot').style.height = ((total - endIdx) * ROW_H) + 'px';
+
+    const rows = filteredItems.slice(startIdx, endIdx);
+    document.getElementById('vsRows').innerHTML = rows.map(r => buildRowHtml(r)).join('');
+}
+
+function buildRowHtml(r) {
+    const qty = stockData[r.id] || 0;
+    return `<div class="tbl-row">
+        <div class="tbl-cell cell-uid">${esc(r.id)}</div>
+        <div class="tbl-cell cell-desc">
+            <div class="desc-name">${esc(r.desc)}</div>
+            <div style="margin-top:3px;display:flex;gap:3px;flex-wrap:wrap;">
+                ${r.cat   ? `<span class="cat-pill">${esc(r.cat)}</span>` : ''}
+                ${r.state ? `<span class="state-pill">${esc(r.state)}</span>` : ''}
+            </div>
+        </div>
+        <div class="tbl-cell">${buildStockCellHtml(r.id, qty)}</div>
+        <div class="tbl-cell cell-cost">${r.cost > 0 ? r.cost.toFixed(2) : '—'}</div>
+        <div class="tbl-cell" style="font-weight:700;">${esc(r.um)}</div>
+        <div class="tbl-cell cell-pack">${esc(r.pack)}</div>
+        <div class="tbl-cell cell-sup">${esc(r.sup)}</div>
+        <div class="tbl-cell">
+            ${r.brand  ? `<span class="brand-pill">${esc(r.brand)}</span>` : ''}
+            ${r.origin ? `<span class="origin-pill">${esc(r.origin)}</span>` : ''}
+        </div>
+    </div>`;
+}
+
+function esc(s) {
+    if (!s) return '';
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function buildStockCellHtml(id, qty) {
+    const safeId = id.replace(/[^a-zA-Z0-9_-]/g, '_');
+    if (qty > 0) {
+        const display = qty % 1 === 0 ? qty : qty.toFixed(2);
+        const eq = equationData[id] || String(qty);
+        const inputId = 'eq-' + safeId;
+        const btnId   = 'eb-' + safeId;
+        return `<div class="stock-filled">
+            <div class="stock-total-row">
+                <span class="stock-qty" onclick="openCalc('${id}')">${display}</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:3px;">
+                <input id="${inputId}" class="stock-equation" type="text" value="${esc(eq)}"
+                    title="Edit equation directly — press Enter to confirm"
+                    oninput="onEqInput('${id}','${safeId}')"
+                    onkeydown="onEqKey(event,'${id}','${safeId}')"
+                    onclick="event.stopPropagation()">
+                <button id="${btnId}" class="eq-confirm" onclick="confirmEq('${id}','${safeId}')" title="Apply">✓</button>
+            </div>
+        </div>`;
+    }
+    return `<div class="stock-empty-box" onclick="openCalc('${id}')"></div>`;
+}
+
+// ── EQUATION EDIT ──
+function parseEq(str) {
+    try {
+        const clean = str.replace(/[^0-9.+\-*\/()]/g, '');
+        if (!clean) return 0;
+        const result = Function('return (' + clean + ')')();
+        return parseFloat((isFinite(result) ? result : 0).toFixed(4));
+    } catch(e) { return 0; }
+}
+
+function onEqInput(id, safeId) {
+    const inp = document.getElementById('eq-' + safeId);
+    const btn = document.getElementById('eb-' + safeId);
+    if (!inp || !btn) return;
+    btn.classList.add('visible');
+    const newQty = parseEq(inp.value);
+    const qtyEl = inp.closest('.stock-filled')?.querySelector('.stock-qty');
+    if (qtyEl) qtyEl.textContent = isNaN(newQty) ? '?' : (newQty % 1 === 0 ? newQty : newQty.toFixed(2));
+}
+
+function onEqKey(e, id, safeId) {
+    if (e.key === 'Enter')  { e.preventDefault(); confirmEq(id, safeId); }
+    if (e.key === 'Escape') { const inp = document.getElementById('eq-'+safeId); if(inp){ inp.value = equationData[id]||''; } document.getElementById('eb-'+safeId)?.classList.remove('visible'); }
+}
+
+function confirmEq(id, safeId) {
+    const inp = document.getElementById('eq-' + safeId);
+    const btn = document.getElementById('eb-' + safeId);
+    if (!inp) return;
+    const clean = inp.value.replace(/[^0-9.+]/g, '');
+    inp.value = clean;
+    equationData[id] = clean;
+    stockData[id]    = parseEq(clean);
+    btn?.classList.remove('visible');
+    inp.blur();
+    syncToSheets(id, stockData[id]);
+    refreshCell(id);
+}
+
+function refreshCell(id) {
+    // find the row in rendered DOM and update its stock cell
+    const rows = document.querySelectorAll('.tbl-row');
+    for (const row of rows) {
+        const uidEl = row.querySelector('.cell-uid');
+        if (uidEl && uidEl.textContent.trim() === id) {
+            const stockCell = row.querySelectorAll('.tbl-cell')[2];
+            if (stockCell) stockCell.innerHTML = buildStockCellHtml(id, stockData[id] || 0);
+        }
+    }
+}
+
+// ── NUMPAD ──
+let np = { val:'0', itemId:null, um:'' };
+let npDragging=false, npDragOffX=0, npDragOffY=0;
+let npPos = { x: window.innerWidth-210, y: Math.round(window.innerHeight*0.35) };
+
+function openCalc(itemId) {
+    const item = ITEMS.find(r => r.id === itemId);
+    if (!item) return;
+    np.itemId = itemId; np.um = item.um; np.val = '0';
+
+    const popup = document.getElementById('numpadPopup');
+    popup.style.left = npPos.x + 'px'; popup.style.top = npPos.y + 'px';
+
+    const existing = stockData[itemId] || 0;
+    document.getElementById('numpadItemName').textContent = item.desc;
+    document.getElementById('numpadExisting').innerHTML = existing > 0
+        ? `Stock: <span>${existing} ${item.um}</span>` : '';
+
+    npUpdateDisplay();
+    popup.classList.add('open');
+    setTimeout(() => document.addEventListener('click', npOutsideClick), 50);
+}
+
+function npOutsideClick(e) {
+    const popup = document.getElementById('numpadPopup');
+    if (!popup.contains(e.target) && !e.target.closest('.stock-empty-box') && !e.target.closest('.stock-qty')) {
+        popup.classList.remove('open');
+        document.removeEventListener('click', npOutsideClick);
+    }
+}
+
+function npUpdateDisplay() {
+    const el = document.getElementById('numpadDisplay');
+    el.textContent = np.val;
+    const preview = document.getElementById('numpadPreview');
+    const existing = stockData[np.itemId] || 0;
+
+    // try to evaluate what user typed as a delta
+    // e.g. "5" → +5, "-5" → -5, "*2" → existing*2, "/2" → existing/2
+    const val = np.val;
+    if (!val || val === '0' || val === '-') { 
+        el.className = 'numpad-number';
+        preview.textContent = existing > 0 ? 'Current: ' + existing + ' ' + np.um : '';
+        return; 
+    }
+
+    el.className = 'numpad-number typing';
+    let newTotal;
+    try {
+        // if starts with operator like *2 or /2, apply to existing
+        if (/^[*\/]/.test(val)) {
+            newTotal = parseFloat(Function('return (' + existing + val + ')')().toFixed(4));
+        } else {
+            // treat as delta: existing + val  (val can be -5, +5, 5, 5*2, etc)
+            const delta = parseFloat(Function('return (' + val + ')')().toFixed(4));
+            newTotal = parseFloat((existing + delta).toFixed(4));
+        }
+    } catch(e) { 
+        preview.textContent = '...';
+        return; 
+    }
+
+    if (!isFinite(newTotal)) { preview.textContent = '?'; return; }
+    const diff = parseFloat((newTotal - existing).toFixed(4));
+    const sign = diff >= 0 ? '+' : '';
+    preview.textContent = existing + ' ' + sign + diff + ' = ' + newTotal + ' ' + np.um;
+}
+
+function npOp(c) {
+    const ops = ['+','-','*','/'];
+    const isOp = ops.includes(c);
+    if (np.val === '0') {
+        // allow leading minus, otherwise replace 0 with digit
+        np.val = (c === '-') ? '-' : (isOp ? '0' + c : c);
+    } else if (isOp && ops.includes(np.val.slice(-1))) {
+        // replace trailing operator
+        np.val = np.val.slice(0,-1) + c;
+    } else {
+        np.val += c;
+    }
+    npUpdateDisplay();
+}
+function npBack() { np.val = np.val.length>1 ? np.val.slice(0,-1):'0'; npUpdateDisplay(); }
+
+function npConfirm() {
+    const val = np.val;
+    const existing = stockData[np.itemId] || 0;
+    let newTotal;
+    try {
+        if (/^[*\/]/.test(val)) {
+            newTotal = parseFloat(Function('return (' + existing + val + ')')().toFixed(4));
+        } else {
+            const delta = parseFloat(Function('return (' + val + ')')().toFixed(4));
+            newTotal = parseFloat((existing + delta).toFixed(4));
+        }
+    } catch(e) { newTotal = existing; }
+
+    if (isFinite(newTotal) && newTotal !== existing) {
+        stockData[np.itemId] = Math.max(0, newTotal); // don't go below 0
+        // record in equation as final value
+        equationData[np.itemId] = String(stockData[np.itemId]);
+        if (navigator.vibrate) navigator.vibrate(40);
+        syncToSheets(np.itemId, stockData[np.itemId]);
+        refreshCell(np.itemId);
+    }
+    document.getElementById('numpadPopup').classList.remove('open');
+    document.removeEventListener('click', npOutsideClick);
+}
+
+// Enter key confirms numpad
+document.addEventListener('keydown', e => {
+    if (e.key==='Enter' && document.getElementById('numpadPopup').classList.contains('open')) {
+        e.preventDefault(); npConfirm();
+    }
+});
+
+// ── DRAG ──
+const dragBar = document.getElementById('numpadDragBar');
+dragBar.addEventListener('mousedown', dragStart);
+dragBar.addEventListener('touchstart', dragStart, { passive:true });
+
+function dragStart(e) {
+    npDragging=true;
+    const popup = document.getElementById('numpadPopup');
+    const rect = popup.getBoundingClientRect();
+    const cx = e.touches?e.touches[0].clientX:e.clientX;
+    const cy = e.touches?e.touches[0].clientY:e.clientY;
+    npDragOffX=cx-rect.left; npDragOffY=cy-rect.top;
+    document.addEventListener('mousemove',dragMove);
+    document.addEventListener('mouseup',dragEnd);
+    document.addEventListener('touchmove',dragMove,{passive:true});
+    document.addEventListener('touchend',dragEnd);
+}
+function dragMove(e) {
+    if (!npDragging) return;
+    const cx=e.touches?e.touches[0].clientX:e.clientX;
+    const cy=e.touches?e.touches[0].clientY:e.clientY;
+    const popup=document.getElementById('numpadPopup');
+    let x=Math.max(0,Math.min(window.innerWidth-popup.offsetWidth,cx-npDragOffX));
+    let y=Math.max(0,Math.min(window.innerHeight-popup.offsetHeight,cy-npDragOffY));
+    npPos.x=x; npPos.y=y;
+    popup.style.left=x+'px'; popup.style.top=y+'px';
+}
+function dragEnd() {
+    npDragging=false;
+    document.removeEventListener('mousemove',dragMove); document.removeEventListener('mouseup',dragEnd);
+    document.removeEventListener('touchmove',dragMove); document.removeEventListener('touchend',dragEnd);
+}
+
+// ── SEARCH ──
+let searchTimer;
+document.getElementById('searchIn').addEventListener('input', e => {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(() => {
+        const q = e.target.value.toLowerCase().trim();
+        const terms = q.split(/\s+/).filter(Boolean);
+        filteredItems = q
+            ? ITEMS.filter(r => {
+                const t = `${r.id} ${r.desc} ${r.sup} ${r.cat} ${r.brand} ${r.origin} ${r.state}`.toLowerCase();
+                return terms.every(term => t.includes(term));
+              })
+            : ITEMS;
+        document.getElementById('resultCount').textContent = q
+            ? `${filteredItems.length.toLocaleString()} / ${ITEMS.length.toLocaleString()}`
+            : ITEMS.length.toLocaleString() + ' items';
+        vsStart=-1; vsEnd=-1;
+        document.getElementById('vsWrap').scrollTop=0;
+        renderVS();
+    }, 180);
+});
+
+// ── BOOT ──
+window.addEventListener('load', () => {
+    let p = 0;
+    const bar = document.getElementById('loadBar');
+    const txt = document.getElementById('loadText');
+    const iv = setInterval(() => {
+        p = Math.min(p + Math.random() * 12, 88);
+        bar.style.width = p + '%';
+    }, 60);
+
+    txt.textContent = 'Loading inventory...';
+
+    fetch('data.csv')
+        .then(r => r.text())
+        .then(csvText => {
+            ITEMS = parseCSV(csvText);
+            clearInterval(iv);
+            bar.style.width = '100%';
+            txt.textContent = ITEMS.length.toLocaleString() + ' items loaded';
+            setTimeout(initVS, 250);
+        })
+        .catch(err => {
+            clearInterval(iv);
+            txt.textContent = 'Error loading data.csv — ' + err.message;
+            console.error(err);
+        });
+});
+
+// Parse CSV into ITEMS array
+function parseCSV(text) {
+    const lines = text.split(/\r?\n/);
+    // headers: Item, Description, Cost, Base U/M, Preferred Supplier, Case Packing, Brand, Origin, Cat 2, State
+    const items = [];
+    for (let i = 1; i < lines.length; i++) {
+        const cols = splitCSVLine(lines[i]);
+        if (!cols[0] || !cols[0].trim()) continue;
+        const cost = parseFloat(cols[2]) || 0;
+        items.push({
+            id:     cols[0].trim(),
+            desc:   cols[1] ? cols[1].trim() : '',
+            cost:   cost,
+            um:     cols[3] ? cols[3].trim() : '',
+            sup:    cols[4] ? cols[4].trim() : '',
+            pack:   cols[5] ? cols[5].trim() : '',
+            brand:  cols[6] ? cols[6].trim() : '',
+            origin: cols[7] ? cols[7].trim() : '',
+            cat:    cols[8] ? cols[8].trim() : '',
+            state:  cols[9] ? cols[9].trim() : '',
+        });
+    }
+    return items;
+}
+
+function splitCSVLine(line) {
+    const result = [];
+    let cur = '', inQ = false;
+    for (let i = 0; i < line.length; i++) {
+        const c = line[i];
+        if (c === '"') { inQ = !inQ; }
+        else if (c === ',' && !inQ) { result.push(cur); cur = ''; }
+        else { cur += c; }
+    }
+    result.push(cur);
+    return result;
+}
+</script>
+</body>
+</html>

@@ -286,243 +286,256 @@ const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbyd6cNB6HZg0YcwWGb8_
 const PAGE_SIZE  = 15;
 
 let ITEMS       = [];
-const stockData   = {};  // id → qty
-const formulaData = {};  // id → raw formula string e.g. "100+9"
+const stockData   = {};  // id → current total qty (number)
+const formulaData = {};  // id → full formula string e.g. "5+3+2"
 
-// ── HISTORY ──
-let historyLog = []; // local cache of history entries
-
-// ── MODE ──
+// ─────────────────────────────────────────────
+// MODE
+// ─────────────────────────────────────────────
 function toggleMode() {
     const light = document.body.classList.toggle('light');
     document.getElementById('modeBtn').textContent = light ? '☀️ LIGHT' : '🌙 DARK';
     localStorage.setItem('c2c_mode', light ? 'light' : 'dark');
 }
 
-// ── BADGE ──
+// ─────────────────────────────────────────────
+// BADGE
+// ─────────────────────────────────────────────
 function setSync(state, msg) {
     const el = document.getElementById('syncBadge');
-    el.className = 'sync-badge' + (state === 'ok' ? '' : ' ' + state);
+    el.className = 'sync-badge' + (state==='ok' ? '' : ' '+state);
     el.textContent = msg;
 }
 
-// ── PERMANENT MEMORY ──
+// ─────────────────────────────────────────────
+// LOCAL STORAGE — permanent memory across reloads
+// ─────────────────────────────────────────────
 function saveLocal() {
-    try { localStorage.setItem('c2c_stock', JSON.stringify(stockData)); } catch(e) {}
+    try { localStorage.setItem('c2c_stock', JSON.stringify({s:stockData, f:formulaData})); } catch(e){}
 }
 function loadLocal() {
     try {
-        const s = localStorage.getItem('c2c_stock');
-        if (s) Object.assign(stockData, JSON.parse(s));
-    } catch(e) {}
+        const d = JSON.parse(localStorage.getItem('c2c_stock')||'{}');
+        if (d.s) Object.assign(stockData, d.s);
+        if (d.f) Object.assign(formulaData, d.f);
+    } catch(e){}
 }
 
-// ── HISTORY PANEL ──
+// ─────────────────────────────────────────────
+// HISTORY
+// ─────────────────────────────────────────────
+let historyLog = [];
+
 function openHistory() {
     document.getElementById('histDrawer').classList.add('open');
     document.getElementById('histOverlay').classList.add('open');
-    loadHistoryPanel();
+    fetchHistory();
 }
 function closeHistory() {
     document.getElementById('histDrawer').classList.remove('open');
     document.getElementById('histOverlay').classList.remove('open');
 }
-function loadHistoryPanel() {
-    const body = document.getElementById('histBody');
-    body.innerHTML = '<div class="hist-empty">Loading…</div>';
-    fetch(SHEETS_URL + '?action=getHistory&_t=' + Date.now(), {cache:'no-store'})
-        .then(r => r.json())
-        .then(d => {
-            if (!d.ok || !d.history || !d.history.length) {
-                body.innerHTML = '<div class="hist-empty">No history yet</div>';
-                return;
-            }
-            historyLog = d.history;
-            renderHistory(historyLog);
-        })
-        .catch(() => { body.innerHTML = '<div class="hist-empty">Could not load history</div>'; });
+function fetchHistory() {
+    document.getElementById('histBody').innerHTML = '<div class="hist-empty">Loading…</div>';
+    fetch(SHEETS_URL+'?action=getHistory&_t='+Date.now(), {cache:'no-store'})
+        .then(r=>r.json()).then(d=>{
+            if (d.ok && d.history) { historyLog=d.history; renderHistory(); }
+            else document.getElementById('histBody').innerHTML='<div class="hist-empty">No history yet</div>';
+        }).catch(()=>{ document.getElementById('histBody').innerHTML='<div class="hist-empty">Could not load</div>'; });
 }
-function renderHistory(entries) {
+function renderHistory() {
     const body = document.getElementById('histBody');
-    if (!entries.length) { body.innerHTML = '<div class="hist-empty">No history yet</div>'; return; }
-    body.innerHTML = entries.map(e => {
-        const diff    = parseFloat(e.change) || 0;
-        const isPos   = diff >= 0;
-        const srcCls  = e.source === 'sheet' ? 'sheet' : 'web';
-        const srcLbl  = e.source === 'sheet' ? '📊 SHEET' : '🌐 WEB';
-        // show formula if available e.g. "5+5 = 10"
-        const newDisp = e.formula ? `<span style="font-family:monospace;font-size:10px;color:#fbbf24">${xe(e.formula)}</span> = <span class="hist-new">${e.newQty}</span>` : `<span class="hist-new">${e.newQty}</span>`;
+    if (!historyLog.length) { body.innerHTML='<div class="hist-empty">No history yet</div>'; return; }
+    body.innerHTML = historyLog.map(e=>{
+        const added  = String(e.added||'');
+        const isPos  = !added.startsWith('-');
+        const src    = e.source==='sheet' ? '📊 SHEET' : '🌐 WEB';
+        const srcCls = e.source==='sheet' ? 'sheet' : 'web';
+        const fDisp  = e.formula ? `<span style="font-family:monospace;color:#fbbf24;font-size:10px">=</span><span style="font-family:monospace;color:#fbbf24;font-size:10px">${xe(e.formula)}</span>` : '';
         return `<div class="hist-row">
-            <div class="hist-top">
-                <span class="hist-uid">${xe(e.uid)}</span>
-                <span class="hist-ts">${xe(e.ts)}</span>
-            </div>
+            <div class="hist-top"><span class="hist-uid">${xe(e.uid)}</span><span class="hist-ts">${xe(e.ts)}</span></div>
             <div class="hist-desc">${xe(e.desc)}</div>
             <div class="hist-vals">
-                <span class="hist-old">${e.oldQty}</span>
+                <span class="hist-old">${e.oldVal}</span>
                 <span class="hist-arrow">→</span>
-                ${newDisp}
-                <span class="hist-change ${isPos ? 'pos' : 'neg'}">${isPos ? '+' : ''}${e.change}</span>
-                <span class="hist-source ${srcCls}">${srcLbl}</span>
+                <span class="hist-new">${e.newVal}</span>
+                <span class="hist-change ${isPos?'pos':'neg'}">${added}</span>
+                <span class="hist-source ${srcCls}">${src}</span>
             </div>
+            ${fDisp ? `<div style="margin-top:4px">${fDisp}</div>` : ''}
         </div>`;
     }).join('');
 }
-
-// Add a local history entry immediately when website makes a change
-function addLocalHistory(uid, oldQty, newQty, formula, source) {
-    const item = ITEMS.find(r => r.id === uid);
-    const diff = parseFloat((newQty - oldQty).toFixed(4));
-    const now  = new Date();
-    const ts   = now.toISOString().replace('T', ' ').slice(0, 19);
-    const entry = {
-        ts:      ts,
-        uid:     uid,
-        desc:    item ? item.desc : uid,
-        oldQty:  oldQty,
-        newQty:  newQty,
-        change:  (diff >= 0 ? '+' : '') + diff,
-        source:  source || 'website',
-        formula: formula || ''
-    };
-    historyLog.unshift(entry);
-    if (historyLog.length > 100) historyLog.pop();
-    // update panel if open
-    if (document.getElementById('histDrawer').classList.contains('open')) {
-        renderHistory(historyLog);
-    }
+function addLocalHistory(uid, oldVal, newVal, added, formula, source) {
+    const item = ITEMS.find(r=>r.id===uid);
+    const ts   = new Date().toISOString().replace('T',' ').slice(0,19);
+    const addStr = added>=0 ? '+'+parseFloat(added.toFixed(4)) : String(parseFloat(added.toFixed(4)));
+    historyLog.unshift({ts, uid, desc:item?item.desc:uid, oldVal, newVal, added:addStr, formula:formula||'', source:source||'website'});
+    if (historyLog.length>200) historyLog.pop();
+    if (document.getElementById('histDrawer').classList.contains('open')) renderHistory();
 }
 
-// ── WRITE: website → sheet ──
-let writeQ = {}, writeTimer = null, retryQ = {};
+// ─────────────────────────────────────────────
+// WRITE — website → sheet
+// ADD mode: sends the delta, sheet appends to formula
+// SET mode: overwrites with absolute value
+// ─────────────────────────────────────────────
+let retryQ = {};
 
-function writeToSheet(uid, qty, formula) {
-    const oldQty = stockData[uid] || 0;
-    stockData[uid] = qty;
-    if (formula) formulaData[uid] = formula;
+function sendAdd(uid, addQty) {
+    // Optimistically update local immediately
+    const oldVal  = stockData[uid] || 0;
+    const newVal  = parseFloat((oldVal + addQty).toFixed(4));
+    const oldForm = formulaData[uid] || String(oldVal);
+    const newForm = oldVal===0 ? String(addQty) : oldForm + (addQty>=0?'+':'')+addQty;
+    stockData[uid]   = newVal;
+    formulaData[uid] = newForm;
     saveLocal();
     updateCellDisplay(uid);
-    addLocalHistory(uid, oldQty, qty, formula||'', 'website');
-    setSync('syncing', '⟳ SAVING');
-    writeQ[uid] = qty;
-    clearTimeout(writeTimer);
-    writeTimer = setTimeout(flushWrites, 150);
+    addLocalHistory(uid, oldVal, newVal, addQty, newForm, 'website');
+    setSync('syncing','⟳ SAVING');
+
+    fetch(SHEETS_URL+'?uid='+encodeURIComponent(uid)+'&add='+encodeURIComponent(addQty)+'&source=website&_t='+Date.now()+Math.random(),{cache:'no-store'})
+        .then(r=>r.json())
+        .then(d=>{
+            if (d.ok) {
+                // use server's confirmed values (source of truth)
+                stockData[uid]   = d.newVal;
+                formulaData[uid] = d.formula;
+                saveLocal();
+                updateCellDisplay(uid);
+                delete retryQ[uid];
+                setSync('ok','● SYNCED');
+            } else {
+                retryQ[uid] = {mode:'add', val:addQty};
+                setSync('error','✕ RETRYING…');
+            }
+        })
+        .catch(()=>{ retryQ[uid]={mode:'add',val:addQty}; setSync('error','✕ RETRYING…'); });
 }
 
-function flushWrites() {
-    const entries = Object.entries(writeQ); writeQ = {};
-    if (!entries.length) return;
-    Promise.all(entries.map(([u, q]) =>
-        fetch(SHEETS_URL + '?uid=' + encodeURIComponent(u) + '&qty=' + encodeURIComponent(q) + '&source=website&_t=' + Date.now() + Math.random(), {cache:'no-store'})
-            .then(r => r.json())
-    )).then(results => {
-        results.forEach((d, i) => { if (!d.ok) retryQ[entries[i][0]] = entries[i][1]; else delete retryQ[entries[i][0]]; });
-        if (Object.keys(retryQ).length) setSync('error', '✕ RETRYING…');
-        else setSync('ok', '● SYNCED');
-    }).catch(() => { entries.forEach(([u,q]) => retryQ[u]=q); setSync('error','✕ RETRYING…'); });
+function sendSet(uid, qty) {
+    const oldVal = stockData[uid] || 0;
+    stockData[uid]   = qty;
+    formulaData[uid] = String(qty);
+    saveLocal();
+    updateCellDisplay(uid);
+    addLocalHistory(uid, oldVal, qty, qty-oldVal, String(qty), 'website');
+    setSync('syncing','⟳ SAVING');
+
+    fetch(SHEETS_URL+'?uid='+encodeURIComponent(uid)+'&set='+encodeURIComponent(qty)+'&source=website&_t='+Date.now()+Math.random(),{cache:'no-store'})
+        .then(r=>r.json())
+        .then(d=>{
+            if (d.ok) {
+                stockData[uid]   = d.newVal;
+                formulaData[uid] = d.formula;
+                saveLocal();
+                updateCellDisplay(uid);
+                delete retryQ[uid];
+                setSync('ok','● SYNCED');
+            } else {
+                retryQ[uid]={mode:'set',val:qty};
+                setSync('error','✕ RETRYING…');
+            }
+        })
+        .catch(()=>{ retryQ[uid]={mode:'set',val:qty}; setSync('error','✕ RETRYING…'); });
 }
 
-setInterval(() => {
-    if (!Object.keys(retryQ).length) return;
+// retry failed writes every 2s
+setInterval(()=>{
     const entries = Object.entries(retryQ);
-    Promise.all(entries.map(([u,q]) =>
-        fetch(SHEETS_URL + '?uid=' + encodeURIComponent(u) + '&qty=' + encodeURIComponent(q) + '&source=website&_t=' + Date.now() + Math.random(), {cache:'no-store'})
-            .then(r => r.json())
-    )).then(results => {
-        results.forEach((d,i) => { if (d.ok) delete retryQ[entries[i][0]]; });
-        if (!Object.keys(retryQ).length) setSync('ok','● SYNCED');
-    }).catch(()=>{});
+    if (!entries.length) return;
+    entries.forEach(([uid, op])=>{
+        const param = op.mode==='add'
+            ? '&add='+encodeURIComponent(op.val)
+            : '&set='+encodeURIComponent(op.val);
+        fetch(SHEETS_URL+'?uid='+encodeURIComponent(uid)+param+'&source=website&_t='+Date.now()+Math.random(),{cache:'no-store'})
+            .then(r=>r.json()).then(d=>{ if(d.ok){ delete retryQ[uid]; if(!Object.keys(retryQ).length) setSync('ok','● SYNCED'); }}).catch(()=>{});
+    });
 }, 2000);
 
-// ── SMART POLL: sheet → website ──
-// Step 1: fast version check every 1.5s (~300ms response, lightweight)
-// Step 2: only fetch full data when version changes (~1.5s response, heavy)
-// Result: if nothing changed → zero flicker, zero delay. If changed → updates in ~2s total.
-let lastVersion = '';
-let fetchingFull = false;
+// ─────────────────────────────────────────────
+// SMART POLL — sheet → website
+// Step 1: lightweight version check every 1.5s
+// Step 2: full fetch only when version changed
+// ─────────────────────────────────────────────
+let lastVersion = '', fetchingFull = false;
 
 function startPolling() {
-    setInterval(() => {
-        if (fetchingFull) return; // don't stack requests
-        fetch(SHEETS_URL + '?action=getVersion&_t=' + Date.now() + Math.random(), {cache:'no-store'})
-            .then(r => r.json())
-            .then(d => {
-                if (!d.ok) return;
-                if (d.version === lastVersion) return; // nothing changed — skip full fetch
-                // version changed — fetch full data
-                lastVersion = d.version;
+    setInterval(()=>{
+        if (fetchingFull) return;
+        fetch(SHEETS_URL+'?action=getVersion&_t='+Date.now()+Math.random(),{cache:'no-store'})
+            .then(r=>r.json()).then(v=>{
+                if (!v.ok || v.version===lastVersion) return;
+                lastVersion = v.version;
                 fetchingFull = true;
-                return fetch(SHEETS_URL + '?action=getAll&_t=' + Date.now() + Math.random(), {cache:'no-store'})
-                    .then(r => r.json())
-                    .then(full => {
+                fetch(SHEETS_URL+'?action=getAll&_t='+Date.now()+Math.random(),{cache:'no-store'})
+                    .then(r=>r.json()).then(full=>{
                         fetchingFull = false;
-                        if (!full.ok || !full.items) return;
-                        let anyChange = false;
-                        full.items.forEach(item => {
-                            const sheetQty = parseFloat(item.stock) || 0;
-                            const localQty = stockData[item.id] || 0;
-                            const fChanged = item.stockFormula && formulaData[item.id] !== item.stockFormula;
-                            if (sheetQty !== localQty || fChanged) {
-                                const wasLocal = stockData[item.id];
-                                stockData[item.id] = sheetQty;
-                                if (item.stockFormula) formulaData[item.id] = item.stockFormula;
+                        if (!full.ok||!full.items) return;
+                        full.items.forEach(item=>{
+                            const sheetQty  = parseFloat(item.stock)||0;
+                            const sheetForm = item.formula||String(sheetQty);
+                            const localQty  = stockData[item.id]||0;
+                            const localForm = formulaData[item.id]||'';
+                            if (sheetQty!==localQty || sheetForm!==localForm) {
+                                const oldVal = localQty;
+                                stockData[item.id]   = sheetQty;
+                                formulaData[item.id] = sheetForm;
                                 updateCellDisplay(item.id);
-                                // log sheet-originated changes to history
-                                if (sheetQty !== wasLocal) {
-                                    const diff    = parseFloat((sheetQty - (wasLocal||0)).toFixed(4));
-                                    const now     = new Date().toISOString().replace('T',' ').slice(0,19);
-                                    const itm     = ITEMS.find(r=>r.id===item.id);
-                                    const formula = item.stockFormula || '';
-                                    historyLog.unshift({ts:now, uid:item.id, desc:itm?itm.desc:item.id, oldQty:wasLocal||0, newQty:sheetQty, change:(diff>=0?'+':'')+diff, source:'sheet', formula:formula});
-                                    if (historyLog.length>100) historyLog.pop();
-                                    if (document.getElementById('histDrawer').classList.contains('open')) renderHistory(historyLog);
+                                if (sheetQty!==oldVal) {
+                                    addLocalHistory(item.id, oldVal, sheetQty, sheetQty-oldVal, sheetForm, 'sheet');
                                 }
-                                anyChange = true;
                             }
                         });
-                        if (anyChange) { saveLocal(); setSync('ok','● SYNCED'); }
-                    }).catch(() => { fetchingFull = false; });
-            })
-            .catch(() => {});
+                        saveLocal();
+                        setSync('ok','● SYNCED');
+                    }).catch(()=>{ fetchingFull=false; });
+            }).catch(()=>{});
     }, 1500);
 }
 
-// ── DISPLAY: update ONE cell without touching anything else ──
+// ─────────────────────────────────────────────
+// CELL DISPLAY — surgical update, zero flicker
+// ─────────────────────────────────────────────
 function updateCellDisplay(id) {
-    const sid  = id.replace(/[^a-zA-Z0-9_-]/g, '_');
-    const qty  = stockData[id] || 0;
-    const disp = qty % 1 === 0 ? qty : qty.toFixed(2);
-    const qtyEl  = document.getElementById('sqty-' + sid);
-    const eqEl   = document.getElementById('eq-' + sid);
-    const wrapEl = document.getElementById('swrap-' + sid);
-    const tdEl   = document.getElementById('std-' + sid);
+    const sid  = id.replace(/[^a-zA-Z0-9_-]/g,'_');
+    const qty  = stockData[id]||0;
+    const disp = qty%1===0 ? qty : qty.toFixed(2);
+    const form = formulaData[id]||String(qty);
+    const tdEl   = document.getElementById('std-'+sid);
+    const qtyEl  = document.getElementById('sqty-'+sid);
+    const eqEl   = document.getElementById('eq-'+sid);
+    const wrapEl = document.getElementById('swrap-'+sid);
     if (!tdEl) return;
-    if (qty > 0) {
+    if (qty>0) {
         if (qtyEl) {
             qtyEl.textContent = disp;
-            if (eqEl && document.activeElement !== eqEl) eqEl.value = formulaData[id] || String(qty);
+            if (eqEl && document.activeElement!==eqEl) eqEl.value = '='+form;
         } else {
             tdEl.innerHTML = stockCellHtml(id);
         }
     } else {
-        if (wrapEl) { tdEl.innerHTML = `<div class="stock-empty" onclick="openCalc('${id}')"></div>`; }
+        if (wrapEl) tdEl.innerHTML = `<div class="stock-empty" onclick="openCalc('${id}')"></div>`;
     }
 }
 
-// ── RENDER ──
+// ─────────────────────────────────────────────
+// RENDER
+// ─────────────────────────────────────────────
 let displayItems = [];
-function xe(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function xe(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
 function stockCellHtml(id) {
-    const qty  = stockData[id] || 0;
+    const qty  = stockData[id]||0;
     const sid  = id.replace(/[^a-zA-Z0-9_-]/g,'_');
-    if (qty > 0) {
-        const disp   = qty % 1 === 0 ? qty : qty.toFixed(2);
-        const eqVal  = formulaData[id] || String(qty);
+    if (qty>0) {
+        const disp = qty%1===0 ? qty : qty.toFixed(2);
+        const form = formulaData[id]||String(qty);
         return `<div class="stock-wrap" id="swrap-${sid}">
             <span class="stock-qty" id="sqty-${sid}" onclick="openCalc('${id}')">${disp}</span>
             <div class="eq-wrap">
-                <input class="eq-input" id="eq-${sid}" type="text" value="${xe(eqVal)}"
+                <input class="eq-input" id="eq-${sid}" type="text" value="${xe('='+form)}"
                     oninput="onEqIn('${id}','${sid}')"
                     onkeydown="onEqKd(event,'${id}','${sid}')"
                     onclick="event.stopPropagation()">
@@ -534,66 +547,76 @@ function stockCellHtml(id) {
 }
 
 function renderTable() {
-    document.getElementById('tbody').innerHTML = displayItems.map(r => `<tr>
+    document.getElementById('tbody').innerHTML = displayItems.map(r=>`<tr>
         <td class="cell-uid">${xe(r.id)}</td>
         <td>
             <div class="desc-name">${xe(r.desc)}</div>
-            <div style="margin-top:2px;">
-                ${r.cat   ? `<span class="cat-pill">${xe(r.cat)}</span>` : ''}
-                ${r.state ? `<span class="state-pill">${xe(r.state)}</span>` : ''}
+            <div style="margin-top:2px">
+                ${r.cat   ?`<span class="cat-pill">${xe(r.cat)}</span>`:''}
+                ${r.state ?`<span class="state-pill">${xe(r.state)}</span>`:''}
             </div>
         </td>
         <td id="std-${r.id.replace(/[^a-zA-Z0-9_-]/g,'_')}">${stockCellHtml(r.id)}</td>
-        <td class="cell-cost">${r.cost > 0 ? r.cost.toFixed(2) : '—'}</td>
-        <td style="font-weight:700;font-size:11px;">${xe(r.um)}</td>
+        <td class="cell-cost">${r.cost>0?r.cost.toFixed(2):'—'}</td>
+        <td style="font-weight:700;font-size:11px">${xe(r.um)}</td>
         <td class="cell-pack">${xe(r.pack)}</td>
         <td class="cell-sup">${xe(r.sup)}</td>
         <td>
-            ${r.brand  ? `<span class="brand-pill">${xe(r.brand)}</span>` : ''}
-            ${r.origin ? `<span class="origin-pill">${xe(r.origin)}</span>` : ''}
+            ${r.brand  ?`<span class="brand-pill">${xe(r.brand)}</span>`:''}
+            ${r.origin ?`<span class="origin-pill">${xe(r.origin)}</span>`:''}
         </td>
     </tr>`).join('');
 }
 
-// ── EQUATION EDIT ──
+// ─────────────────────────────────────────────
+// EQUATION BAR — manual edit below stock cell
+// User can type =5+3-1 etc and confirm
+// ─────────────────────────────────────────────
 function onEqIn(id, sid) {
-    const btn = document.getElementById('eqok-' + sid);
-    if (btn) btn.classList.add('on');
+    document.getElementById('eqok-'+sid)?.classList.add('on');
 }
 function onEqKd(e, id, sid) {
-    if (e.key === 'Enter') { e.preventDefault(); confirmEq(id, sid); }
-    if (e.key === 'Escape') {
-        const inp = document.getElementById('eq-' + sid);
-        if (inp) inp.value = formulaData[id] || String(stockData[id] || 0);
-        document.getElementById('eqok-' + sid)?.classList.remove('on');
+    if (e.key==='Enter') { e.preventDefault(); confirmEq(id,sid); }
+    if (e.key==='Escape') {
+        const inp = document.getElementById('eq-'+sid);
+        if (inp) inp.value = '='+(formulaData[id]||String(stockData[id]||0));
+        document.getElementById('eqok-'+sid)?.classList.remove('on');
     }
 }
 function confirmEq(id, sid) {
-    const inp = document.getElementById('eq-' + sid); if (!inp) return;
-    const raw = inp.value.replace(/[^0-9.+\-*\/()]/g,'');
+    const inp = document.getElementById('eq-'+sid); if (!inp) return;
+    // strip leading = for eval
+    let raw = inp.value.trim();
+    if (raw.startsWith('=')) raw = raw.slice(1);
     let qty;
-    try { qty = Math.max(0, parseFloat(Function('return (' + raw + ')')().toFixed(4))); }
-    catch(e) { qty = stockData[id] || 0; }
-    inp.value = String(qty);
-    formulaData[id] = raw !== String(qty) ? raw : '';  // store formula if it differs from plain qty
-    document.getElementById('eqok-' + sid)?.classList.remove('on');
+    try { qty = Math.max(0, parseFloat(Function('return ('+raw.replace(/[^0-9.+\-*\/()]/g,'')+')')(). toFixed(4))); }
+    catch(e) { qty = stockData[id]||0; }
+    inp.value = '='+raw;
+    document.getElementById('eqok-'+sid)?.classList.remove('on');
     inp.blur();
-    writeToSheet(id, qty, raw !== String(qty) ? raw : '');
+    // SET absolute value from manual edit
+    sendSet(id, qty);
 }
 
-// ── NUMPAD ──
+// ─────────────────────────────────────────────
+// NUMPAD
+// Type 5 → ADDS 5 to existing stock (default)
+// Type -3 → subtracts 3  (need minus sign)
+// Type *2 → multiplies    (need * sign)
+// Type /2 → divides       (need / sign)
+// ─────────────────────────────────────────────
 let np = {val:'0', id:null, um:''};
 let npDrg=false, npOX=0, npOY=0;
-let npPos = {x: window.innerWidth-180, y: Math.round(window.innerHeight*0.28)};
+let npPos = {x:window.innerWidth-180, y:Math.round(window.innerHeight*0.25)};
 
 function openCalc(id) {
-    const item = ITEMS.find(r => r.id === id); if (!item) return;
+    const item = ITEMS.find(r=>r.id===id); if (!item) return;
     np.id=id; np.um=item.um; np.val='0';
     const el = document.getElementById('numpadPopup');
     el.style.left=npPos.x+'px'; el.style.top=npPos.y+'px';
-    document.getElementById('npName').textContent = item.desc;
-    const ex = stockData[id] || 0;
-    document.getElementById('npExisting').innerHTML = ex>0 ? `Current: <span>${ex} ${item.um}</span>` : '';
+    document.getElementById('npName').textContent=item.desc;
+    const ex = stockData[id]||0;
+    document.getElementById('npExisting').innerHTML = ex>0?`Current: <span>${ex} ${item.um}</span>`:'No stock yet';
     npDraw(); el.classList.add('open');
     setTimeout(()=>document.addEventListener('click',npOut),50);
 }
@@ -606,53 +629,68 @@ function npOut(e) {
 function npDraw() {
     const el = document.getElementById('npVal');
     el.textContent = np.val;
-    el.className = 'np-val' + (np.val!=='0'?' on':'');
+    el.className = 'np-val'+(np.val!=='0'?' on':'');
     const pv = document.getElementById('npPreview');
-    const ex = stockData[np.id] || 0;
-    if (!np.val||np.val==='0') { pv.textContent=ex>0?'Current: '+ex+' '+np.um:''; return; }
+    const ex = stockData[np.id]||0;
+    if (!np.val||np.val==='0') { pv.textContent=ex>0?'Will add to current '+ex+' '+np.um:'First stock entry'; return; }
     try {
-        let nt;
-        if (/^[-*\/]/.test(np.val))      nt=parseFloat(Function('return ('+ex+np.val+')')().toFixed(4));
-        else if (/^[+]/.test(np.val))    nt=parseFloat(Function('return ('+ex+np.val+')')().toFixed(4));
-        else { const t=parseFloat(Function('return ('+np.val+')')().toFixed(4)); nt=parseFloat((ex+t).toFixed(4)); }
-        if (!isFinite(nt)) { pv.textContent='?'; return; }
-        nt=Math.max(0,nt);
-        const diff=parseFloat((nt-ex).toFixed(4));
-        pv.textContent=ex+(diff>=0?' +':' ')+diff+' = '+nt+' '+np.um;
+        let addQty, newTotal;
+        if (/^[-*\/]/.test(np.val)) {
+            // operator mode: apply to existing
+            newTotal = parseFloat(Function('return ('+ex+np.val+')')().toFixed(4));
+            addQty   = parseFloat((newTotal-ex).toFixed(4));
+        } else {
+            // default ADD mode: plain number adds to existing
+            addQty   = parseFloat(Function('return ('+np.val+')')().toFixed(4));
+            newTotal = parseFloat((ex+addQty).toFixed(4));
+        }
+        newTotal = Math.max(0, newTotal);
+        addQty   = parseFloat((newTotal-ex).toFixed(4));
+        const addStr = addQty>=0?'+'+addQty:String(addQty);
+        pv.textContent = ex+' '+addStr+' = '+newTotal+' '+np.um;
     } catch(e) { pv.textContent='...'; }
 }
 function npKey(k) {
     const ops=['+','-','*','/'];
     if (k==='back') { np.val=np.val.length>1?np.val.slice(0,-1):'0'; }
     else if (ops.includes(k)) {
-        if (np.val==='0'&&k==='-') np.val='-';
+        // only allow operator at START (for -/*/) — + is handled automatically so ignore it
+        if (k==='+') { /* ignore + key — default is already add */ }
+        else if (np.val==='0') np.val=k;
         else if (ops.includes(np.val.slice(-1))) np.val=np.val.slice(0,-1)+k;
         else np.val+=k;
     } else if (k==='.') {
-        const parts=np.val.split(/[+\-*\/]/);
+        const parts=np.val.split(/[-*\/]/);
         if (!parts[parts.length-1].includes('.')) np.val+='.';
     } else { np.val=(np.val==='0')?k:np.val+k; }
     npDraw();
 }
 function npConfirm() {
     const ex=stockData[np.id]||0, v=np.val;
-    let nt;
+    if (!v||v==='0') {
+        document.getElementById('numpadPopup').classList.remove('open');
+        document.removeEventListener('click',npOut);
+        return;
+    }
+    let addQty, newTotal;
     try {
-        if (/^[-*\/]/.test(v))     nt=parseFloat(Function('return ('+ex+v+')')().toFixed(4));
-        else if (/^[+]/.test(v))   nt=parseFloat(Function('return ('+ex+v+')')().toFixed(4));
-        else { const t=parseFloat(Function('return ('+v+')')().toFixed(4)); nt=parseFloat((ex+t).toFixed(4)); }
-    } catch(e) { nt=ex; }
-    nt=Math.max(0,isFinite(nt)?nt:ex);
+        if (/^[-*\/]/.test(v)) {
+            newTotal = Math.max(0, parseFloat(Function('return ('+ex+v+')')().toFixed(4)));
+            addQty   = parseFloat((newTotal-ex).toFixed(4));
+        } else {
+            addQty   = parseFloat(Function('return ('+v+')')().toFixed(4));
+            newTotal = Math.max(0, parseFloat((ex+addQty).toFixed(4)));
+            addQty   = parseFloat((newTotal-ex).toFixed(4));
+        }
+    } catch(e) { addQty=0; newTotal=ex; }
+
     if (navigator.vibrate) navigator.vibrate(35);
-    // build formula string for history e.g. "10 + 5" 
-    const ex2 = stockData[np.id] || 0;  // note: stockData not yet updated
-    const fStr = (/^[-*\/]/.test(v)||/^[+]/.test(v)) ? String(ex2)+v : (ex2>0 ? String(ex2)+'+'+v : v);
-    writeToSheet(np.id, nt, fStr);
+    if (addQty!==0) sendAdd(np.id, addQty);
     document.getElementById('numpadPopup').classList.remove('open');
     document.removeEventListener('click',npOut);
 }
-document.addEventListener('keydown', e => {
-    if (e.key==='Enter'&&document.getElementById('numpadPopup').classList.contains('open')) { e.preventDefault(); npConfirm(); }
+document.addEventListener('keydown',e=>{
+    if (e.key==='Enter'&&document.getElementById('numpadPopup').classList.contains('open')) {e.preventDefault();npConfirm();}
 });
 
 // DRAG
@@ -662,66 +700,83 @@ function dS(e){npDrg=true;const r=document.getElementById('numpadPopup').getBoun
 function dM(e){if(!npDrg)return;const cx=e.touches?e.touches[0].clientX:e.clientX,cy=e.touches?e.touches[0].clientY:e.clientY;const el=document.getElementById('numpadPopup');const nx=Math.max(0,Math.min(window.innerWidth-el.offsetWidth,cx-npOX));const ny=Math.max(0,Math.min(window.innerHeight-el.offsetHeight,cy-npOY));npPos.x=nx;npPos.y=ny;el.style.left=nx+'px';el.style.top=ny+'px';}
 function dE(){npDrg=false;document.removeEventListener('mousemove',dM);document.removeEventListener('mouseup',dE);document.removeEventListener('touchmove',dM);document.removeEventListener('touchend',dE);}
 
-// ── SEARCH ──
+// ─────────────────────────────────────────────
+// SEARCH
+// ─────────────────────────────────────────────
 let sT;
-document.getElementById('searchIn').addEventListener('input', e => {
+document.getElementById('searchIn').addEventListener('input',e=>{
     clearTimeout(sT);
-    sT = setTimeout(()=>{
+    sT=setTimeout(()=>{
         const q=e.target.value.toLowerCase().trim();
         const terms=q.split(/\s+/).filter(Boolean);
         let filtered=q?ITEMS.filter(r=>{
-            const t=(r.id+' '+r.desc+' '+r.sup+' '+r.cat+' '+r.brand+' '+r.origin+' '+(r.state||'')).toLowerCase();
+            const t=(r.id+' '+r.desc+' '+r.sup+' '+r.cat+' '+r.brand+' '+r.origin).toLowerCase();
             return terms.every(w=>t.includes(w));
         }):ITEMS;
         const total=filtered.length;
         displayItems=filtered.slice(0,PAGE_SIZE);
-        document.getElementById('barCount').textContent=q?(total>PAGE_SIZE?`${PAGE_SIZE} of ${total.toLocaleString()}`:total.toLocaleString()+' found'):`${PAGE_SIZE} of ${ITEMS.length.toLocaleString()}`;
+        document.getElementById('barCount').textContent=q
+            ?(total>PAGE_SIZE?`${PAGE_SIZE} of ${total.toLocaleString()}`:total.toLocaleString()+' found')
+            :`${PAGE_SIZE} of ${ITEMS.length.toLocaleString()}`;
         document.getElementById('tblWrap').scrollTop=0;
         renderTable();
     },150);
 });
 
-// ── BOOT ──
-window.addEventListener('load', ()=>{
+// ─────────────────────────────────────────────
+// BOOT
+// ─────────────────────────────────────────────
+window.addEventListener('load',()=>{
     if (localStorage.getItem('c2c_mode')==='light') {
         document.body.classList.add('light');
         document.getElementById('modeBtn').textContent='☀️ LIGHT';
     }
-    loadLocal();
+    loadLocal(); // show last-known stock instantly
 
-    let p=0;
+    let p=0, attempt=0;
     const bar=document.getElementById('loadBar'), txt=document.getElementById('loadTxt');
-    const iv=setInterval(()=>{p=Math.min(p+Math.random()*14,90);bar.style.width=p+'%';},60);
+    const iv=setInterval(()=>{p=Math.min(p+Math.random()*12,88);bar.style.width=p+'%';},60);
 
-    fetch(SHEETS_URL+'?action=getAll&_t='+Date.now()+Math.random(),{cache:'no-store'})
-        .then(r=>r.json())
-        .then(d=>{
-            clearInterval(iv); bar.style.width='100%';
-            if (!d.ok||!d.items) throw new Error(d.error||'No data');
-            ITEMS=d.items;
-            ITEMS.forEach(item=>{
-                stockData[item.id]=parseFloat(item.stock)||0;
-                if (item.stockFormula) formulaData[item.id]=item.stockFormula;
+    function tryLoad() {
+        attempt++;
+        txt.textContent=attempt>1?'Retrying ('+attempt+'/3)…':'Connecting to sheet…';
+        fetch(SHEETS_URL+'?action=getAll&_t='+Date.now()+Math.random(),{cache:'no-store'})
+            .then(r=>r.json())
+            .then(d=>{
+                clearInterval(iv); bar.style.width='100%';
+                if (!d.ok||!d.items) throw new Error(d.error||'No data');
+                ITEMS=d.items;
+                // sheet is source of truth — overwrite local
+                ITEMS.forEach(item=>{
+                    stockData[item.id]=parseFloat(item.stock)||0;
+                    if (item.formula) formulaData[item.id]=item.formula;
+                });
+                saveLocal();
+                // capture version so first poll doesn't re-fetch
+                fetch(SHEETS_URL+'?action=getVersion&_t='+Date.now(),{cache:'no-store'})
+                    .then(r=>r.json()).then(v=>{if(v.ok)lastVersion=v.version;}).catch(()=>{});
+                displayItems=ITEMS.slice(0,PAGE_SIZE);
+                txt.textContent=ITEMS.length.toLocaleString()+' items loaded ✓';
+                document.getElementById('barCount').textContent=PAGE_SIZE+' of '+ITEMS.length.toLocaleString();
+                setSync('ok','● SYNCED');
+                setTimeout(()=>{
+                    renderTable();
+                    document.getElementById('loadScreen').style.display='none';
+                    startPolling();
+                },300);
+            })
+            .catch(err=>{
+                if (attempt<3) { setTimeout(tryLoad,2000); }
+                else {
+                    clearInterval(iv); bar.style.width='100%';
+                    txt.textContent='✕ Failed — tap to retry';
+                    txt.style.cursor='pointer';
+                    txt.onclick=()=>{attempt=0;p=0;bar.style.width='0%';tryLoad();};
+                    setSync('error','✕ ERROR');
+                }
             });
-            saveLocal();
-            // get initial version so first poll doesn't trigger a full re-fetch
-            fetch(SHEETS_URL+'?action=getVersion&_t='+Date.now(),{cache:'no-store'})
-                .then(r=>r.json()).then(v=>{ if(v.ok) lastVersion=v.version; }).catch(()=>{});
-            displayItems=ITEMS.slice(0,PAGE_SIZE);
-            txt.textContent=ITEMS.length.toLocaleString()+' items loaded ✓';
-            document.getElementById('barCount').textContent=PAGE_SIZE+' of '+ITEMS.length.toLocaleString();
-            setSync('ok','● SYNCED');
-            setTimeout(()=>{
-                renderTable();
-                document.getElementById('loadScreen').style.display='none';
-                startPolling();
-            },300);
-        })
-        .catch(err=>{
-            clearInterval(iv); bar.style.width='100%';
-            txt.textContent='✕ '+err.message;
-            setSync('error','✕ ERROR');
-        });
+    }
+    tryLoad();
 });
 </script>
 </body>

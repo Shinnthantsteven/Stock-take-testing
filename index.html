@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Chef2Chef | Stock Engine</title>
+    <title>🥩 Chef2Chef | Stock Engine</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🥩</text></svg>">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
@@ -450,7 +450,10 @@ function startSheetPoll() {
                                 formulaData[item.id] = sheetForm;
                                 fbWrite(item.id, sheetQty, sheetForm);
                                 updateCellDisplay(item.id);
-                                if (sheetQty !== oldVal) addLocalHistory(item.id, oldVal, sheetQty, sheetQty-oldVal, sheetForm, 'sheet');
+                                if (sheetQty !== oldVal) {
+                                    addLocalHistory(item.id, oldVal, sheetQty, sheetQty-oldVal, sheetForm, 'sheet');
+                                    setSync('syncing','📊 SHEET SYNC');
+                                }
                             }
                         });
                         saveLocal();
@@ -725,6 +728,9 @@ window.addEventListener('load',()=>{
                 localStorage.setItem('c2c_last_refresh', Date.now());
                 // Save items to localStorage for instant next load
                 try { localStorage.setItem('c2c_items', JSON.stringify(ITEMS)); } catch(e){}
+                // Init lastVersion so first poll doesn't immediately re-fetch
+                fetch(SHEETS_URL+'?action=getVersion&_t='+Date.now(),{cache:'no-store',redirect:'follow'})
+                    .then(r=>r.json()).then(v=>{ if(v.ok) lastVersion=v.version; }).catch(()=>{});
                 // Save items to Firebase cache
                 const batch={};
                 ITEMS.forEach(item=>{

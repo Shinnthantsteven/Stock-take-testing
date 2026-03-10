@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>🥩 Chef2Chef | Stock Engine</title>
+    <title>Chef2Chef | Stock Engine</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🥩</text></svg>">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
@@ -301,7 +301,7 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
 // ─── CONFIG ──────────────────────────────────────────────────
-const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbwmLIG9c6KHB1JwPC84wpmsG7iPVhPWs9aVD5xNf2IqDbEBqOpIHvJ2ER16bBY65F95/exec';
+const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbzG1B7MJGSb2ZlMTiONbFr-wQjMhT-UP8_FuD0eXn1_O-OBiSR_EkPERYOTblDz48H4/exec';
 const PAGE_SIZE  = 15;
 
 let ITEMS         = [];
@@ -350,7 +350,7 @@ function closeHistory() {
 }
 function fetchHistory() {
     document.getElementById('histBody').innerHTML = '<div class="hist-empty">Loading…</div>';
-    fetch(SHEETS_URL+'?action=getHistory&_t='+Date.now(), {cache:'no-store'})
+    fetch(SHEETS_URL+'?action=getHistory&_t='+Date.now(), {cache:'no-store',redirect:'follow'})
         .then(r=>r.json()).then(d=>{
             if (d.ok && d.history) { historyLog=d.history; renderHistory(); }
             else document.getElementById('histBody').innerHTML='<div class="hist-empty">No history yet</div>';
@@ -430,12 +430,12 @@ function startFirebaseListener() {
 function startSheetPoll() {
     setInterval(()=>{
         if (fetchingFull) return;
-        fetch(SHEETS_URL+'?action=getVersion&_t='+Date.now()+Math.random(),{cache:'no-store'})
+        fetch(SHEETS_URL+'?action=getVersion&_t='+Date.now()+Math.random(),{cache:'no-store',redirect:'follow'})
             .then(r=>r.json()).then(v=>{
                 if (!v.ok || v.version===lastVersion) return;
                 lastVersion = v.version;
                 fetchingFull = true;
-                fetch(SHEETS_URL+'?action=getAll&_t='+Date.now()+Math.random(),{cache:'no-store'})
+                fetch(SHEETS_URL+'?action=getAll&_t='+Date.now()+Math.random(),{cache:'no-store',redirect:'follow'})
                     .then(r=>r.json()).then(full=>{
                         fetchingFull = false;
                         if (!full.ok||!full.items) return;
@@ -450,10 +450,7 @@ function startSheetPoll() {
                                 formulaData[item.id] = sheetForm;
                                 fbWrite(item.id, sheetQty, sheetForm);
                                 updateCellDisplay(item.id);
-                                if (sheetQty !== oldVal) {
-                                    addLocalHistory(item.id, oldVal, sheetQty, sheetQty-oldVal, sheetForm, 'sheet');
-                                    setSync('syncing','📊 SHEET SYNC');
-                                }
+                                if (sheetQty !== oldVal) addLocalHistory(item.id, oldVal, sheetQty, sheetQty-oldVal, sheetForm, 'sheet');
                             }
                         });
                         saveLocal();
@@ -478,9 +475,14 @@ function sendAdd(uid, addQty) {
     addLocalHistory(uid, oldVal, newVal, addQty, newForm, 'website');
     setSync('syncing','⟳ SAVING');
     fbWrite(uid, newVal, newForm);
-    fetch(SHEETS_URL+'?uid='+encodeURIComponent(uid)+'&add='+encodeURIComponent(addQty)+'&source=website&_t='+Date.now()+Math.random(),{cache:'no-store'})
+    fetch(SHEETS_URL+'?uid='+encodeURIComponent(uid)+'&add='+encodeURIComponent(addQty)+'&source=website&_t='+Date.now()+Math.random(),{cache:'no-store',redirect:'follow'})
         .then(r=>r.json()).then(d=>{
-            if(d.ok){stockData[uid]=d.newVal;formulaData[uid]=d.formula;saveLocal();updateCellDisplay(uid);delete retryQ[uid];setSync('ok','● LIVE');}
+            if(d.ok){
+                stockData[uid]=d.newVal;
+                formulaData[uid]=d.formula; // use sheet's formula as truth
+                fbWrite(uid, d.newVal, d.formula);
+                saveLocal();updateCellDisplay(uid);delete retryQ[uid];setSync('ok','● LIVE');
+            }
             else{retryQ[uid]={mode:'add',val:addQty};setSync('syncing','⟳ SHEET SYNC…');}
         }).catch(()=>{retryQ[uid]={mode:'add',val:addQty};setSync('syncing','⟳ SHEET SYNC…');});
 }
@@ -494,18 +496,45 @@ function sendSet(uid, qty) {
     addLocalHistory(uid, oldVal, qty, qty-oldVal, String(qty), 'website');
     setSync('syncing','⟳ SAVING');
     fbWrite(uid, qty, String(qty));
-    fetch(SHEETS_URL+'?uid='+encodeURIComponent(uid)+'&set='+encodeURIComponent(qty)+'&source=website&_t='+Date.now()+Math.random(),{cache:'no-store'})
+    fetch(SHEETS_URL+'?uid='+encodeURIComponent(uid)+'&set='+encodeURIComponent(qty)+'&source=website&_t='+Date.now()+Math.random(),{cache:'no-store',redirect:'follow'})
         .then(r=>r.json()).then(d=>{
-            if(d.ok){stockData[uid]=d.newVal;formulaData[uid]=d.formula;saveLocal();updateCellDisplay(uid);delete retryQ[uid];setSync('ok','● LIVE');}
+            if(d.ok){
+                stockData[uid]=d.newVal;
+                formulaData[uid]=d.formula;
+                fbWrite(uid, d.newVal, d.formula);
+                saveLocal();updateCellDisplay(uid);delete retryQ[uid];setSync('ok','● LIVE');
+            }
             else{retryQ[uid]={mode:'set',val:qty};setSync('syncing','⟳ SHEET SYNC…');}
         }).catch(()=>{retryQ[uid]={mode:'set',val:qty};setSync('syncing','⟳ SHEET SYNC…');});
+}
+
+// sendSetFormula — formula bar edit: preserves full formula string in sheet cell
+function sendSetFormula(uid, formula, qty) {
+    const oldVal = stockData[uid] || 0;
+    stockData[uid]   = qty;
+    formulaData[uid] = formula;
+    saveLocal();
+    updateCellDisplay(uid);
+    addLocalHistory(uid, oldVal, qty, qty-oldVal, formula, 'website');
+    setSync('syncing','⟳ SAVING');
+    fbWrite(uid, qty, formula);
+    fetch(SHEETS_URL+'?uid='+encodeURIComponent(uid)+'&setFormula='+encodeURIComponent(formula)+'&source=website&_t='+Date.now()+Math.random(),{cache:'no-store',redirect:'follow'})
+        .then(r=>r.json()).then(d=>{
+            if(d.ok){
+                stockData[uid]=d.newVal; formulaData[uid]=d.formula;
+                fbWrite(uid,d.newVal,d.formula);
+                saveLocal();updateCellDisplay(uid);delete retryQ[uid];setSync('ok','● LIVE');
+            } else {retryQ[uid]={mode:'setFormula',val:formula,qty:qty};setSync('syncing','⟳ SHEET SYNC…');}
+        }).catch(()=>{retryQ[uid]={mode:'setFormula',val:formula,qty:qty};setSync('syncing','⟳ SHEET SYNC…');});
 }
 
 setInterval(()=>{
     const entries=Object.entries(retryQ); if(!entries.length) return;
     entries.forEach(([uid,op])=>{
-        const param=op.mode==='add'?'&add='+encodeURIComponent(op.val):'&set='+encodeURIComponent(op.val);
-        fetch(SHEETS_URL+'?uid='+encodeURIComponent(uid)+param+'&source=website&_t='+Date.now()+Math.random(),{cache:'no-store'})
+        const param = op.mode==='add' ? '&add='+encodeURIComponent(op.val)
+                    : op.mode==='setFormula' ? '&setFormula='+encodeURIComponent(op.val)
+                    : '&set='+encodeURIComponent(op.val);
+        fetch(SHEETS_URL+'?uid='+encodeURIComponent(uid)+param+'&source=website&_t='+Date.now()+Math.random(),{cache:'no-store',redirect:'follow'})
             .then(r=>r.json()).then(d=>{if(d.ok){delete retryQ[uid];if(!Object.keys(retryQ).length)setSync('ok','● LIVE');}}).catch(()=>{});
     });
 }, 3000);
@@ -586,13 +615,14 @@ function onEqKd(e,id,sid){
 function confirmEq(id,sid){
     const inp=document.getElementById('eq-'+sid); if(!inp) return;
     let raw=inp.value.trim(); if(raw.startsWith('=')) raw=raw.slice(1);
+    const clean=raw.replace(/[^0-9.+\-*\/()]/g,'');
     let qty;
-    try{qty=Math.max(0,parseFloat(Function('return ('+raw.replace(/[^0-9.+\-*\/()]/g,'')+')')().toFixed(4)));}
+    try{qty=Math.max(0,parseFloat(Function('return ('+clean+')')().toFixed(4)));}
     catch(e){qty=stockData[id]||0;}
-    inp.value='='+raw;
+    inp.value='='+clean;
     document.getElementById('eqok-'+sid)?.classList.remove('on');
     inp.blur();
-    sendSet(id,qty);
+    sendSetFormula(id, clean, qty);
 }
 
 // ─── NUMPAD ───────────────────────────────────────────────────
@@ -728,9 +758,6 @@ window.addEventListener('load',()=>{
                 localStorage.setItem('c2c_last_refresh', Date.now());
                 // Save items to localStorage for instant next load
                 try { localStorage.setItem('c2c_items', JSON.stringify(ITEMS)); } catch(e){}
-                // Init lastVersion so first poll doesn't immediately re-fetch
-                fetch(SHEETS_URL+'?action=getVersion&_t='+Date.now(),{cache:'no-store',redirect:'follow'})
-                    .then(r=>r.json()).then(v=>{ if(v.ok) lastVersion=v.version; }).catch(()=>{});
                 // Save items to Firebase cache
                 const batch={};
                 ITEMS.forEach(item=>{

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>🥩 Chef2Chef | Stock Engine</title>
+    <title>Chef2Chef | Stock Engine</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🥩</text></svg>">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
@@ -712,8 +712,8 @@ window.addEventListener('load',()=>{
     function fetchFromSheet() {
         attempt++;
         txt.textContent=attempt>1?'Retrying ('+attempt+'/3)…':'Connecting to sheet…';
-        fetch(SHEETS_URL+'?action=getAll&_t='+Date.now()+Math.random(),{cache:'no-store'})
-            .then(r=>r.json())
+        fetch(SHEETS_URL+'?action=getAll&_t='+Date.now()+Math.random(),{cache:'no-store',redirect:'follow'})
+            .then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
             .then(d=>{
                 if(!d.ok||!d.items) throw new Error(d.error||'No data');
                 ITEMS=d.items;
@@ -723,6 +723,8 @@ window.addEventListener('load',()=>{
                 });
                 saveLocal();
                 localStorage.setItem('c2c_last_refresh', Date.now());
+                // Save items to localStorage for instant next load
+                try { localStorage.setItem('c2c_items', JSON.stringify(ITEMS)); } catch(e){}
                 // Save items to Firebase cache
                 const batch={};
                 ITEMS.forEach(item=>{
@@ -746,10 +748,14 @@ window.addEventListener('load',()=>{
                 }).catch(()=>finishLoad());
             })
             .catch(err=>{
-                if(attempt<3){setTimeout(fetchFromSheet,2000);}
+                console.error('Sheet fetch error:', err.message, err);
+                if(attempt<3){
+                    txt.textContent='Error: '+err.message+' — retrying…';
+                    setTimeout(fetchFromSheet,2000);
+                }
                 else{
                     clearInterval(iv); bar.style.width='100%';
-                    txt.textContent='✕ Failed — tap to retry';
+                    txt.textContent='✕ Failed: '+err.message+' — tap to retry';
                     txt.style.cursor='pointer';
                     txt.onclick=()=>{attempt=0;p=0;bar.style.width='0%';fetchFromSheet();};
                     setSync('error','✕ ERROR');
@@ -757,38 +763,22 @@ window.addEventListener('load',()=>{
             });
     }
 
-    // Try Firebase cache first
-    txt.textContent='Loading…';
-    db.ref('items').once('value').then(snap=>{
-        const cached=snap.val();
-        if(cached && Object.keys(cached).length>100){
-            ITEMS=Object.values(cached).map(i=>({
-                id:i.id||'',desc:i.desc||'',um:i.um||'',pack:i.pack||'',
-                brand:i.brand||'',origin:i.origin||'',cat:i.cat||'',
-                sup:i.sup||'',cost:parseFloat(i.cost)||0,state:i.state||''
-            })).filter(i=>i.id);
-            // Apply Firebase stock values
-            db.ref('stock').once('value').then(sSnap=>{
-                const fbData=sSnap.val();
-                if(fbData){
-                    Object.entries(fbData).forEach(([safeKey,val])=>{
-                        const item=ITEMS.find(r=>r.id.replace(/[.#$[\]]/g,'_')===safeKey);
-                        if(!item) return;
-                        stockData[item.id]=parseFloat(val.qty)||0;
-                        formulaData[item.id]=String(val.formula||val.qty||0);
-                    });
-                    saveLocal();
-                }
-                txt.textContent='Loaded ⚡';
+    // STEP 1: If localStorage has items, show instantly — don't wait for anything
+    const localItems = localStorage.getItem('c2c_items');
+    if (localItems) {
+        try {
+            ITEMS = JSON.parse(localItems);
+            if (ITEMS && ITEMS.length > 100) {
+                txt.textContent = 'Loaded from cache ⚡';
                 finishLoad();
-                // Background refresh from sheet every 10 min
-                const lastRefresh=parseInt(localStorage.getItem('c2c_last_refresh')||'0');
-                if(Date.now()-lastRefresh>10*60*1000) setTimeout(fetchFromSheet,3000);
-            }).catch(()=>finishLoad());
-        } else {
-            fetchFromSheet();
-        }
-    }).catch(()=>fetchFromSheet());
+                // Refresh in background silently
+                setTimeout(fetchFromSheet, 1000);
+                return;
+            }
+        } catch(e) { ITEMS = []; }
+    }
+    // No local cache — fetch from sheet
+    fetchFromSheet();
 });
 </script></script>
 </body>

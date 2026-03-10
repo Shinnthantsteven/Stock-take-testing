@@ -282,11 +282,12 @@
     </div>
 </div>
 
-<script type="module">
-// ─── FIREBASE ───────────────────────────────────────────────
-import { initializeApp }         from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
-import { getDatabase, ref, onValue, set, get, child } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js';
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
+<script>
+// ─── FIREBASE INIT ───────────────────────────────────────────
 const firebaseConfig = {
   apiKey:            "AIzaSyAWI0Sd4hY_6X_odo2LCamwbQPSdLEjH1w",
   authDomain:        "chef2chef-stock.firebaseapp.com",
@@ -296,22 +297,23 @@ const firebaseConfig = {
   messagingSenderId: "510949862594",
   appId:             "1:510949862594:web:2bae9e49826221e5a69f5b"
 };
-
-const app = initializeApp(firebaseConfig);
-const db  = getDatabase(app);
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
 
 // ─── CONFIG ──────────────────────────────────────────────────
 const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbwmLIG9c6KHB1JwPC84wpmsG7iPVhPWs9aVD5xNf2IqDbEBqOpIHvJ2ER16bBY65F95/exec';
 const PAGE_SIZE  = 15;
 
-let ITEMS       = [];
+let ITEMS         = [];
 const stockData   = {};
 const formulaData = {};
 let historyLog    = [];
 let fbListening   = false;
+let lastVersion   = '';
+let fetchingFull  = false;
 
 // ─── MODE ────────────────────────────────────────────────────
-window.toggleMode = function() {
+function toggleMode() {
     const light = document.body.classList.toggle('light');
     document.getElementById('modeBtn').textContent = light ? '☀️ LIGHT' : '🌙 DARK';
     localStorage.setItem('c2c_mode', light ? 'light' : 'dark');
@@ -337,12 +339,12 @@ function loadLocal() {
 }
 
 // ─── HISTORY ─────────────────────────────────────────────────
-window.openHistory = function() {
+function openHistory() {
     document.getElementById('histDrawer').classList.add('open');
     document.getElementById('histOverlay').classList.add('open');
     fetchHistory();
 }
-window.closeHistory = function() {
+function closeHistory() {
     document.getElementById('histDrawer').classList.remove('open');
     document.getElementById('histOverlay').classList.remove('open');
 }
@@ -387,42 +389,36 @@ function addLocalHistory(uid, oldVal, newVal, added, formula, source) {
 }
 
 // ─── FIREBASE WRITE ──────────────────────────────────────────
-// Writes stock to Firebase instantly (< 300ms)
-// Also queues write to Google Sheet in background
 function fbWrite(uid, newVal, formula) {
     const safeKey = uid.replace(/[.#$[\]]/g, '_');
-    set(ref(db, 'stock/' + safeKey), {
+    db.ref('stock/' + safeKey).set({
         qty:     newVal,
         formula: formula || String(newVal),
         ts:      Date.now()
     });
 }
 
-// ─── FIREBASE LISTENER ───────────────────────────────────────
-// Fires instantly when ANY user changes stock — true real-time
+// ─── FIREBASE LISTENER — instant sync between all users ──────
 function startFirebaseListener() {
     if (fbListening) return;
     fbListening = true;
-    onValue(ref(db, 'stock'), (snapshot) => {
+    db.ref('stock').on('value', (snapshot) => {
         const data = snapshot.val();
         if (!data) return;
         let changed = false;
         Object.entries(data).forEach(([safeKey, val]) => {
-            // find original uid by matching safe key
             const item = ITEMS.find(r => r.id.replace(/[.#$[\]]/g,'_') === safeKey);
             if (!item) return;
-            const uid      = item.id;
-            const newQty   = parseFloat(val.qty) || 0;
-            const newForm  = String(val.formula || newQty);
+            const uid     = item.id;
+            const newQty  = parseFloat(val.qty) || 0;
+            const newForm = String(val.formula || newQty);
             const localQty = stockData[uid] || 0;
             if (newQty !== localQty || newForm !== (formulaData[uid]||'')) {
                 const oldVal = localQty;
                 stockData[uid]   = newQty;
                 formulaData[uid] = newForm;
                 updateCellDisplay(uid);
-                if (newQty !== oldVal) {
-                    addLocalHistory(uid, oldVal, newQty, newQty-oldVal, newForm, 'web');
-                }
+                if (newQty !== oldVal) addLocalHistory(uid, oldVal, newQty, newQty-oldVal, newForm, 'web');
                 changed = true;
             }
         });
@@ -430,7 +426,41 @@ function startFirebaseListener() {
     });
 }
 
-// ─── WRITE — website → Firebase + Sheet ──────────────────────
+// ─── SHEET POLL — detects sheet edits, pushes to Firebase ────
+function startSheetPoll() {
+    setInterval(()=>{
+        if (fetchingFull) return;
+        fetch(SHEETS_URL+'?action=getVersion&_t='+Date.now()+Math.random(),{cache:'no-store'})
+            .then(r=>r.json()).then(v=>{
+                if (!v.ok || v.version===lastVersion) return;
+                lastVersion = v.version;
+                fetchingFull = true;
+                fetch(SHEETS_URL+'?action=getAll&_t='+Date.now()+Math.random(),{cache:'no-store'})
+                    .then(r=>r.json()).then(full=>{
+                        fetchingFull = false;
+                        if (!full.ok||!full.items) return;
+                        full.items.forEach(item=>{
+                            const sheetQty  = parseFloat(item.stock)||0;
+                            const sheetForm = item.formula||String(sheetQty);
+                            const localQty  = stockData[item.id]||0;
+                            const localForm = formulaData[item.id]||'';
+                            if (sheetQty !== localQty || sheetForm !== localForm) {
+                                const oldVal = localQty;
+                                stockData[item.id]   = sheetQty;
+                                formulaData[item.id] = sheetForm;
+                                fbWrite(item.id, sheetQty, sheetForm);
+                                updateCellDisplay(item.id);
+                                if (sheetQty !== oldVal) addLocalHistory(item.id, oldVal, sheetQty, sheetQty-oldVal, sheetForm, 'sheet');
+                            }
+                        });
+                        saveLocal();
+                        setSync('ok','● LIVE');
+                    }).catch(()=>{ fetchingFull=false; });
+            }).catch(()=>{});
+    }, 5000);
+}
+
+// ─── WRITE — website → Firebase (instant) + Sheet (background)
 let retryQ = {};
 
 function sendAdd(uid, addQty) {
@@ -444,18 +474,12 @@ function sendAdd(uid, addQty) {
     updateCellDisplay(uid);
     addLocalHistory(uid, oldVal, newVal, addQty, newForm, 'website');
     setSync('syncing','⟳ SAVING');
-
-    // 1. Firebase — instant
     fbWrite(uid, newVal, newForm);
-
-    // 2. Google Sheet — background (slower but guaranteed)
     fetch(SHEETS_URL+'?uid='+encodeURIComponent(uid)+'&add='+encodeURIComponent(addQty)+'&source=website&_t='+Date.now()+Math.random(),{cache:'no-store'})
-        .then(r=>r.json())
-        .then(d=>{
-            if (d.ok) { stockData[uid]=d.newVal; formulaData[uid]=d.formula; saveLocal(); updateCellDisplay(uid); delete retryQ[uid]; setSync('ok','● LIVE'); }
-            else { retryQ[uid]={mode:'add',val:addQty}; setSync('syncing','⟳ SHEET SYNC…'); }
-        })
-        .catch(()=>{ retryQ[uid]={mode:'add',val:addQty}; setSync('syncing','⟳ SHEET SYNC…'); });
+        .then(r=>r.json()).then(d=>{
+            if(d.ok){stockData[uid]=d.newVal;formulaData[uid]=d.formula;saveLocal();updateCellDisplay(uid);delete retryQ[uid];setSync('ok','● LIVE');}
+            else{retryQ[uid]={mode:'add',val:addQty};setSync('syncing','⟳ SHEET SYNC…');}
+        }).catch(()=>{retryQ[uid]={mode:'add',val:addQty};setSync('syncing','⟳ SHEET SYNC…');});
 }
 
 function sendSet(uid, qty) {
@@ -466,25 +490,20 @@ function sendSet(uid, qty) {
     updateCellDisplay(uid);
     addLocalHistory(uid, oldVal, qty, qty-oldVal, String(qty), 'website');
     setSync('syncing','⟳ SAVING');
-
     fbWrite(uid, qty, String(qty));
-
     fetch(SHEETS_URL+'?uid='+encodeURIComponent(uid)+'&set='+encodeURIComponent(qty)+'&source=website&_t='+Date.now()+Math.random(),{cache:'no-store'})
-        .then(r=>r.json())
-        .then(d=>{
-            if (d.ok) { stockData[uid]=d.newVal; formulaData[uid]=d.formula; saveLocal(); updateCellDisplay(uid); delete retryQ[uid]; setSync('ok','● LIVE'); }
-            else { retryQ[uid]={mode:'set',val:qty}; setSync('syncing','⟳ SHEET SYNC…'); }
-        })
-        .catch(()=>{ retryQ[uid]={mode:'set',val:qty}; setSync('syncing','⟳ SHEET SYNC…'); });
+        .then(r=>r.json()).then(d=>{
+            if(d.ok){stockData[uid]=d.newVal;formulaData[uid]=d.formula;saveLocal();updateCellDisplay(uid);delete retryQ[uid];setSync('ok','● LIVE');}
+            else{retryQ[uid]={mode:'set',val:qty};setSync('syncing','⟳ SHEET SYNC…');}
+        }).catch(()=>{retryQ[uid]={mode:'set',val:qty};setSync('syncing','⟳ SHEET SYNC…');});
 }
 
-// retry sheet writes
 setInterval(()=>{
     const entries=Object.entries(retryQ); if(!entries.length) return;
     entries.forEach(([uid,op])=>{
         const param=op.mode==='add'?'&add='+encodeURIComponent(op.val):'&set='+encodeURIComponent(op.val);
         fetch(SHEETS_URL+'?uid='+encodeURIComponent(uid)+param+'&source=website&_t='+Date.now()+Math.random(),{cache:'no-store'})
-            .then(r=>r.json()).then(d=>{ if(d.ok){delete retryQ[uid]; if(!Object.keys(retryQ).length) setSync('ok','● LIVE');}}).catch(()=>{});
+            .then(r=>r.json()).then(d=>{if(d.ok){delete retryQ[uid];if(!Object.keys(retryQ).length)setSync('ok','● LIVE');}}).catch(()=>{});
     });
 }, 3000);
 
@@ -556,12 +575,12 @@ function renderTable() {
 }
 
 // ─── EQUATION BAR ─────────────────────────────────────────────
-window.onEqIn = function(id,sid){ document.getElementById('eqok-'+sid)?.classList.add('on'); }
-window.onEqKd = function(e,id,sid){
+function onEqIn(id,sid){ document.getElementById('eqok-'+sid)?.classList.add('on'); }
+function onEqKd(e,id,sid){
     if(e.key==='Enter'){e.preventDefault();confirmEq(id,sid);}
     if(e.key==='Escape'){const inp=document.getElementById('eq-'+sid);if(inp)inp.value='='+(formulaData[id]||String(stockData[id]||0));document.getElementById('eqok-'+sid)?.classList.remove('on');}
 }
-window.confirmEq = function(id,sid){
+function confirmEq(id,sid){
     const inp=document.getElementById('eq-'+sid); if(!inp) return;
     let raw=inp.value.trim(); if(raw.startsWith('=')) raw=raw.slice(1);
     let qty;
@@ -578,7 +597,7 @@ let np={val:'0',id:null,um:''};
 let npDrg=false,npOX=0,npOY=0;
 let npPos={x:window.innerWidth-180,y:Math.round(window.innerHeight*0.25)};
 
-window.openCalc = function(id){
+function openCalc(id){
     const item=ITEMS.find(r=>r.id===id); if(!item) return;
     np.id=id; np.um=item.um; np.val='0';
     const el=document.getElementById('numpadPopup');
@@ -609,7 +628,7 @@ function npDraw(){
         pv.textContent=ex+' '+(addQty>=0?'+':'')+addQty+' = '+newTotal+' '+np.um;
     }catch(e){pv.textContent='...';}
 }
-window.npKey = function(k){
+function npKey(k){
     const ops=['+','-','*','/'];
     if(k==='back'){np.val=np.val.length>1?np.val.slice(0,-1):'0';}
     else if(ops.includes(k)){
@@ -621,7 +640,7 @@ window.npKey = function(k){
     }else{np.val=(np.val==='0')?k:np.val+k;}
     npDraw();
 }
-window.npConfirm = function(){
+function npConfirm(){
     const ex=stockData[np.id]||0,v=np.val;
     if(!v||v==='0'){document.getElementById('numpadPopup').classList.remove('open');document.removeEventListener('click',npOut);return;}
     let addQty,newTotal;
@@ -644,47 +663,6 @@ document.getElementById('npDrag').addEventListener('touchstart',dS,{passive:true
 function dS(e){npDrg=true;const r=document.getElementById('numpadPopup').getBoundingClientRect();const cx=e.touches?e.touches[0].clientX:e.clientX,cy=e.touches?e.touches[0].clientY:e.clientY;npOX=cx-r.left;npOY=cy-r.top;document.addEventListener('mousemove',dM);document.addEventListener('mouseup',dE);document.addEventListener('touchmove',dM,{passive:true});document.addEventListener('touchend',dE);}
 function dM(e){if(!npDrg)return;const cx=e.touches?e.touches[0].clientX:e.clientX,cy=e.touches?e.touches[0].clientY:e.clientY;const el=document.getElementById('numpadPopup');const nx=Math.max(0,Math.min(window.innerWidth-el.offsetWidth,cx-npOX));const ny=Math.max(0,Math.min(window.innerHeight-el.offsetHeight,cy-npOY));npPos.x=nx;npPos.y=ny;el.style.left=nx+'px';el.style.top=ny+'px';}
 function dE(){npDrg=false;document.removeEventListener('mousemove',dM);document.removeEventListener('mouseup',dE);document.removeEventListener('touchmove',dM);document.removeEventListener('touchend',dE);}
-
-// ─── SHEET → FIREBASE POLL ──────────────────────────────────
-// Every 5s: check if sheet changed → if yes, push to Firebase + update website
-let lastVersion = '', fetchingFull = false;
-
-function startSheetPoll() {
-    setInterval(()=>{
-        if (fetchingFull) return;
-        fetch(SHEETS_URL+'?action=getVersion&_t='+Date.now()+Math.random(),{cache:'no-store'})
-            .then(r=>r.json()).then(v=>{
-                if (!v.ok || v.version===lastVersion) return;
-                lastVersion = v.version;
-                fetchingFull = true;
-                fetch(SHEETS_URL+'?action=getAll&_t='+Date.now()+Math.random(),{cache:'no-store'})
-                    .then(r=>r.json()).then(full=>{
-                        fetchingFull = false;
-                        if (!full.ok||!full.items) return;
-                        full.items.forEach(item=>{
-                            const sheetQty  = parseFloat(item.stock)||0;
-                            const sheetForm = item.formula||String(sheetQty);
-                            const localQty  = stockData[item.id]||0;
-                            const localForm = formulaData[item.id]||'';
-                            // Sheet changed vs what we have → push to Firebase + update UI
-                            if (sheetQty !== localQty || sheetForm !== localForm) {
-                                const oldVal = localQty;
-                                stockData[item.id]   = sheetQty;
-                                formulaData[item.id] = sheetForm;
-                                // Push sheet change into Firebase so all users see it
-                                fbWrite(item.id, sheetQty, sheetForm);
-                                updateCellDisplay(item.id);
-                                if (sheetQty !== oldVal) {
-                                    addLocalHistory(item.id, oldVal, sheetQty, sheetQty-oldVal, sheetForm, 'sheet');
-                                }
-                            }
-                        });
-                        saveLocal();
-                        setSync('ok','● LIVE');
-                    }).catch(()=>{ fetchingFull=false; });
-            }).catch(()=>{});
-    }, 5000);
-}
 
 // ─── SEARCH ───────────────────────────────────────────────────
 let sT;
@@ -713,93 +691,27 @@ window.addEventListener('load',()=>{
     }
     loadLocal();
 
-    let p=0,attempt=0;
-    const bar=document.getElementById('loadBar'),txt=document.getElementById('loadTxt');
+    let p=0, attempt=0;
+    const bar=document.getElementById('loadBar'), txt=document.getElementById('loadTxt');
     const iv=setInterval(()=>{p=Math.min(p+Math.random()*12,88);bar.style.width=p+'%';},60);
 
     function finishLoad() {
         clearInterval(iv); bar.style.width='100%';
-        // apply Firebase stock on top
-        get(child(ref(db),'stock')).then(snapshot=>{
-            const fbData=snapshot.val();
-            if(fbData){
-                Object.entries(fbData).forEach(([safeKey,val])=>{
-                    const item=ITEMS.find(r=>r.id.replace(/[.#$[\]]/g,'_')===safeKey);
-                    if(!item) return;
-                    stockData[item.id]=parseFloat(val.qty)||0;
-                    formulaData[item.id]=String(val.formula||val.qty||0);
-                });
-                saveLocal();
-            }
-            displayItems=ITEMS.slice(0,PAGE_SIZE);
-            txt.textContent=ITEMS.length.toLocaleString()+' items loaded ✓';
-            document.getElementById('barCount').textContent=PAGE_SIZE+' of '+ITEMS.length.toLocaleString();
-            setSync('ok','● LIVE');
-            setTimeout(()=>{
-                renderTable();
-                document.getElementById('loadScreen').style.display='none';
-                startFirebaseListener();
-                startSheetPoll();
-            },200);
-        }).catch(()=>{
-            displayItems=ITEMS.slice(0,PAGE_SIZE);
-            txt.textContent=ITEMS.length.toLocaleString()+' items loaded ✓';
-            document.getElementById('barCount').textContent=PAGE_SIZE+' of '+ITEMS.length.toLocaleString();
-            setSync('ok','● LIVE');
-            setTimeout(()=>{
-                renderTable();
-                document.getElementById('loadScreen').style.display='none';
-                startFirebaseListener();
-                startSheetPoll();
-            },200);
-        });
+        displayItems=ITEMS.slice(0,PAGE_SIZE);
+        txt.textContent=ITEMS.length.toLocaleString()+' items loaded ✓';
+        document.getElementById('barCount').textContent=PAGE_SIZE+' of '+ITEMS.length.toLocaleString();
+        setSync('ok','● LIVE');
+        setTimeout(()=>{
+            renderTable();
+            document.getElementById('loadScreen').style.display='none';
+            startFirebaseListener();
+            startSheetPoll();
+        },200);
     }
 
-    function saveItemsToFirebase(items) {
-        // Save all items to Firebase cache (runs in background)
-        const batch = {};
-        items.forEach(item => {
-            const safeKey = item.id.replace(/[.#$[\]]/g,'_');
-            batch['items/'+safeKey] = {
-                id:item.id, desc:item.desc, um:item.um, pack:item.pack,
-                brand:item.brand, origin:item.origin, cat:item.cat,
-                sup:item.sup, cost:item.cost
-            };
-        });
-        // Use set for each to avoid huge single write
-        import('https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js')
-            .then(({update})=> update(ref(db), batch)).catch(()=>{});
-    }
-
-    function loadFromFirebaseCache() {
-        txt.textContent = 'Loading from cache…';
-        get(child(ref(db),'items')).then(snapshot=>{
-            const cached = snapshot.val();
-            if (cached && Object.keys(cached).length > 100) {
-                // Firebase cache hit — instant load!
-                ITEMS = Object.values(cached).map(i=>({
-                    id:i.id||'', desc:i.desc||'', um:i.um||'', pack:i.pack||'',
-                    brand:i.brand||'', origin:i.origin||'', cat:i.cat||'',
-                    sup:i.sup||'', cost:parseFloat(i.cost)||0, state:i.state||''
-                })).filter(i=>i.id);
-                ITEMS.forEach(item=>{ stockData[item.id]=parseFloat(stockData[item.id])||0; });
-                txt.textContent = 'Loaded from cache ⚡';
-                finishLoad();
-                // Refresh from sheet silently in background every 10 min
-                const lastRefresh = parseInt(localStorage.getItem('c2c_last_refresh')||'0');
-                if (Date.now()-lastRefresh > 10*60*1000) {
-                    txt.textContent = 'Updating items…';
-                    fetchFromSheet(true);
-                }
-            } else {
-                // No cache yet — fetch from sheet and populate Firebase
-                fetchFromSheet(false);
-            }
-        }).catch(()=> fetchFromSheet(false));
-    }
-
-    function fetchFromSheet(silentUpdate) {
-        if (!silentUpdate) { attempt++; txt.textContent='Connecting to sheet…'; }
+    function fetchFromSheet() {
+        attempt++;
+        txt.textContent=attempt>1?'Retrying ('+attempt+'/3)…':'Connecting to sheet…';
         fetch(SHEETS_URL+'?action=getAll&_t='+Date.now()+Math.random(),{cache:'no-store'})
             .then(r=>r.json())
             .then(d=>{
@@ -811,24 +723,73 @@ window.addEventListener('load',()=>{
                 });
                 saveLocal();
                 localStorage.setItem('c2c_last_refresh', Date.now());
-                // Save items to Firebase cache for next load
-                saveItemsToFirebase(ITEMS);
-                if (!silentUpdate) finishLoad();
+                // Save items to Firebase cache
+                const batch={};
+                ITEMS.forEach(item=>{
+                    const k=item.id.replace(/[.#$[\]]/g,'_');
+                    batch['items/'+k]={id:item.id,desc:item.desc,um:item.um,pack:item.pack,brand:item.brand,origin:item.origin,cat:item.cat,sup:item.sup,cost:item.cost};
+                });
+                db.ref().update(batch).catch(()=>{});
+                // Load Firebase stock on top
+                db.ref('stock').once('value').then(snap=>{
+                    const fbData=snap.val();
+                    if(fbData){
+                        Object.entries(fbData).forEach(([safeKey,val])=>{
+                            const item=ITEMS.find(r=>r.id.replace(/[.#$[\]]/g,'_')===safeKey);
+                            if(!item) return;
+                            stockData[item.id]=parseFloat(val.qty)||0;
+                            formulaData[item.id]=String(val.formula||val.qty||0);
+                        });
+                        saveLocal();
+                    }
+                    finishLoad();
+                }).catch(()=>finishLoad());
             })
             .catch(err=>{
-                if(!silentUpdate && attempt<3){setTimeout(()=>fetchFromSheet(false),2000);}
-                else if(!silentUpdate){
+                if(attempt<3){setTimeout(fetchFromSheet,2000);}
+                else{
                     clearInterval(iv); bar.style.width='100%';
                     txt.textContent='✕ Failed — tap to retry';
                     txt.style.cursor='pointer';
-                    txt.onclick=()=>{attempt=0;p=0;bar.style.width='0%';loadFromFirebaseCache();};
+                    txt.onclick=()=>{attempt=0;p=0;bar.style.width='0%';fetchFromSheet();};
                     setSync('error','✕ ERROR');
                 }
             });
     }
 
-    loadFromFirebaseCache();
+    // Try Firebase cache first
+    txt.textContent='Loading…';
+    db.ref('items').once('value').then(snap=>{
+        const cached=snap.val();
+        if(cached && Object.keys(cached).length>100){
+            ITEMS=Object.values(cached).map(i=>({
+                id:i.id||'',desc:i.desc||'',um:i.um||'',pack:i.pack||'',
+                brand:i.brand||'',origin:i.origin||'',cat:i.cat||'',
+                sup:i.sup||'',cost:parseFloat(i.cost)||0,state:i.state||''
+            })).filter(i=>i.id);
+            // Apply Firebase stock values
+            db.ref('stock').once('value').then(sSnap=>{
+                const fbData=sSnap.val();
+                if(fbData){
+                    Object.entries(fbData).forEach(([safeKey,val])=>{
+                        const item=ITEMS.find(r=>r.id.replace(/[.#$[\]]/g,'_')===safeKey);
+                        if(!item) return;
+                        stockData[item.id]=parseFloat(val.qty)||0;
+                        formulaData[item.id]=String(val.formula||val.qty||0);
+                    });
+                    saveLocal();
+                }
+                txt.textContent='Loaded ⚡';
+                finishLoad();
+                // Background refresh from sheet every 10 min
+                const lastRefresh=parseInt(localStorage.getItem('c2c_last_refresh')||'0');
+                if(Date.now()-lastRefresh>10*60*1000) setTimeout(fetchFromSheet,3000);
+            }).catch(()=>finishLoad());
+        } else {
+            fetchFromSheet();
+        }
+    }).catch(()=>fetchFromSheet());
 });
-</script>
+</script></script>
 </body>
 </html>

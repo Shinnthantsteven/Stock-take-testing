@@ -739,6 +739,7 @@ window.addEventListener('load',()=>{
                 renderTable();
                 document.getElementById('loadScreen').style.display='none';
                 startFirebaseListener();
+                startSheetPoll();
             },200);
         }).catch(()=>{
             displayItems=ITEMS.slice(0,PAGE_SIZE);
@@ -749,6 +750,7 @@ window.addEventListener('load',()=>{
                 renderTable();
                 document.getElementById('loadScreen').style.display='none';
                 startFirebaseListener();
+                startSheetPoll();
             },200);
         });
     }

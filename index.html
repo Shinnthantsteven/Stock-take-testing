@@ -645,6 +645,47 @@ function dS(e){npDrg=true;const r=document.getElementById('numpadPopup').getBoun
 function dM(e){if(!npDrg)return;const cx=e.touches?e.touches[0].clientX:e.clientX,cy=e.touches?e.touches[0].clientY:e.clientY;const el=document.getElementById('numpadPopup');const nx=Math.max(0,Math.min(window.innerWidth-el.offsetWidth,cx-npOX));const ny=Math.max(0,Math.min(window.innerHeight-el.offsetHeight,cy-npOY));npPos.x=nx;npPos.y=ny;el.style.left=nx+'px';el.style.top=ny+'px';}
 function dE(){npDrg=false;document.removeEventListener('mousemove',dM);document.removeEventListener('mouseup',dE);document.removeEventListener('touchmove',dM);document.removeEventListener('touchend',dE);}
 
+// ─── SHEET → FIREBASE POLL ──────────────────────────────────
+// Every 5s: check if sheet changed → if yes, push to Firebase + update website
+let lastVersion = '', fetchingFull = false;
+
+function startSheetPoll() {
+    setInterval(()=>{
+        if (fetchingFull) return;
+        fetch(SHEETS_URL+'?action=getVersion&_t='+Date.now()+Math.random(),{cache:'no-store'})
+            .then(r=>r.json()).then(v=>{
+                if (!v.ok || v.version===lastVersion) return;
+                lastVersion = v.version;
+                fetchingFull = true;
+                fetch(SHEETS_URL+'?action=getAll&_t='+Date.now()+Math.random(),{cache:'no-store'})
+                    .then(r=>r.json()).then(full=>{
+                        fetchingFull = false;
+                        if (!full.ok||!full.items) return;
+                        full.items.forEach(item=>{
+                            const sheetQty  = parseFloat(item.stock)||0;
+                            const sheetForm = item.formula||String(sheetQty);
+                            const localQty  = stockData[item.id]||0;
+                            const localForm = formulaData[item.id]||'';
+                            // Sheet changed vs what we have → push to Firebase + update UI
+                            if (sheetQty !== localQty || sheetForm !== localForm) {
+                                const oldVal = localQty;
+                                stockData[item.id]   = sheetQty;
+                                formulaData[item.id] = sheetForm;
+                                // Push sheet change into Firebase so all users see it
+                                fbWrite(item.id, sheetQty, sheetForm);
+                                updateCellDisplay(item.id);
+                                if (sheetQty !== oldVal) {
+                                    addLocalHistory(item.id, oldVal, sheetQty, sheetQty-oldVal, sheetForm, 'sheet');
+                                }
+                            }
+                        });
+                        saveLocal();
+                        setSync('ok','● LIVE');
+                    }).catch(()=>{ fetchingFull=false; });
+            }).catch(()=>{});
+    }, 5000);
+}
+
 // ─── SEARCH ───────────────────────────────────────────────────
 let sT;
 document.getElementById('searchIn').addEventListener('input',e=>{

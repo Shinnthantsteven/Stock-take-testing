@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Chef2Chef | Stock Engine</title>
+    <title>🥩 Chef2Chef | Stock Engine</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🥩</text></svg>">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
@@ -198,7 +198,7 @@
 
 <nav class="nav">
     <a href="https://chef2chef.ae" target="_blank" class="logo-text">
-        <div class="logo-wrap"><img src="https://raw.githubusercontent.com/Shinnthantsteven/Chef2Chef-Master-Code/main/Gemini_Generated_Image_6jovem6jovem6jov.jpeg" alt=""></div>
+        <span style="font-size:24px">🥩</span>
         CHEF2CHEF <span style="color:var(--brand)">STOCK</span>
     </a>
     <div class="nav-right">
@@ -282,37 +282,51 @@
     </div>
 </div>
 
-<script>
+<script type="module">
+// ─── FIREBASE ───────────────────────────────────────────────
+import { initializeApp }         from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
+import { getDatabase, ref, onValue, set, get, child } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js';
+
+const firebaseConfig = {
+  apiKey:            "AIzaSyAWI0Sd4hY_6X_odo2LCamwbQPSdLEjH1w",
+  authDomain:        "chef2chef-stock.firebaseapp.com",
+  databaseURL:       "https://chef2chef-stock-default-rtdb.firebaseio.com",
+  projectId:         "chef2chef-stock",
+  storageBucket:     "chef2chef-stock.firebasestorage.app",
+  messagingSenderId: "510949862594",
+  appId:             "1:510949862594:web:2bae9e49826221e5a69f5b"
+};
+
+const app = initializeApp(firebaseConfig);
+const db  = getDatabase(app);
+
+// ─── CONFIG ──────────────────────────────────────────────────
 const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbwmLIG9c6KHB1JwPC84wpmsG7iPVhPWs9aVD5xNf2IqDbEBqOpIHvJ2ER16bBY65F95/exec';
 const PAGE_SIZE  = 15;
 
 let ITEMS       = [];
-const stockData   = {};  // id → current total qty (number)
-const formulaData = {};  // id → full formula string e.g. "5+3+2"
+const stockData   = {};
+const formulaData = {};
+let historyLog    = [];
+let fbListening   = false;
 
-// ─────────────────────────────────────────────
-// MODE
-// ─────────────────────────────────────────────
-function toggleMode() {
+// ─── MODE ────────────────────────────────────────────────────
+window.toggleMode = function() {
     const light = document.body.classList.toggle('light');
     document.getElementById('modeBtn').textContent = light ? '☀️ LIGHT' : '🌙 DARK';
     localStorage.setItem('c2c_mode', light ? 'light' : 'dark');
 }
 
-// ─────────────────────────────────────────────
-// BADGE
-// ─────────────────────────────────────────────
+// ─── BADGE ───────────────────────────────────────────────────
 function setSync(state, msg) {
     const el = document.getElementById('syncBadge');
     el.className = 'sync-badge' + (state==='ok' ? '' : ' '+state);
     el.textContent = msg;
 }
 
-// ─────────────────────────────────────────────
-// LOCAL STORAGE — permanent memory across reloads
-// ─────────────────────────────────────────────
+// ─── LOCAL STORAGE ───────────────────────────────────────────
 function saveLocal() {
-    try { localStorage.setItem('c2c_stock', JSON.stringify({s:stockData, f:formulaData})); } catch(e){}
+    try { localStorage.setItem('c2c_stock', JSON.stringify({s:stockData,f:formulaData})); } catch(e){}
 }
 function loadLocal() {
     try {
@@ -322,17 +336,13 @@ function loadLocal() {
     } catch(e){}
 }
 
-// ─────────────────────────────────────────────
-// HISTORY
-// ─────────────────────────────────────────────
-let historyLog = [];
-
-function openHistory() {
+// ─── HISTORY ─────────────────────────────────────────────────
+window.openHistory = function() {
     document.getElementById('histDrawer').classList.add('open');
     document.getElementById('histOverlay').classList.add('open');
     fetchHistory();
 }
-function closeHistory() {
+window.closeHistory = function() {
     document.getElementById('histDrawer').classList.remove('open');
     document.getElementById('histOverlay').classList.remove('open');
 }
@@ -352,7 +362,7 @@ function renderHistory() {
         const isPos  = !added.startsWith('-');
         const src    = e.source==='sheet' ? '📊 SHEET' : '🌐 WEB';
         const srcCls = e.source==='sheet' ? 'sheet' : 'web';
-        const fDisp  = e.formula ? `<span style="font-family:monospace;color:#fbbf24;font-size:10px">=</span><span style="font-family:monospace;color:#fbbf24;font-size:10px">${xe(e.formula)}</span>` : '';
+        const fDisp  = e.formula ? `<span style="font-family:monospace;color:#fbbf24;font-size:10px">=${xe(e.formula)}</span>` : '';
         return `<div class="hist-row">
             <div class="hist-top"><span class="hist-uid">${xe(e.uid)}</span><span class="hist-ts">${xe(e.ts)}</span></div>
             <div class="hist-desc">${xe(e.desc)}</div>
@@ -376,19 +386,58 @@ function addLocalHistory(uid, oldVal, newVal, added, formula, source) {
     if (document.getElementById('histDrawer').classList.contains('open')) renderHistory();
 }
 
-// ─────────────────────────────────────────────
-// WRITE — website → sheet
-// ADD mode: sends the delta, sheet appends to formula
-// SET mode: overwrites with absolute value
-// ─────────────────────────────────────────────
+// ─── FIREBASE WRITE ──────────────────────────────────────────
+// Writes stock to Firebase instantly (< 300ms)
+// Also queues write to Google Sheet in background
+function fbWrite(uid, newVal, formula) {
+    const safeKey = uid.replace(/[.#$[\]]/g, '_');
+    set(ref(db, 'stock/' + safeKey), {
+        qty:     newVal,
+        formula: formula || String(newVal),
+        ts:      Date.now()
+    });
+}
+
+// ─── FIREBASE LISTENER ───────────────────────────────────────
+// Fires instantly when ANY user changes stock — true real-time
+function startFirebaseListener() {
+    if (fbListening) return;
+    fbListening = true;
+    onValue(ref(db, 'stock'), (snapshot) => {
+        const data = snapshot.val();
+        if (!data) return;
+        let changed = false;
+        Object.entries(data).forEach(([safeKey, val]) => {
+            // find original uid by matching safe key
+            const item = ITEMS.find(r => r.id.replace(/[.#$[\]]/g,'_') === safeKey);
+            if (!item) return;
+            const uid      = item.id;
+            const newQty   = parseFloat(val.qty) || 0;
+            const newForm  = String(val.formula || newQty);
+            const localQty = stockData[uid] || 0;
+            if (newQty !== localQty || newForm !== (formulaData[uid]||'')) {
+                const oldVal = localQty;
+                stockData[uid]   = newQty;
+                formulaData[uid] = newForm;
+                updateCellDisplay(uid);
+                if (newQty !== oldVal) {
+                    addLocalHistory(uid, oldVal, newQty, newQty-oldVal, newForm, 'web');
+                }
+                changed = true;
+            }
+        });
+        if (changed) { saveLocal(); setSync('ok','● LIVE'); }
+    });
+}
+
+// ─── WRITE — website → Firebase + Sheet ──────────────────────
 let retryQ = {};
 
 function sendAdd(uid, addQty) {
-    // Optimistically update local immediately
     const oldVal  = stockData[uid] || 0;
     const newVal  = parseFloat((oldVal + addQty).toFixed(4));
     const oldForm = formulaData[uid] || String(oldVal);
-    const newForm = oldVal===0 ? String(addQty) : oldForm + (addQty>=0?'+':'')+addQty;
+    const newForm = oldVal===0 ? String(addQty) : oldForm+(addQty>=0?'+':'')+addQty;
     stockData[uid]   = newVal;
     formulaData[uid] = newForm;
     saveLocal();
@@ -396,23 +445,17 @@ function sendAdd(uid, addQty) {
     addLocalHistory(uid, oldVal, newVal, addQty, newForm, 'website');
     setSync('syncing','⟳ SAVING');
 
+    // 1. Firebase — instant
+    fbWrite(uid, newVal, newForm);
+
+    // 2. Google Sheet — background (slower but guaranteed)
     fetch(SHEETS_URL+'?uid='+encodeURIComponent(uid)+'&add='+encodeURIComponent(addQty)+'&source=website&_t='+Date.now()+Math.random(),{cache:'no-store'})
         .then(r=>r.json())
         .then(d=>{
-            if (d.ok) {
-                // use server's confirmed values (source of truth)
-                stockData[uid]   = d.newVal;
-                formulaData[uid] = d.formula;
-                saveLocal();
-                updateCellDisplay(uid);
-                delete retryQ[uid];
-                setSync('ok','● SYNCED');
-            } else {
-                retryQ[uid] = {mode:'add', val:addQty};
-                setSync('error','✕ RETRYING…');
-            }
+            if (d.ok) { stockData[uid]=d.newVal; formulaData[uid]=d.formula; saveLocal(); updateCellDisplay(uid); delete retryQ[uid]; setSync('ok','● LIVE'); }
+            else { retryQ[uid]={mode:'add',val:addQty}; setSync('syncing','⟳ SHEET SYNC…'); }
         })
-        .catch(()=>{ retryQ[uid]={mode:'add',val:addQty}; setSync('error','✕ RETRYING…'); });
+        .catch(()=>{ retryQ[uid]={mode:'add',val:addQty}; setSync('syncing','⟳ SHEET SYNC…'); });
 }
 
 function sendSet(uid, qty) {
@@ -424,81 +467,28 @@ function sendSet(uid, qty) {
     addLocalHistory(uid, oldVal, qty, qty-oldVal, String(qty), 'website');
     setSync('syncing','⟳ SAVING');
 
+    fbWrite(uid, qty, String(qty));
+
     fetch(SHEETS_URL+'?uid='+encodeURIComponent(uid)+'&set='+encodeURIComponent(qty)+'&source=website&_t='+Date.now()+Math.random(),{cache:'no-store'})
         .then(r=>r.json())
         .then(d=>{
-            if (d.ok) {
-                stockData[uid]   = d.newVal;
-                formulaData[uid] = d.formula;
-                saveLocal();
-                updateCellDisplay(uid);
-                delete retryQ[uid];
-                setSync('ok','● SYNCED');
-            } else {
-                retryQ[uid]={mode:'set',val:qty};
-                setSync('error','✕ RETRYING…');
-            }
+            if (d.ok) { stockData[uid]=d.newVal; formulaData[uid]=d.formula; saveLocal(); updateCellDisplay(uid); delete retryQ[uid]; setSync('ok','● LIVE'); }
+            else { retryQ[uid]={mode:'set',val:qty}; setSync('syncing','⟳ SHEET SYNC…'); }
         })
-        .catch(()=>{ retryQ[uid]={mode:'set',val:qty}; setSync('error','✕ RETRYING…'); });
+        .catch(()=>{ retryQ[uid]={mode:'set',val:qty}; setSync('syncing','⟳ SHEET SYNC…'); });
 }
 
-// retry failed writes every 2s
+// retry sheet writes
 setInterval(()=>{
-    const entries = Object.entries(retryQ);
-    if (!entries.length) return;
-    entries.forEach(([uid, op])=>{
-        const param = op.mode==='add'
-            ? '&add='+encodeURIComponent(op.val)
-            : '&set='+encodeURIComponent(op.val);
+    const entries=Object.entries(retryQ); if(!entries.length) return;
+    entries.forEach(([uid,op])=>{
+        const param=op.mode==='add'?'&add='+encodeURIComponent(op.val):'&set='+encodeURIComponent(op.val);
         fetch(SHEETS_URL+'?uid='+encodeURIComponent(uid)+param+'&source=website&_t='+Date.now()+Math.random(),{cache:'no-store'})
-            .then(r=>r.json()).then(d=>{ if(d.ok){ delete retryQ[uid]; if(!Object.keys(retryQ).length) setSync('ok','● SYNCED'); }}).catch(()=>{});
+            .then(r=>r.json()).then(d=>{ if(d.ok){delete retryQ[uid]; if(!Object.keys(retryQ).length) setSync('ok','● LIVE');}}).catch(()=>{});
     });
-}, 2000);
+}, 3000);
 
-// ─────────────────────────────────────────────
-// SMART POLL — sheet → website
-// Step 1: lightweight version check every 1.5s
-// Step 2: full fetch only when version changed
-// ─────────────────────────────────────────────
-let lastVersion = '', fetchingFull = false;
-
-function startPolling() {
-    setInterval(()=>{
-        if (fetchingFull) return;
-        fetch(SHEETS_URL+'?action=getVersion&_t='+Date.now()+Math.random(),{cache:'no-store'})
-            .then(r=>r.json()).then(v=>{
-                if (!v.ok || v.version===lastVersion) return;
-                lastVersion = v.version;
-                fetchingFull = true;
-                fetch(SHEETS_URL+'?action=getAll&_t='+Date.now()+Math.random(),{cache:'no-store'})
-                    .then(r=>r.json()).then(full=>{
-                        fetchingFull = false;
-                        if (!full.ok||!full.items) return;
-                        full.items.forEach(item=>{
-                            const sheetQty  = parseFloat(item.stock)||0;
-                            const sheetForm = item.formula||String(sheetQty);
-                            const localQty  = stockData[item.id]||0;
-                            const localForm = formulaData[item.id]||'';
-                            if (sheetQty!==localQty || sheetForm!==localForm) {
-                                const oldVal = localQty;
-                                stockData[item.id]   = sheetQty;
-                                formulaData[item.id] = sheetForm;
-                                updateCellDisplay(item.id);
-                                if (sheetQty!==oldVal) {
-                                    addLocalHistory(item.id, oldVal, sheetQty, sheetQty-oldVal, sheetForm, 'sheet');
-                                }
-                            }
-                        });
-                        saveLocal();
-                        setSync('ok','● SYNCED');
-                    }).catch(()=>{ fetchingFull=false; });
-            }).catch(()=>{});
-    }, 1500);
-}
-
-// ─────────────────────────────────────────────
-// CELL DISPLAY — surgical update, zero flicker
-// ─────────────────────────────────────────────
+// ─── CELL DISPLAY ────────────────────────────────────────────
 function updateCellDisplay(id) {
     const sid  = id.replace(/[^a-zA-Z0-9_-]/g,'_');
     const qty  = stockData[id]||0;
@@ -512,26 +502,22 @@ function updateCellDisplay(id) {
     if (qty>0) {
         if (qtyEl) {
             qtyEl.textContent = disp;
-            if (eqEl && document.activeElement!==eqEl) eqEl.value = '='+form;
-        } else {
-            tdEl.innerHTML = stockCellHtml(id);
-        }
+            if (eqEl && document.activeElement!==eqEl) eqEl.value='='+form;
+        } else { tdEl.innerHTML=stockCellHtml(id); }
     } else {
-        if (wrapEl) tdEl.innerHTML = `<div class="stock-empty" onclick="openCalc('${id}')"></div>`;
+        if (wrapEl) tdEl.innerHTML=`<div class="stock-empty" onclick="openCalc('${id}')"></div>`;
     }
 }
 
-// ─────────────────────────────────────────────
-// RENDER
-// ─────────────────────────────────────────────
+// ─── RENDER ──────────────────────────────────────────────────
 let displayItems = [];
 function xe(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
 function stockCellHtml(id) {
-    const qty  = stockData[id]||0;
-    const sid  = id.replace(/[^a-zA-Z0-9_-]/g,'_');
+    const qty = stockData[id]||0;
+    const sid = id.replace(/[^a-zA-Z0-9_-]/g,'_');
     if (qty>0) {
-        const disp = qty%1===0 ? qty : qty.toFixed(2);
+        const disp = qty%1===0?qty:qty.toFixed(2);
         const form = formulaData[id]||String(qty);
         return `<div class="stock-wrap" id="swrap-${sid}">
             <span class="stock-qty" id="sqty-${sid}" onclick="openCalc('${id}')">${disp}</span>
@@ -553,8 +539,8 @@ function renderTable() {
         <td>
             <div class="desc-name">${xe(r.desc)}</div>
             <div style="margin-top:2px">
-                ${r.cat   ?`<span class="cat-pill">${xe(r.cat)}</span>`:''}
-                ${r.state ?`<span class="state-pill">${xe(r.state)}</span>`:''}
+                ${r.cat?`<span class="cat-pill">${xe(r.cat)}</span>`:''}
+                ${r.state?`<span class="state-pill">${xe(r.state)}</span>`:''}
             </div>
         </td>
         <td id="std-${r.id.replace(/[^a-zA-Z0-9_-]/g,'_')}">${stockCellHtml(r.id)}</td>
@@ -563,135 +549,93 @@ function renderTable() {
         <td class="cell-pack">${xe(r.pack)}</td>
         <td class="cell-sup">${xe(r.sup)}</td>
         <td>
-            ${r.brand  ?`<span class="brand-pill">${xe(r.brand)}</span>`:''}
-            ${r.origin ?`<span class="origin-pill">${xe(r.origin)}</span>`:''}
+            ${r.brand?`<span class="brand-pill">${xe(r.brand)}</span>`:''}
+            ${r.origin?`<span class="origin-pill">${xe(r.origin)}</span>`:''}
         </td>
     </tr>`).join('');
 }
 
-// ─────────────────────────────────────────────
-// EQUATION BAR — manual edit below stock cell
-// User can type =5+3-1 etc and confirm
-// ─────────────────────────────────────────────
-function onEqIn(id, sid) {
-    document.getElementById('eqok-'+sid)?.classList.add('on');
+// ─── EQUATION BAR ─────────────────────────────────────────────
+window.onEqIn = function(id,sid){ document.getElementById('eqok-'+sid)?.classList.add('on'); }
+window.onEqKd = function(e,id,sid){
+    if(e.key==='Enter'){e.preventDefault();confirmEq(id,sid);}
+    if(e.key==='Escape'){const inp=document.getElementById('eq-'+sid);if(inp)inp.value='='+(formulaData[id]||String(stockData[id]||0));document.getElementById('eqok-'+sid)?.classList.remove('on');}
 }
-function onEqKd(e, id, sid) {
-    if (e.key==='Enter') { e.preventDefault(); confirmEq(id,sid); }
-    if (e.key==='Escape') {
-        const inp = document.getElementById('eq-'+sid);
-        if (inp) inp.value = '='+(formulaData[id]||String(stockData[id]||0));
-        document.getElementById('eqok-'+sid)?.classList.remove('on');
-    }
-}
-function confirmEq(id, sid) {
-    const inp = document.getElementById('eq-'+sid); if (!inp) return;
-    // strip leading = for eval
-    let raw = inp.value.trim();
-    if (raw.startsWith('=')) raw = raw.slice(1);
+window.confirmEq = function(id,sid){
+    const inp=document.getElementById('eq-'+sid); if(!inp) return;
+    let raw=inp.value.trim(); if(raw.startsWith('=')) raw=raw.slice(1);
     let qty;
-    try { qty = Math.max(0, parseFloat(Function('return ('+raw.replace(/[^0-9.+\-*\/()]/g,'')+')')(). toFixed(4))); }
-    catch(e) { qty = stockData[id]||0; }
-    inp.value = '='+raw;
+    try{qty=Math.max(0,parseFloat(Function('return ('+raw.replace(/[^0-9.+\-*\/()]/g,'')+')')().toFixed(4)));}
+    catch(e){qty=stockData[id]||0;}
+    inp.value='='+raw;
     document.getElementById('eqok-'+sid)?.classList.remove('on');
     inp.blur();
-    // SET absolute value from manual edit
-    sendSet(id, qty);
+    sendSet(id,qty);
 }
 
-// ─────────────────────────────────────────────
-// NUMPAD
-// Type 5 → ADDS 5 to existing stock (default)
-// Type -3 → subtracts 3  (need minus sign)
-// Type *2 → multiplies    (need * sign)
-// Type /2 → divides       (need / sign)
-// ─────────────────────────────────────────────
-let np = {val:'0', id:null, um:''};
-let npDrg=false, npOX=0, npOY=0;
-let npPos = {x:window.innerWidth-180, y:Math.round(window.innerHeight*0.25)};
+// ─── NUMPAD ───────────────────────────────────────────────────
+let np={val:'0',id:null,um:''};
+let npDrg=false,npOX=0,npOY=0;
+let npPos={x:window.innerWidth-180,y:Math.round(window.innerHeight*0.25)};
 
-function openCalc(id) {
-    const item = ITEMS.find(r=>r.id===id); if (!item) return;
+window.openCalc = function(id){
+    const item=ITEMS.find(r=>r.id===id); if(!item) return;
     np.id=id; np.um=item.um; np.val='0';
-    const el = document.getElementById('numpadPopup');
+    const el=document.getElementById('numpadPopup');
     el.style.left=npPos.x+'px'; el.style.top=npPos.y+'px';
     document.getElementById('npName').textContent=item.desc;
-    const ex = stockData[id]||0;
-    document.getElementById('npExisting').innerHTML = ex>0?`Current: <span>${ex} ${item.um}</span>`:'No stock yet';
+    const ex=stockData[id]||0;
+    document.getElementById('npExisting').innerHTML=ex>0?`Current: <span>${ex} ${item.um}</span>`:'No stock yet';
     npDraw(); el.classList.add('open');
     setTimeout(()=>document.addEventListener('click',npOut),50);
 }
-function npOut(e) {
-    if (!document.getElementById('numpadPopup').contains(e.target)&&!e.target.closest('.stock-empty')&&!e.target.closest('.stock-qty')) {
+function npOut(e){
+    if(!document.getElementById('numpadPopup').contains(e.target)&&!e.target.closest('.stock-empty')&&!e.target.closest('.stock-qty')){
         document.getElementById('numpadPopup').classList.remove('open');
         document.removeEventListener('click',npOut);
     }
 }
-function npDraw() {
-    const el = document.getElementById('npVal');
-    el.textContent = np.val;
-    el.className = 'np-val'+(np.val!=='0'?' on':'');
-    const pv = document.getElementById('npPreview');
-    const ex = stockData[np.id]||0;
-    if (!np.val||np.val==='0') { pv.textContent=ex>0?'Will add to current '+ex+' '+np.um:'First stock entry'; return; }
-    try {
-        let addQty, newTotal;
-        if (/^[-*\/]/.test(np.val)) {
-            // operator mode: apply to existing
-            newTotal = parseFloat(Function('return ('+ex+np.val+')')().toFixed(4));
-            addQty   = parseFloat((newTotal-ex).toFixed(4));
-        } else {
-            // default ADD mode: plain number adds to existing
-            addQty   = parseFloat(Function('return ('+np.val+')')().toFixed(4));
-            newTotal = parseFloat((ex+addQty).toFixed(4));
-        }
-        newTotal = Math.max(0, newTotal);
-        addQty   = parseFloat((newTotal-ex).toFixed(4));
-        const addStr = addQty>=0?'+'+addQty:String(addQty);
-        pv.textContent = ex+' '+addStr+' = '+newTotal+' '+np.um;
-    } catch(e) { pv.textContent='...'; }
+function npDraw(){
+    const el=document.getElementById('npVal');
+    el.textContent=np.val; el.className='np-val'+(np.val!=='0'?' on':'');
+    const pv=document.getElementById('npPreview');
+    const ex=stockData[np.id]||0;
+    if(!np.val||np.val==='0'){pv.textContent=ex>0?'Will add to '+ex+' '+np.um:'First entry';return;}
+    try{
+        let addQty,newTotal;
+        if(/^[-*\/]/.test(np.val)){newTotal=parseFloat(Function('return ('+ex+np.val+')')().toFixed(4));addQty=parseFloat((newTotal-ex).toFixed(4));}
+        else{addQty=parseFloat(Function('return ('+np.val+')')().toFixed(4));newTotal=parseFloat((ex+addQty).toFixed(4));}
+        newTotal=Math.max(0,newTotal); addQty=parseFloat((newTotal-ex).toFixed(4));
+        pv.textContent=ex+' '+(addQty>=0?'+':'')+addQty+' = '+newTotal+' '+np.um;
+    }catch(e){pv.textContent='...';}
 }
-function npKey(k) {
+window.npKey = function(k){
     const ops=['+','-','*','/'];
-    if (k==='back') { np.val=np.val.length>1?np.val.slice(0,-1):'0'; }
-    else if (ops.includes(k)) {
-        // only allow operator at START (for -/*/) — + is handled automatically so ignore it
-        if (k==='+') { /* ignore + key — default is already add */ }
-        else if (np.val==='0') np.val=k;
-        else if (ops.includes(np.val.slice(-1))) np.val=np.val.slice(0,-1)+k;
+    if(k==='back'){np.val=np.val.length>1?np.val.slice(0,-1):'0';}
+    else if(ops.includes(k)){
+        if(k==='+'){}
+        else if(np.val==='0') np.val=k;
+        else if(ops.includes(np.val.slice(-1))) np.val=np.val.slice(0,-1)+k;
         else np.val+=k;
-    } else if (k==='.') {
-        const parts=np.val.split(/[-*\/]/);
-        if (!parts[parts.length-1].includes('.')) np.val+='.';
-    } else { np.val=(np.val==='0')?k:np.val+k; }
+    }else if(k==='.'){const parts=np.val.split(/[-*\/]/);if(!parts[parts.length-1].includes('.')) np.val+='.';
+    }else{np.val=(np.val==='0')?k:np.val+k;}
     npDraw();
 }
-function npConfirm() {
-    const ex=stockData[np.id]||0, v=np.val;
-    if (!v||v==='0') {
-        document.getElementById('numpadPopup').classList.remove('open');
-        document.removeEventListener('click',npOut);
-        return;
-    }
-    let addQty, newTotal;
-    try {
-        if (/^[-*\/]/.test(v)) {
-            newTotal = Math.max(0, parseFloat(Function('return ('+ex+v+')')().toFixed(4)));
-            addQty   = parseFloat((newTotal-ex).toFixed(4));
-        } else {
-            addQty   = parseFloat(Function('return ('+v+')')().toFixed(4));
-            newTotal = Math.max(0, parseFloat((ex+addQty).toFixed(4)));
-            addQty   = parseFloat((newTotal-ex).toFixed(4));
-        }
-    } catch(e) { addQty=0; newTotal=ex; }
-
-    if (navigator.vibrate) navigator.vibrate(35);
-    if (addQty!==0) sendAdd(np.id, addQty);
+window.npConfirm = function(){
+    const ex=stockData[np.id]||0,v=np.val;
+    if(!v||v==='0'){document.getElementById('numpadPopup').classList.remove('open');document.removeEventListener('click',npOut);return;}
+    let addQty,newTotal;
+    try{
+        if(/^[-*\/]/.test(v)){newTotal=Math.max(0,parseFloat(Function('return ('+ex+v+')')().toFixed(4)));addQty=parseFloat((newTotal-ex).toFixed(4));}
+        else{addQty=parseFloat(Function('return ('+v+')')().toFixed(4));newTotal=Math.max(0,parseFloat((ex+addQty).toFixed(4)));addQty=parseFloat((newTotal-ex).toFixed(4));}
+    }catch(e){addQty=0;newTotal=ex;}
+    if(navigator.vibrate) navigator.vibrate(35);
+    if(addQty!==0) sendAdd(np.id,addQty);
     document.getElementById('numpadPopup').classList.remove('open');
     document.removeEventListener('click',npOut);
 }
 document.addEventListener('keydown',e=>{
-    if (e.key==='Enter'&&document.getElementById('numpadPopup').classList.contains('open')) {e.preventDefault();npConfirm();}
+    if(e.key==='Enter'&&document.getElementById('numpadPopup').classList.contains('open')){e.preventDefault();npConfirm();}
 });
 
 // DRAG
@@ -701,9 +645,7 @@ function dS(e){npDrg=true;const r=document.getElementById('numpadPopup').getBoun
 function dM(e){if(!npDrg)return;const cx=e.touches?e.touches[0].clientX:e.clientX,cy=e.touches?e.touches[0].clientY:e.clientY;const el=document.getElementById('numpadPopup');const nx=Math.max(0,Math.min(window.innerWidth-el.offsetWidth,cx-npOX));const ny=Math.max(0,Math.min(window.innerHeight-el.offsetHeight,cy-npOY));npPos.x=nx;npPos.y=ny;el.style.left=nx+'px';el.style.top=ny+'px';}
 function dE(){npDrg=false;document.removeEventListener('mousemove',dM);document.removeEventListener('mouseup',dE);document.removeEventListener('touchmove',dM);document.removeEventListener('touchend',dE);}
 
-// ─────────────────────────────────────────────
-// SEARCH
-// ─────────────────────────────────────────────
+// ─── SEARCH ───────────────────────────────────────────────────
 let sT;
 document.getElementById('searchIn').addEventListener('input',e=>{
     clearTimeout(sT);
@@ -716,59 +658,75 @@ document.getElementById('searchIn').addEventListener('input',e=>{
         }):ITEMS;
         const total=filtered.length;
         displayItems=filtered.slice(0,PAGE_SIZE);
-        document.getElementById('barCount').textContent=q
-            ?(total>PAGE_SIZE?`${PAGE_SIZE} of ${total.toLocaleString()}`:total.toLocaleString()+' found')
-            :`${PAGE_SIZE} of ${ITEMS.length.toLocaleString()}`;
+        document.getElementById('barCount').textContent=q?(total>PAGE_SIZE?`${PAGE_SIZE} of ${total.toLocaleString()}`:total.toLocaleString()+' found'):`${PAGE_SIZE} of ${ITEMS.length.toLocaleString()}`;
         document.getElementById('tblWrap').scrollTop=0;
         renderTable();
     },150);
 });
 
-// ─────────────────────────────────────────────
-// BOOT
-// ─────────────────────────────────────────────
+// ─── BOOT ─────────────────────────────────────────────────────
 window.addEventListener('load',()=>{
-    if (localStorage.getItem('c2c_mode')==='light') {
+    if(localStorage.getItem('c2c_mode')==='light'){
         document.body.classList.add('light');
         document.getElementById('modeBtn').textContent='☀️ LIGHT';
     }
-    loadLocal(); // show last-known stock instantly
+    loadLocal();
 
-    let p=0, attempt=0;
-    const bar=document.getElementById('loadBar'), txt=document.getElementById('loadTxt');
+    let p=0,attempt=0;
+    const bar=document.getElementById('loadBar'),txt=document.getElementById('loadTxt');
     const iv=setInterval(()=>{p=Math.min(p+Math.random()*12,88);bar.style.width=p+'%';},60);
 
-    function tryLoad() {
+    function tryLoad(){
         attempt++;
-        txt.textContent=attempt>1?'Retrying ('+attempt+'/3)…':'Connecting to sheet…';
+        txt.textContent=attempt>1?'Retrying ('+attempt+'/3)…':'Connecting…';
         fetch(SHEETS_URL+'?action=getAll&_t='+Date.now()+Math.random(),{cache:'no-store'})
             .then(r=>r.json())
             .then(d=>{
                 clearInterval(iv); bar.style.width='100%';
-                if (!d.ok||!d.items) throw new Error(d.error||'No data');
+                if(!d.ok||!d.items) throw new Error(d.error||'No data');
                 ITEMS=d.items;
-                // sheet is source of truth — overwrite local
                 ITEMS.forEach(item=>{
                     stockData[item.id]=parseFloat(item.stock)||0;
-                    if (item.formula) formulaData[item.id]=item.formula;
+                    if(item.formula) formulaData[item.id]=item.formula;
                 });
                 saveLocal();
-                // capture version so first poll doesn't re-fetch
-                fetch(SHEETS_URL+'?action=getVersion&_t='+Date.now(),{cache:'no-store'})
-                    .then(r=>r.json()).then(v=>{if(v.ok)lastVersion=v.version;}).catch(()=>{});
-                displayItems=ITEMS.slice(0,PAGE_SIZE);
-                txt.textContent=ITEMS.length.toLocaleString()+' items loaded ✓';
-                document.getElementById('barCount').textContent=PAGE_SIZE+' of '+ITEMS.length.toLocaleString();
-                setSync('ok','● SYNCED');
-                setTimeout(()=>{
-                    renderTable();
-                    document.getElementById('loadScreen').style.display='none';
-                    startPolling();
-                },300);
+
+                // ── Load Firebase stock values ON TOP (overrides sheet for real-time) ──
+                get(child(ref(db),'stock')).then(snapshot=>{
+                    const fbData=snapshot.val();
+                    if(fbData){
+                        Object.entries(fbData).forEach(([safeKey,val])=>{
+                            const item=ITEMS.find(r=>r.id.replace(/[.#$[\]]/g,'_')===safeKey);
+                            if(!item) return;
+                            stockData[item.id]=parseFloat(val.qty)||0;
+                            formulaData[item.id]=String(val.formula||val.qty||0);
+                        });
+                        saveLocal();
+                    }
+                    displayItems=ITEMS.slice(0,PAGE_SIZE);
+                    txt.textContent=ITEMS.length.toLocaleString()+' items loaded ✓';
+                    document.getElementById('barCount').textContent=PAGE_SIZE+' of '+ITEMS.length.toLocaleString();
+                    setSync('ok','● LIVE');
+                    setTimeout(()=>{
+                        renderTable();
+                        document.getElementById('loadScreen').style.display='none';
+                        startFirebaseListener(); // real-time from here on
+                    },300);
+                }).catch(()=>{
+                    displayItems=ITEMS.slice(0,PAGE_SIZE);
+                    txt.textContent=ITEMS.length.toLocaleString()+' items loaded ✓';
+                    document.getElementById('barCount').textContent=PAGE_SIZE+' of '+ITEMS.length.toLocaleString();
+                    setSync('ok','● LIVE');
+                    setTimeout(()=>{
+                        renderTable();
+                        document.getElementById('loadScreen').style.display='none';
+                        startFirebaseListener();
+                    },300);
+                });
             })
             .catch(err=>{
-                if (attempt<3) { setTimeout(tryLoad,2000); }
-                else {
+                if(attempt<3){setTimeout(tryLoad,2000);}
+                else{
                     clearInterval(iv); bar.style.width='100%';
                     txt.textContent='✕ Failed — tap to retry';
                     txt.style.cursor='pointer';

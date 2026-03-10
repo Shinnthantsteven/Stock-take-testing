@@ -676,13 +676,90 @@ window.addEventListener('load',()=>{
     const bar=document.getElementById('loadBar'),txt=document.getElementById('loadTxt');
     const iv=setInterval(()=>{p=Math.min(p+Math.random()*12,88);bar.style.width=p+'%';},60);
 
-    function tryLoad(){
-        attempt++;
-        txt.textContent=attempt>1?'Retrying ('+attempt+'/3)…':'Connecting…';
+    function finishLoad() {
+        clearInterval(iv); bar.style.width='100%';
+        // apply Firebase stock on top
+        get(child(ref(db),'stock')).then(snapshot=>{
+            const fbData=snapshot.val();
+            if(fbData){
+                Object.entries(fbData).forEach(([safeKey,val])=>{
+                    const item=ITEMS.find(r=>r.id.replace(/[.#$[\]]/g,'_')===safeKey);
+                    if(!item) return;
+                    stockData[item.id]=parseFloat(val.qty)||0;
+                    formulaData[item.id]=String(val.formula||val.qty||0);
+                });
+                saveLocal();
+            }
+            displayItems=ITEMS.slice(0,PAGE_SIZE);
+            txt.textContent=ITEMS.length.toLocaleString()+' items loaded ✓';
+            document.getElementById('barCount').textContent=PAGE_SIZE+' of '+ITEMS.length.toLocaleString();
+            setSync('ok','● LIVE');
+            setTimeout(()=>{
+                renderTable();
+                document.getElementById('loadScreen').style.display='none';
+                startFirebaseListener();
+            },200);
+        }).catch(()=>{
+            displayItems=ITEMS.slice(0,PAGE_SIZE);
+            txt.textContent=ITEMS.length.toLocaleString()+' items loaded ✓';
+            document.getElementById('barCount').textContent=PAGE_SIZE+' of '+ITEMS.length.toLocaleString();
+            setSync('ok','● LIVE');
+            setTimeout(()=>{
+                renderTable();
+                document.getElementById('loadScreen').style.display='none';
+                startFirebaseListener();
+            },200);
+        });
+    }
+
+    function saveItemsToFirebase(items) {
+        // Save all items to Firebase cache (runs in background)
+        const batch = {};
+        items.forEach(item => {
+            const safeKey = item.id.replace(/[.#$[\]]/g,'_');
+            batch['items/'+safeKey] = {
+                id:item.id, desc:item.desc, um:item.um, pack:item.pack,
+                brand:item.brand, origin:item.origin, cat:item.cat,
+                sup:item.sup, cost:item.cost
+            };
+        });
+        // Use set for each to avoid huge single write
+        import('https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js')
+            .then(({update})=> update(ref(db), batch)).catch(()=>{});
+    }
+
+    function loadFromFirebaseCache() {
+        txt.textContent = 'Loading from cache…';
+        get(child(ref(db),'items')).then(snapshot=>{
+            const cached = snapshot.val();
+            if (cached && Object.keys(cached).length > 100) {
+                // Firebase cache hit — instant load!
+                ITEMS = Object.values(cached).map(i=>({
+                    id:i.id||'', desc:i.desc||'', um:i.um||'', pack:i.pack||'',
+                    brand:i.brand||'', origin:i.origin||'', cat:i.cat||'',
+                    sup:i.sup||'', cost:parseFloat(i.cost)||0, state:i.state||''
+                })).filter(i=>i.id);
+                ITEMS.forEach(item=>{ stockData[item.id]=parseFloat(stockData[item.id])||0; });
+                txt.textContent = 'Loaded from cache ⚡';
+                finishLoad();
+                // Refresh from sheet silently in background every 10 min
+                const lastRefresh = parseInt(localStorage.getItem('c2c_last_refresh')||'0');
+                if (Date.now()-lastRefresh > 10*60*1000) {
+                    txt.textContent = 'Updating items…';
+                    fetchFromSheet(true);
+                }
+            } else {
+                // No cache yet — fetch from sheet and populate Firebase
+                fetchFromSheet(false);
+            }
+        }).catch(()=> fetchFromSheet(false));
+    }
+
+    function fetchFromSheet(silentUpdate) {
+        if (!silentUpdate) { attempt++; txt.textContent='Connecting to sheet…'; }
         fetch(SHEETS_URL+'?action=getAll&_t='+Date.now()+Math.random(),{cache:'no-store'})
             .then(r=>r.json())
             .then(d=>{
-                clearInterval(iv); bar.style.width='100%';
                 if(!d.ok||!d.items) throw new Error(d.error||'No data');
                 ITEMS=d.items;
                 ITEMS.forEach(item=>{
@@ -690,52 +767,24 @@ window.addEventListener('load',()=>{
                     if(item.formula) formulaData[item.id]=item.formula;
                 });
                 saveLocal();
-
-                // ── Load Firebase stock values ON TOP (overrides sheet for real-time) ──
-                get(child(ref(db),'stock')).then(snapshot=>{
-                    const fbData=snapshot.val();
-                    if(fbData){
-                        Object.entries(fbData).forEach(([safeKey,val])=>{
-                            const item=ITEMS.find(r=>r.id.replace(/[.#$[\]]/g,'_')===safeKey);
-                            if(!item) return;
-                            stockData[item.id]=parseFloat(val.qty)||0;
-                            formulaData[item.id]=String(val.formula||val.qty||0);
-                        });
-                        saveLocal();
-                    }
-                    displayItems=ITEMS.slice(0,PAGE_SIZE);
-                    txt.textContent=ITEMS.length.toLocaleString()+' items loaded ✓';
-                    document.getElementById('barCount').textContent=PAGE_SIZE+' of '+ITEMS.length.toLocaleString();
-                    setSync('ok','● LIVE');
-                    setTimeout(()=>{
-                        renderTable();
-                        document.getElementById('loadScreen').style.display='none';
-                        startFirebaseListener(); // real-time from here on
-                    },300);
-                }).catch(()=>{
-                    displayItems=ITEMS.slice(0,PAGE_SIZE);
-                    txt.textContent=ITEMS.length.toLocaleString()+' items loaded ✓';
-                    document.getElementById('barCount').textContent=PAGE_SIZE+' of '+ITEMS.length.toLocaleString();
-                    setSync('ok','● LIVE');
-                    setTimeout(()=>{
-                        renderTable();
-                        document.getElementById('loadScreen').style.display='none';
-                        startFirebaseListener();
-                    },300);
-                });
+                localStorage.setItem('c2c_last_refresh', Date.now());
+                // Save items to Firebase cache for next load
+                saveItemsToFirebase(ITEMS);
+                if (!silentUpdate) finishLoad();
             })
             .catch(err=>{
-                if(attempt<3){setTimeout(tryLoad,2000);}
-                else{
+                if(!silentUpdate && attempt<3){setTimeout(()=>fetchFromSheet(false),2000);}
+                else if(!silentUpdate){
                     clearInterval(iv); bar.style.width='100%';
                     txt.textContent='✕ Failed — tap to retry';
                     txt.style.cursor='pointer';
-                    txt.onclick=()=>{attempt=0;p=0;bar.style.width='0%';tryLoad();};
+                    txt.onclick=()=>{attempt=0;p=0;bar.style.width='0%';loadFromFirebaseCache();};
                     setSync('error','✕ ERROR');
                 }
             });
     }
-    tryLoad();
+
+    loadFromFirebaseCache();
 });
 </script>
 </body>

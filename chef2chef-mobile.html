@@ -7,16 +7,11 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🥩</text></svg>">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-:root {
-  --brand: #10b981; --danger: #ef4444; --warn: #f59e0b;
-  --bg: #060e1e; --surface: #0d1829; --text: #f1f5f9;
-  --muted: #475569; --border: rgba(255,255,255,0.08);
-  --row-alt: rgba(255,255,255,0.018);
-}
+:root{--brand:#10b981;--danger:#ef4444;--warn:#f59e0b;--bg:#060e1e;--surface:#0d1829;--text:#f1f5f9;--muted:#475569;--border:rgba(255,255,255,0.08);--row-alt:rgba(255,255,255,0.018);}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 html,body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);height:100dvh;overflow:hidden;}
-/* SYNC BADGE (same as web) */
-.sync-badge{font-size:9px;font-weight:800;padding:3px 10px;border-radius:20px;background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.3);color:var(--brand);transition:all 0.3s;white-space:nowrap;}
+/* SYNC BADGE */
+.sync-badge{font-size:9px;font-weight:800;padding:3px 10px;border-radius:20px;background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.3);color:var(--brand);white-space:nowrap;transition:all 0.3s;}
 .sync-badge.syncing{background:rgba(251,191,36,0.12);border-color:rgba(251,191,36,0.3);color:#fbbf24;}
 .sync-badge.error{background:rgba(239,68,68,0.12);border-color:rgba(239,68,68,0.3);color:#ef4444;}
 /* ORIGINAL MOBILE STYLES */
@@ -25,11 +20,12 @@ html,body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text
 .load-logo span{color:var(--brand);}
 .load-bar-wrap{width:200px;height:2px;background:rgba(255,255,255,0.07);border-radius:2px;overflow:hidden;}
 .load-bar{height:100%;background:var(--brand);width:0%;transition:width 0.2s;}
+.load-txt{font-size:10px;font-weight:600;color:var(--muted);}
 .nav{height:48px;padding:0 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);background:var(--surface);}
 .nav-logo{font-size:13px;font-weight:800;display:flex;align-items:center;gap:6px;}
 .nav-logo span{color:var(--brand);}
 .nav-right{display:flex;align-items:center;gap:6px;}
-.tbl-wrap{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+.tbl-wrap{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;}
 table{width:100%;border-collapse:collapse;table-layout:fixed;}
 thead th{position:sticky;top:0;background:var(--surface);color:var(--muted);padding:8px 6px;font-size:8px;font-weight:800;text-transform:uppercase;}
 td{padding:11px 6px;border-bottom:1px solid var(--border);}
@@ -39,7 +35,7 @@ td{padding:11px 6px;border-bottom:1px solid var(--border);}
 #searchIn{flex:1;background:transparent;border:none;color:var(--text);font-size:15px;font-weight:600;outline:none;}
 .search-count{font-size:9px;font-weight:800;color:var(--brand);background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.25);border-radius:20px;padding:3px 9px;}
 .search-exit{background:var(--danger);color:white;width:44px;height:40px;border-radius:10px;font-weight:800;}
-/* FLOATING NUMPAD (exact same as web) */
+/* FLOATING NUMPAD */
 .numpad-popup{position:fixed;z-index:9000;display:none;flex-direction:column;width:172px;border-radius:20px;background:rgba(255,255,255,0.08);backdrop-filter:blur(40px);border:1px solid rgba(255,255,255,0.22);box-shadow:0 8px 32px rgba(0,0,0,0.25);overflow:hidden;animation:popIn 0.2s cubic-bezier(0.16,1,0.3,1);}
 .numpad-popup.open{display:flex;}
 @keyframes popIn{from{transform:scale(0.88);opacity:0}to{transform:scale(1);opacity:1}}
@@ -93,7 +89,7 @@ td{padding:11px 6px;border-bottom:1px solid var(--border);}
   </div>
 </div>
 
-<!-- FLOATING NUMPAD (draggable popup) -->
+<!-- FLOATING NUMPAD -->
 <div class="numpad-popup" id="numpadPopup">
   <div class="np-drag" id="npDrag">
     <div class="np-drag-left">
@@ -127,8 +123,9 @@ td{padding:11px 6px;border-bottom:1px solid var(--border);}
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
 <script>
-// CONFIG
-firebase.initializeApp({apiKey:"AIzaSyAWI0Sd4hY_6X_odo2LCamwbQPSdLEjH1w",authDomain:"chef2chef-stock.firebaseapp.com",databaseURL:"https://chef2chef-stock-default-rtdb.firebaseio.com",projectId:"chef2chef-stock"});
+// FULL WORKING SCRIPT (cleaned, no duplicates)
+const firebaseConfig = {apiKey:"AIzaSyAWI0Sd4hY_6X_odo2LCamwbQPSdLEjH1w",authDomain:"chef2chef-stock.firebaseapp.com",databaseURL:"https://chef2chef-stock-default-rtdb.firebaseio.com",projectId:"chef2chef-stock"};
+firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbzG1B7MJGSb2ZlMTiONbFr-wQjMhT-UP8_FuD0eXn1_O-OBiSR_EkPERYOTblDz48H4/exec';
 const PAGE_SIZE = 7;
@@ -137,81 +134,49 @@ const stockData = {}, formulaData = {};
 let fbListening = false, fetchingFull = false;
 let lastHistoryTs = localStorage.getItem('c2c_last_hts') || '';
 
-// SYNC BADGE
 function setSync(state, msg = '● LIVE') {
   const el = document.getElementById('syncBadge');
   el.className = 'sync-badge' + (state==='ok' ? '' : ' '+state);
   el.textContent = msg;
 }
 
-// FLOATING NUMPAD (draggable)
-let np = {val:'0', id:null, um:''};
-let npPos = {x:null, y:null};
-let npDrg = false, npOX = 0, npOY = 0;
+function saveLocal(){try{localStorage.setItem('c2c_stock',JSON.stringify({s:stockData,f:formulaData}));}catch(e){}}
+function loadLocal(){try{const d=JSON.parse(localStorage.getItem('c2c_stock')||'{}');if(d.s)Object.assign(stockData,d.s);if(d.f)Object.assign(formulaData,d.f);}catch(e){}}
+function saveHistory(){try{localStorage.setItem('c2c_history',JSON.stringify(historyLog.slice(0,500)));}catch(e){}}
+function loadHistory(){try{historyLog=JSON.parse(localStorage.getItem('c2c_history')||'[]');}catch(e){}}
 
-function openCalc(id){
-  const item = ITEMS.find(r=>r.id===id); if(!item) return;
-  np.id = id; np.um = item.um; np.val = '0';
-  const el = document.getElementById('numpadPopup');
-  if(!npPos.x) npPos.x = window.innerWidth/2 - 86;
-  if(!npPos.y) npPos.y = 100;
-  el.style.left = npPos.x + 'px';
-  el.style.top = npPos.y + 'px';
-  document.getElementById('npName').textContent = item.desc;
-  const ex = stockData[id]||0;
-  document.getElementById('npExisting').innerHTML = ex>0 ? `Current: <span>${ex} ${item.um}</span>` : 'No stock yet';
-  npDraw(); el.classList.add('open');
-  setTimeout(()=>document.addEventListener('click', npOutClick), 100);
-}
-function npOutClick(e){
-  if(!document.getElementById('numpadPopup').contains(e.target)) {
-    document.getElementById('numpadPopup').classList.remove('open');
-    document.removeEventListener('click', npOutClick);
-  }
-}
-function npDraw(){ /* same as your web */ 
-  const el=document.getElementById('npVal'); el.textContent=np.val; el.className='np-val'+(np.val!=='0'?' on':'');
-  const pv=document.getElementById('npPreview'); const ex=stockData[np.id]||0;
-  if(np.val==='0'){pv.textContent=ex>0?'Will add to '+ex+' '+np.um:'First entry';return;}
-  try{
-    let addQty,newTotal;
-    if(/^[-*\/]/.test(np.val)){newTotal=parseFloat(Function('return ('+ex+np.val+')')().toFixed(4));addQty=parseFloat((newTotal-ex).toFixed(4));}
-    else{addQty=parseFloat(Function('return ('+np.val+')')().toFixed(4));newTotal=parseFloat((ex+addQty).toFixed(4));}
-    pv.textContent=ex+' '+(addQty>=0?'+':'')+addQty+' = '+Math.max(0,newTotal)+' '+np.um;
-  }catch(e){pv.textContent='...';}
-}
-function npKey(k){ /* same as your web */ 
-  if(k==='back'){np.val=np.val.length>1?np.val.slice(0,-1):'0';}
-  else if(['+','-','*','/'].includes(k)){
-    if(np.val==='0'&&k!=='+')np.val=k; else if(['+','-','*','/'].includes(np.val.slice(-1)))np.val=np.val.slice(0,-1)+k; else np.val+=k;
-  }else if(k==='.'){if(!np.val.split(/[-*\/]/).pop().includes('.'))np.val+='.';}
-  else{np.val=(np.val==='0')?k:np.val+k;}
-  npDraw();
-}
-function npConfirm(){
-  const ex=stockData[np.id]||0, v=np.val;
-  if(!v||v==='0'){document.getElementById('numpadPopup').classList.remove('open');return;}
-  let addQty; try{
-    if(/^[-*\/]/.test(v)){const nt=Math.max(0,parseFloat(Function('return ('+ex+v+')')().toFixed(4)));addQty=parseFloat((nt-ex).toFixed(4));}
-    else{addQty=parseFloat(Function('return ('+v+')')().toFixed(4));}
-  }catch(e){addQty=0;}
-  if(addQty!==0) sendAdd(np.id,addQty);
-  document.getElementById('numpadPopup').classList.remove('open');
-}
-// DRAG
-document.getElementById('npDrag').addEventListener('mousedown',dS);
-document.getElementById('npDrag').addEventListener('touchstart',dS,{passive:true});
-function dS(e){npDrg=true;const r=document.getElementById('numpadPopup').getBoundingClientRect();const cx=e.touches?e.touches[0].clientX:e.clientX,cy=e.touches?e.touches[0].clientY:e.clientY;npOX=cx-r.left;npOY=cy-r.top;document.addEventListener('mousemove',dM);document.addEventListener('mouseup',dE);document.addEventListener('touchmove',dM,{passive:true});document.addEventListener('touchend',dE);}
-function dM(e){if(!npDrg)return;const cx=e.touches?e.touches[0].clientX:e.clientX,cy=e.touches?e.touches[0].clientY:e.clientY;const el=document.getElementById('numpadPopup');const nx=Math.max(0,Math.min(window.innerWidth-el.offsetWidth,cx-npOX));const ny=Math.max(0,Math.min(window.innerHeight-el.offsetHeight,cy-npOY));npPos.x=nx;npPos.y=ny;el.style.left=nx+'px';el.style.top=ny+'px';}
-function dE(){npDrg=false;document.removeEventListener('mousemove',dM);document.removeEventListener('mouseup',dE);document.removeEventListener('touchmove',dM);document.removeEventListener('touchend',dE);}
+// HISTORY FUNCTIONS (same as web)
+function openHistory(){document.getElementById('histDrawer').classList.add('open');document.getElementById('histOverlay').classList.add('open');fetchHistory();}
+function closeHistory(){document.getElementById('histDrawer').classList.remove('open');document.getElementById('histOverlay').classList.remove('open');}
+function fetchHistory(){/* same as your web version */ document.getElementById('histBody').innerHTML='<div class="hist-empty">Loading…</div>'; fetch(SHEETS_URL+'?action=getHistory&_t='+Date.now(),{cache:'no-store'}).then(r=>r.json()).then(d=>{if(d.ok&&d.history){d.history.forEach(e=>{if(!historyLog.some(l=>l.ts===e.ts&&l.uid===e.uid))historyLog.unshift(e);});if(historyLog.length>500)historyLog=historyLog.slice(0,500);saveHistory();renderHistory();}else{document.getElementById('histBody').innerHTML='<div class="hist-empty">No history yet</div>';}}).catch(()=>{document.getElementById('histBody').innerHTML='<div class="hist-empty">Could not load</div>';});}
+function renderHistory(){/* same as web */ const body=document.getElementById('histBody');if(!historyLog.length){body.innerHTML='<div class="hist-empty">No history yet</div>';return;} body.innerHTML=historyLog.map(e=>{const added=String(e.added||'');const isPos=!added.startsWith('-');const src=e.source==='sheet'?'📊 SHEET':'🌐 WEB';const srcCls=e.source==='sheet'?'sheet':'web';const fDisp=e.formula?`<span style="font-family:monospace;color:#fbbf24;font-size:10px">=${xe(e.formula)}</span>`:'';return`<div class="hist-row"><div class="hist-top"><span class="hist-uid">${xe(e.uid)}</span><span class="hist-ts">${xe(e.ts)}</span></div><div class="hist-desc">${xe(e.desc)}</div><div class="hist-vals"><span class="hist-old">${e.oldVal}</span><span class="hist-arrow">→</span><span class="hist-new">${e.newVal}</span><span class="hist-change ${isPos?'pos':'neg'}">${added}</span><span class="hist-source ${srcCls}">${src}</span></div>${fDisp?`<div style="margin-top:4px">${fDisp}</div>`:''}</div>`;}).join('');}
+function addLocalHistory(uid,oldVal,newVal,added,formula,source){/* same */ const item=ITEMS.find(r=>r.id===uid);const ts=new Date().toISOString().replace('T',' ').slice(0,19);const addStr=added>=0?'+'+parseFloat(added.toFixed(4)):String(parseFloat(added.toFixed(4)));historyLog.unshift({ts,uid,desc:item?item.desc:uid,oldVal,newVal,added:addStr,formula:formula||'',source:source||'website'});if(historyLog.length>500)historyLog.pop();saveHistory();if(document.getElementById('histDrawer').classList.contains('open'))renderHistory();}
 
-// YOUR ORIGINAL FUNCTIONS (fully restored + improved sync)
+// FIREBASE & WRITE (same as web)
+function fbWrite(uid,qty,formula,added){const safeKey=uid.replace(/[.#$[\]]/g,'_');const p={qty,formula:formula||String(qty),ts:Date.now()};if(added!==undefined)p.added=added;db.ref('stock/'+safeKey).set(p);}
+function startFirebaseListener(){if(fbListening)return;fbListening=true;db.ref('stock').on('value',snap=>{const data=snap.val();if(!data)return;let changed=false;Object.entries(data).forEach(([safeKey,val])=>{const item=ITEMS.find(r=>r.id.replace(/[.#$[\]]/g,'_')===safeKey);if(!item)return;const uid=item.id;const newQty=parseFloat(val.qty)||0;const newForm=String(val.formula||newQty);const localQty=stockData[uid]||0;if(newQty!==localQty||newForm!==(formulaData[uid]||'')){const old=localQty;const added=val.added!==undefined?val.added:(newQty-localQty);stockData[uid]=newQty;formulaData[uid]=newForm;updateCell(uid);addLocalHistory(uid,old,newQty,added,newForm,'web');changed=true;}});if(changed){saveLocal();setSync('ok','● LIVE');}});}
+
+// SHEET POLL (now 3 seconds + guard)
+function startSheetPoll(){setInterval(()=>{if(fetchingFull)return;fetch(SHEETS_URL+'?action=getHistory&_t='+Date.now()+Math.random(),{cache:'no-store'}).then(r=>r.json()).then(d=>{if(!d.ok||!d.history)return;const newEntries=d.history.filter(e=>e.ts>lastHistoryTs).reverse();if(!newEntries.length)return;newEntries.forEach(e=>{const oldVal=stockData[e.uid]||0;if(parseFloat(e.newVal)!==oldVal||e.formula!==(formulaData[e.uid]||'')){stockData[e.uid]=parseFloat(e.newVal)||0;formulaData[e.uid]=e.formula||String(e.newVal);fbWrite(e.uid,stockData[e.uid],formulaData[e.uid],parseFloat(e.added));updateCell(e.uid);addLocalHistory(e.uid,oldVal,parseFloat(e.newVal),parseFloat(e.added),e.formula,e.source);}});lastHistoryTs=d.history[0].ts;localStorage.setItem('c2c_last_hts',lastHistoryTs);saveLocal();setSync('ok','● LIVE');}).catch(()=>{})},3000);}
+
+// WRITE + RETRY (same)
+let retryQ={};
+function sendAdd(uid,addQty){/* your full sendAdd from web */ const old=stockData[uid]||0;const newVal=parseFloat((old+addQty).toFixed(4));const oldForm=formulaData[uid]||String(old);const newForm=old===0?String(addQty):oldForm+(addQty>=0?'+':'')+addQty;stockData[uid]=newVal;formulaData[uid]=newForm;saveLocal();updateCell(uid);addLocalHistory(uid,old,newVal,addQty,newForm,'website');setSync('syncing','⟳ SAVING');fbWrite(uid,newVal,newForm,addQty);fetch(SHEETS_URL+'?uid='+encodeURIComponent(uid)+'&add='+encodeURIComponent(addQty)+'&source=website&_t='+Date.now()+Math.random(),{cache:'no-store'}).then(r=>r.json()).then(d=>{if(d.ok){stockData[uid]=d.newVal;formulaData[uid]=d.formula;fbWrite(uid,d.newVal,d.formula,parseFloat(d.added||addQty));saveLocal();updateCell(uid);delete retryQ[uid];setSync('ok','● LIVE');}else{retryQ[uid]={mode:'add',val:addQty};setSync('syncing','⟳ SHEET SYNC…');}}).catch(()=>{retryQ[uid]={mode:'add',val:addQty};setSync('syncing','⟳ SHEET SYNC…');});}
+setInterval(()=>{Object.entries(retryQ).forEach(([uid,op])=>{const p=op.mode==='add'?'&add='+encodeURIComponent(op.val):'&set='+encodeURIComponent(op.val);fetch(SHEETS_URL+'?uid='+encodeURIComponent(uid)+p+'&source=website&_t='+Date.now()+Math.random(),{cache:'no-store'}).then(r=>r.json()).then(d=>{if(d.ok){delete retryQ[uid];if(!Object.keys(retryQ).length)setSync('ok','● LIVE');}}).catch(()=>{ });});},3000);
+
+// CELL + RENDER (mobile simple style)
 function xe(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function stockCellInner(id){
   const qty=stockData[id]||0;
-  if(qty>0) return `<span class="stock-qty-big">${qty%1===0?qty:qty.toFixed(2)}</span>`;
-  return `<span class="stock-empty-ico">＋</span>`;
+  if(qty>0)return`<span class="stock-qty-big">${qty%1===0?qty:qty.toFixed(2)}</span>`;
+  return`<span style="font-size:16px;opacity:0.2">＋</span>`;
 }
+function updateCell(id){
+  const sid=id.replace(/[^a-zA-Z0-9_-]/g,'_');
+  const el=document.getElementById('sc-'+sid);if(!el)return;
+  el.innerHTML=stockCellInner(id);
+}
+let displayItems=[];
 function renderTable(){
   document.getElementById('tbody').innerHTML=displayItems.map(r=>{
     const sid=r.id.replace(/[^a-zA-Z0-9_-]/g,'_');
@@ -224,22 +189,68 @@ function renderTable(){
     </tr>`;
   }).join('');
 }
-function updateCell(id){
-  const sid=id.replace(/[^a-zA-Z0-9_-]/g,'_');
-  const el=document.getElementById('sc-'+sid); if(!el) return;
-  el.innerHTML=stockCellInner(id);
+
+// NUMPAD (floating + drag)
+let np={val:'0',id:null,um:''};
+let npPos={x:null,y:null};
+let npDrg=false,npOX=0,npOY=0;
+function openCalc(id){
+  const item=ITEMS.find(r=>r.id===id);if(!item)return;
+  np.id=id;np.um=item.um;np.val='0';
+  const el=document.getElementById('numpadPopup');
+  if(!npPos.x)npPos.x=window.innerWidth/2-86;
+  if(!npPos.y)npPos.y=100;
+  el.style.left=npPos.x+'px';el.style.top=npPos.y+'px';
+  document.getElementById('npName').textContent=item.desc;
+  const ex=stockData[id]||0;
+  document.getElementById('npExisting').innerHTML=ex>0?`Current: <span>${ex} ${item.um}</span>`:'No stock yet';
+  npDraw();el.classList.add('open');
+  setTimeout(()=>document.addEventListener('click',npOutClick),80);
 }
+function npOutClick(e){if(!document.getElementById('numpadPopup').contains(e.target)){document.getElementById('numpadPopup').classList.remove('open');document.removeEventListener('click',npOutClick);}}
+function npDraw(){const el=document.getElementById('npVal');el.textContent=np.val;el.className='np-val'+(np.val!=='0'?' on':'');const pv=document.getElementById('npPreview');const ex=stockData[np.id]||0;if(np.val==='0'){pv.textContent=ex>0?'Will add to '+ex+' '+np.um:'First entry';return;}try{let addQty,newTotal;if(/^[-*\/]/.test(np.val)){newTotal=parseFloat(Function('return ('+ex+np.val+')')().toFixed(4));addQty=parseFloat((newTotal-ex).toFixed(4));}else{addQty=parseFloat(Function('return ('+np.val+')')().toFixed(4));newTotal=parseFloat((ex+addQty).toFixed(4));}pv.textContent=ex+' '+(addQty>=0?'+':'')+addQty+' = '+Math.max(0,newTotal)+' '+np.um;}catch(e){pv.textContent='...';}}
+function npKey(k){const ops=['+','-','*','/'];if(k==='back'){np.val=np.val.length>1?np.val.slice(0,-1):'0';}else if(ops.includes(k)){if(np.val==='0'&&k!=='+')np.val=k;else if(ops.includes(np.val.slice(-1)))np.val=np.val.slice(0,-1)+k;else np.val+=k;}else if(k==='.'){if(!np.val.split(/[-*\/]/).pop().includes('.'))np.val+='.';}else{np.val=(np.val==='0')?k:np.val+k;}npDraw();}
+function npConfirm(){const ex=stockData[np.id]||0,v=np.val;if(!v||v==='0'){document.getElementById('numpadPopup').classList.remove('open');return;}let addQty;try{if(/^[-*\/]/.test(v)){const nt=Math.max(0,parseFloat(Function('return ('+ex+v+')')().toFixed(4)));addQty=parseFloat((nt-ex).toFixed(4));}else{addQty=parseFloat(Function('return ('+v+')')().toFixed(4));}}catch(e){addQty=0;}if(addQty!==0)sendAdd(np.id,addQty);document.getElementById('numpadPopup').classList.remove('open');}
+// DRAG
+document.getElementById('npDrag').addEventListener('mousedown',dS);
+document.getElementById('npDrag').addEventListener('touchstart',dS,{passive:true});
+function dS(e){npDrg=true;const r=document.getElementById('numpadPopup').getBoundingClientRect();const cx=e.touches?e.touches[0].clientX:e.clientX,cy=e.touches?e.touches[0].clientY:e.clientY;npOX=cx-r.left;npOY=cy-r.top;document.addEventListener('mousemove',dM);document.addEventListener('mouseup',dE);document.addEventListener('touchmove',dM,{passive:true});document.addEventListener('touchend',dE);}
+function dM(e){if(!npDrg)return;const cx=e.touches?e.touches[0].clientX:e.clientX,cy=e.touches?e.touches[0].clientY:e.clientY;const el=document.getElementById('numpadPopup');const nx=Math.max(0,Math.min(window.innerWidth-el.offsetWidth,cx-npOX));const ny=Math.max(0,Math.min(window.innerHeight-el.offsetHeight,cy-npOY));npPos.x=nx;npPos.y=ny;el.style.left=nx+'px';el.style.top=ny+'px';}
+function dE(){npDrg=false;document.removeEventListener('mousemove',dM);document.removeEventListener('mouseup',dE);document.removeEventListener('touchmove',dM);document.removeEventListener('touchend',dE);}
 
-// ... (all your other functions: saveLocal, loadLocal, addLocalHistory, fbWrite, startFirebaseListener, sendAdd, retry interval, fetchHistory, renderHistory, search listener, etc. are exactly the same as your web version — I kept them 100% intact)
-
-let displayItems=[];
+// SEARCH
 let sT;
-// (paste the rest of your original script here — it's identical to the web version you already have, only renderTable and openCalc are different)
+document.getElementById('searchIn').addEventListener('input',e=>{clearTimeout(sT);sT=setTimeout(()=>{const q=e.target.value.toLowerCase().trim();const terms=q.split(/\s+/).filter(Boolean);let filtered=q?ITEMS.filter(r=>{const t=(r.id+' '+r.desc+' '+r.sup+' '+r.cat+' '+r.brand+' '+r.origin).toLowerCase();return terms.every(w=>t.includes(w));}):ITEMS;const total=filtered.length;displayItems=filtered.slice(0,PAGE_SIZE);document.getElementById('barCount').textContent=q?(total>PAGE_SIZE?`${PAGE_SIZE}/${total}`:total):`${PAGE_SIZE}/${ITEMS.length}`;document.getElementById('tblWrap').scrollTop=0;renderTable();},150);});
 
-// BOOT
+// BOOT (full)
 window.addEventListener('load',()=>{
-  // your full boot code (cache-first, fetchFromSheet, finishLoad with setSync('ok','● LIVE'), startFirebaseListener(), startSheetPoll() with 3000ms)
-  // ... exactly as in your web version
+  loadLocal();loadHistory();
+  let p=0,attempt=0;
+  const bar=document.getElementById('loadBar'),txt=document.getElementById('loadTxt');
+  const iv=setInterval(()=>{p=Math.min(p+Math.random()*12,88);bar.style.width=p+'%';},60);
+  function finishLoad(){
+    clearInterval(iv);bar.style.width='100%';
+    displayItems=ITEMS.slice(0,PAGE_SIZE);
+    txt.textContent=ITEMS.length.toLocaleString()+' items ✓';
+    document.getElementById('barCount').textContent=PAGE_SIZE+'/'+ITEMS.length.toLocaleString();
+    setSync('ok','● LIVE');
+    setTimeout(()=>{renderTable();document.getElementById('loadScreen').style.display='none';document.getElementById('appWrap').style.display='flex';startFirebaseListener();startSheetPoll();fetch(SHEETS_URL+'?action=getHistory&_t='+Date.now()).then(r=>r.json()).then(d=>{if(d.ok&&d.history.length){lastHistoryTs=d.history[0].ts;localStorage.setItem('c2c_last_hts',lastHistoryTs);}}).catch(()=>{});
+    },200);
+  }
+  function fetchFromSheet(){
+    attempt++;
+    txt.textContent=attempt>1?'Retrying…':'Connecting…';
+    fetch(SHEETS_URL+'?action=getAll&_t='+Date.now()+Math.random(),{cache:'no-store'}).then(r=>r.json()).then(d=>{
+      if(!d.ok||!d.items)throw new Error('No data');
+      ITEMS=d.items;
+      ITEMS.forEach(item=>{stockData[item.id]=parseFloat(item.stock)||0;if(item.formula)formulaData[item.id]=item.formula;});
+      saveLocal();localStorage.setItem('c2c_items',JSON.stringify(ITEMS));
+      db.ref('stock').once('value').then(snap=>{const fb=snap.val();if(fb){Object.entries(fb).forEach(([safeKey,val])=>{const item=ITEMS.find(r=>r.id.replace(/[.#$[\]]/g,'_')===safeKey);if(item){stockData[item.id]=parseFloat(val.qty)||0;formulaData[item.id]=String(val.formula||val.qty||0);}});saveLocal();}finishLoad();}).catch(()=>finishLoad());
+    }).catch(()=>{if(attempt<3){setTimeout(fetchFromSheet,2000);}else{txt.textContent='✕ Failed — tap to retry';txt.style.cursor='pointer';txt.onclick=()=>{attempt=0;p=0;bar.style.width='0%';fetchFromSheet();};setSync('error','✕ ERROR');}});
+  }
+  const cached=localStorage.getItem('c2c_items');
+  if(cached){try{ITEMS=JSON.parse(cached);if(ITEMS.length>100){txt.textContent='Loaded from cache ⚡';finishLoad();setTimeout(fetchFromSheet,2000);return;}}catch(e){}}
+  fetchFromSheet();
 });
 </script>
 </body>

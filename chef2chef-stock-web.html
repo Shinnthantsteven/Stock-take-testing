@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Chef2Chef | Stock Engine</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🥩</text></svg>">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --brand: #10b981; --danger: #ef4444;
+            --bg: #020617; --text: #f1f5f9;
+            --border: rgba(255,255,255,0.10);
+            --head-bg: #0d1829; --head-text: #64748b;
+            --row-hover: rgba(255,255,255,0.025);
+            --uid: #475569; --cost: #10b981; --pack: #818cf8; --sup: #e2e8f0;
+        }
+        body.light {
+            --bg: #f8fafc; --text: #0f172a;
+            --border: rgba(0,0,0,0.08);
+            --head-bg: #e2e8f0; --head-text: #64748b;
+            --row-hover: rgba(0,0,0,0.02);
+            --uid: #94a3b8; --cost: #059669; --pack: #6366f1; --sup: #1e293b;
+        }
+        *, *::before, *::after { box-sizing: border-box; margin:0; padding:0; }
+        body, html { font-family:'Plus Jakarta Sans',sans-serif; background:var(--bg); color:var(--text); height:100vh; overflow:hidden; transition:background 0.3s,color 0.3s; }
+        .nav { padding:10px 28px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); }
+        .logo-text { font-weight:800; font-size:16px; display:flex; align-items:center; gap:10px; text-decoration:none; color:inherit; }
+        .nav-right { display:flex; align-items:center; gap:8px; }
+        .sync-badge { font-size:9px; font-weight:800; padding:3px 10px; border-radius:20px; background:rgba(16,185,129,0.12); border:1px solid rgba(16,185,129,0.3); color:var(--brand); transition:all 0.3s; white-space:nowrap; }
+        .sync-badge.syncing { background:rgba(251,191,36,0.12); border-color:rgba(251,191,36,0.3); color:#fbbf24; }
+        .sync-badge.error { background:rgba(239,68,68,0.12); border-color:rgba(239,68,68,0.3); color:#ef4444; }
+        .mode-btn { background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.12); color:var(--text); border-radius:20px; padding:3px 10px; font-size:10px; font-weight:800; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif; }
+        body.light .mode-btn { background:rgba(0,0,0,0.05); border-color:rgba(0,0,0,0.1); }
+        .loading-screen { position:fixed; inset:0; background:var(--bg); display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:9999; gap:16px; }
+        .loading-bar-wrap { width:260px; height:3px; background:rgba(255,255,255,0.08); border-radius:3px; overflow:hidden; }
+        body.light .loading-bar-wrap { background:rgba(0,0,0,0.08); }
+        .loading-bar { height:100%; background:var(--brand); border-radius:3px; width:0%; transition:width 0.25s; }
+        .loading-text { font-size:11px; font-weight:700; color:#475569; }
+        .tbl-wrap { overflow-y:auto; height:calc(100vh - 115px); padding:0 28px 20px; mask-image:linear-gradient(to bottom, black 85%, transparent 100%); -webkit-mask-image:linear-gradient(to bottom, black 85%, transparent 100%); }
+        .tbl-wrap::-webkit-scrollbar { width:3px; }
+        .tbl-wrap::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.08); border-radius:2px; }
+        body.light .tbl-wrap::-webkit-scrollbar-thumb { background:rgba(0,0,0,0.08); }
+        table { width:100%; border-collapse:collapse; table-layout:fixed; }
+        thead th { position:sticky; top:0; z-index:50; background:var(--head-bg); color:var(--head-text); padding:11px 10px; font-size:9px; font-weight:800; text-transform:uppercase; letter-spacing:1px; text-align:left; border-top:1px solid var(--border); border-bottom:1px solid var(--border); transition:background 0.3s; }
+        thead th:first-child { border-radius:14px 0 0 14px; border-left:1px solid var(--border); padding-left:18px; }
+        thead th:last-child { border-radius:0 14px 14px 0; border-right:1px solid var(--border); padding-right:18px; }
+        col.c1{width:90px} col.c2{width:auto} col.c3{width:155px} col.c4{width:70px} col.c5{width:52px} col.c6{width:88px} col.c7{width:16%} col.c8{width:130px}
+        td { padding:14px 10px; border-bottom:1px solid var(--border); font-size:13px; vertical-align:middle; transition:background 0.12s; overflow:hidden; }
+        tr:hover td { background:var(--row-hover); }
+        .cell-uid { color:var(--uid); font-family:monospace; font-size:11px; font-weight:700; line-height:1.5; }
+        .desc-name { font-weight:700; font-size:14px; line-height:1.4; margin-bottom:4px; }
+        .cell-cost { color:var(--cost); font-weight:800; font-size:15px; }
+        .cell-pack { color:var(--pack); font-weight:700; font-size:13px; }
+        .cell-sup { font-weight:700; font-size:13px; line-height:1.4; color:var(--sup); }
+        .cat-pill { background:rgba(251,191,36,0.12); color:#fbbf24; padding:2px 6px; border-radius:20px; font-weight:800; font-size:8px; display:inline-block; border:1px solid rgba(251,191,36,0.3); margin-right:2px; }
+        .brand-pill { background:rgba(59,130,246,0.10); color:#60a5fa; padding:2px 6px; border-radius:20px; font-weight:800; font-size:8px; display:inline-block; border:1px solid rgba(59,130,246,0.25); margin-right:2px; }
+        .origin-pill { background:rgba(16,185,129,0.10); color:#10b981; padding:2px 6px; border-radius:20px; font-weight:800; font-size:8px; display:inline-block; border:1px solid rgba(16,185,129,0.25); }
+        .stock-empty { display:inline-block; width:72px; height:28px; border:1.5px dashed rgba(255,255,255,0.13); border-radius:7px; background:rgba(255,255,255,0.02); cursor:pointer; transition:border-color 0.2s,background 0.2s; }
+        body.light .stock-empty { border-color:rgba(0,0,0,0.13); background:rgba(0,0,0,0.02); }
+        .stock-empty:hover { border-color:rgba(16,185,129,0.5); background:rgba(16,185,129,0.04); }
+        .stock-wrap { display:flex; flex-direction:column; gap:3px; }
+        .stock-qty { font-size:17px; font-weight:800; color:var(--brand); line-height:1; cursor:pointer; display:inline-block; }
+        .eq-wrap { display:flex; align-items:center; gap:3px; }
+        .eq-input { font-size:9px; font-weight:700; color:rgba(255,255,255,0.28); background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.07); border-radius:5px; padding:2px 5px; min-width:50px; max-width:110px; outline:none; font-family:monospace; caret-color:var(--brand); cursor:text; transition:border-color 0.2s,color 0.2s; }
+        .eq-input:focus { border-color:rgba(251,191,36,0.5); color:rgba(255,255,255,0.85); background:rgba(251,191,36,0.04); }
+        body.light .eq-input { color:rgba(0,0,0,0.28); background:rgba(0,0,0,0.03); border-color:rgba(0,0,0,0.09); }
+        body.light .eq-input:focus { color:rgba(0,0,0,0.8); background:rgba(251,191,36,0.06); }
+        .eq-ok { display:none; width:16px; height:16px; border-radius:50%; background:var(--brand); border:none; color:#fff; font-size:9px; font-weight:900; cursor:pointer; align-items:center; justify-content:center; box-shadow:0 2px 5px rgba(16,185,129,0.4); flex-shrink:0; }
+        .eq-ok.on { display:flex; }
+        .numpad-popup { position:fixed; z-index:9000; display:none; flex-direction:column; width:156px; border-radius:20px; background:rgba(255,255,255,0.08); backdrop-filter:blur(40px) saturate(200%); -webkit-backdrop-filter:blur(40px) saturate(200%); border:1px solid rgba(255,255,255,0.22); box-shadow:0 1px 0 rgba(255,255,255,0.3) inset,0 8px 32px rgba(0,0,0,0.25); overflow:hidden; animation:popIn 0.2s cubic-bezier(0.16,1,0.3,1); user-select:none; }
+        .numpad-popup.open { display:flex; }
+        @keyframes popIn { from{transform:scale(0.88);opacity:0} to{transform:scale(1);opacity:1} }
+        .numpad-popup::before { content:''; position:absolute; top:0; left:12%; right:12%; height:1px; background:linear-gradient(90deg,transparent,rgba(255,255,255,0.85) 50%,transparent); pointer-events:none; z-index:10; }
+        body.light .numpad-popup { background:rgba(255,255,255,0.8); border-color:rgba(0,0,0,0.12); }
+        .np-drag { padding:6px 7px 5px 9px; cursor:grab; display:flex; align-items:center; justify-content:space-between; gap:4px; border-bottom:1px solid rgba(255,255,255,0.08); background:rgba(255,255,255,0.03); }
+        body.light .np-drag { border-bottom-color:rgba(0,0,0,0.07); background:rgba(0,0,0,0.02); }
+        .np-drag:active { cursor:grabbing; }
+        .np-drag-left { display:flex; align-items:center; gap:5px; flex:1; min-width:0; }
+        .np-dots { display:grid; grid-template-columns:repeat(3,3px); gap:2px; flex-shrink:0; }
+        .np-dots span { width:3px; height:3px; border-radius:50%; background:rgba(255,255,255,0.25); display:block; }
+        body.light .np-dots span { background:rgba(0,0,0,0.18); }
+        .np-name { font-size:8px; font-weight:800; color:rgba(255,255,255,0.45); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        body.light .np-name { color:rgba(0,0,0,0.38); }
+        .np-ok { width:22px; height:22px; border-radius:50%; background:var(--brand); border:none; color:#fff; font-size:11px; font-weight:900; cursor:pointer; flex-shrink:0; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 8px rgba(16,185,129,0.5); transition:transform 0.1s; -webkit-tap-highlight-color:transparent; }
+        .np-ok:active { transform:scale(0.88); }
+        .np-existing { font-size:8px; font-weight:700; color:rgba(255,255,255,0.28); padding:3px 10px 0; text-align:right; }
+        body.light .np-existing { color:rgba(0,0,0,0.28); }
+        .np-existing span { color:var(--brand); }
+        .np-display { padding:4px 10px 2px; text-align:right; }
+        .np-val { font-size:22px; font-weight:700; line-height:1; letter-spacing:-0.5px; color:rgba(255,255,255,0.92); word-break:break-all; transition:color 0.1s; }
+        body.light .np-val { color:#0f172a; }
+        .np-val.on { color:#fff; text-shadow:0 0 16px rgba(16,185,129,0.5); }
+        body.light .np-val.on { color:#059669; text-shadow:none; }
+        .np-preview { font-size:7px; font-weight:700; color:rgba(251,191,36,0.85); text-align:right; min-height:10px; padding:0 10px 3px; }
+        .np-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:4px; padding:5px; }
+        .np-btn { border:1px solid rgba(255,255,255,0.08); background:rgba(255,255,255,0.09); border-radius:9px; height:34px; font-size:14px; font-weight:600; color:rgba(255,255,255,0.92); cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif; transition:background 0.1s,transform 0.07s; -webkit-tap-highlight-color:transparent; }
+        .np-btn:active { background:rgba(255,255,255,0.2); transform:scale(0.91); }
+        body.light .np-btn { background:rgba(0,0,0,0.06); border-color:rgba(0,0,0,0.09); color:#0f172a; }
+        body.light .np-btn:active { background:rgba(0,0,0,0.12); }
+        .np-op { background:rgba(16,185,129,0.13); color:var(--brand); border-color:rgba(16,185,129,0.2); font-weight:800; font-size:13px; }
+        .np-op:active { background:rgba(16,185,129,0.26); }
+        .np-back { color:rgba(255,255,255,0.4); font-size:12px; }
+        body.light .np-back { color:rgba(0,0,0,0.35); }
+        .portal-bar { position:fixed; bottom:22px; left:50%; transform:translateX(-50%); width:82%; max-width:1060px; border-radius:100px; background:transparent; border:1.5px solid rgba(255,255,255,0.26); display:flex; align-items:center; z-index:1000; transition:border-color 0.3s; }
+        body.light .portal-bar { border-color:rgba(0,0,0,0.18); }
+        .portal-bar::before { content:''; position:absolute; top:-1.5px; left:12%; right:12%; height:3px; background:linear-gradient(90deg,transparent,rgba(255,255,255,0.9) 40%,white 50%,rgba(255,255,255,0.9) 60%,transparent); border-radius:999px; pointer-events:none; z-index:10; }
+        .portal-bar:focus-within { border-color:rgba(16,185,129,0.6); }
+        .bar-inner { flex:1; display:flex; align-items:center; gap:10px; padding:0 18px; }
+        .bar-icon { font-size:14px; opacity:0.45; flex-shrink:0; }
+        #searchIn { background:transparent; border:none; color:var(--text); font-size:14px; font-weight:700; outline:none; flex:1; padding:15px 0; font-family:'Plus Jakarta Sans',sans-serif; }
+        #searchIn::placeholder { color:var(--text); opacity:0.35; font-weight:600; }
+        .bar-count { font-size:10px; font-weight:800; color:var(--brand); background:rgba(16,185,129,0.13); border:1px solid rgba(16,185,129,0.3); border-radius:50px; padding:3px 11px; white-space:nowrap; flex-shrink:0; }
+        .bar-exit { background:var(--danger); border:none; color:white; padding:0 24px; height:48px; border-radius:0 100px 100px 0; font-weight:800; font-size:12px; cursor:pointer; flex-shrink:0; font-family:'Plus Jakarta Sans',sans-serif; transition:background 0.2s; }
+        .bar-exit:hover { background:#dc2626; }
+        .hist-btn { background:rgba(99,102,241,0.12); border:1px solid rgba(99,102,241,0.3); color:#818cf8; border-radius:20px; padding:3px 10px; font-size:10px; font-weight:800; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif; white-space:nowrap; }
+        .hist-btn:hover { background:rgba(99,102,241,0.22); }
+        .hist-drawer { position:fixed; top:0; right:-420px; width:400px; height:100vh; background:var(--bg); border-left:1px solid var(--border); z-index:8000; display:flex; flex-direction:column; transition:right 0.3s cubic-bezier(0.16,1,0.3,1); box-shadow:-8px 0 32px rgba(0,0,0,0.3); }
+        .hist-drawer.open { right:0; }
+        .hist-head { padding:16px 20px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+        .hist-title { font-size:13px; font-weight:800; }
+        .hist-close { background:none; border:none; color:var(--text); font-size:18px; cursor:pointer; opacity:0.5; padding:0 4px; }
+        .hist-close:hover { opacity:1; }
+        .hist-body { flex:1; overflow-y:auto; padding:8px; }
+        .hist-body::-webkit-scrollbar { width:3px; }
+        .hist-body::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.08); border-radius:2px; }
+        .hist-row { padding:10px 12px; border-radius:10px; margin-bottom:4px; border:1px solid var(--border); }
+        .hist-row:hover { background:var(--row-hover); }
+        .hist-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:4px; }
+        .hist-uid { font-family:monospace; font-size:10px; color:var(--uid); font-weight:700; }
+        .hist-ts { font-size:9px; color:#475569; }
+        .hist-desc { font-size:11px; font-weight:700; margin-bottom:5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .hist-vals { display:flex; align-items:center; gap:8px; font-size:11px; font-weight:700; }
+        .hist-old { color:#64748b; }
+        .hist-arrow { color:#475569; font-size:9px; }
+        .hist-new { color:var(--brand); font-size:14px; }
+        .hist-change { font-size:10px; font-weight:800; padding:1px 7px; border-radius:20px; }
+        .hist-change.pos { background:rgba(16,185,129,0.12); color:#10b981; border:1px solid rgba(16,185,129,0.25); }
+        .hist-change.neg { background:rgba(239,68,68,0.12); color:#ef4444; border:1px solid rgba(239,68,68,0.25); }
+        .hist-source { font-size:8px; font-weight:800; padding:1px 6px; border-radius:20px; }
+        .hist-source.web { background:rgba(59,130,246,0.12); color:#60a5fa; border:1px solid rgba(59,130,246,0.25); }
+        .hist-source.sheet { background:rgba(251,191,36,0.12); color:#fbbf24; border:1px solid rgba(251,191,36,0.25); }
+        .hist-empty { text-align:center; padding:40px; color:#475569; font-size:12px; font-weight:700; }
+        .hist-overlay { position:fixed; inset:0; z-index:7999; display:none; }
+        .hist-overlay.open { display:block; }
+    </style>
+</head>
+<body>
+<div class="loading-screen" id="loadScreen">
+    <div style="font-size:20px;font-weight:800;letter-spacing:-0.5px;">CHEF2CHEF <span style="color:var(--brand)">STOCK</span></div>
+    <div class="loading-bar-wrap"><div class="loading-bar" id="loadBar"></div></div>
+    <div class="loading-text" id="loadTxt">Connecting…</div>
+</div>
+<nav class="nav">
+    <a href="https://chef2chef.ae" target="_blank" class="logo-text">
+        <span style="font-size:24px">🥩</span>
+        CHEF2CHEF <span style="color:var(--brand)">STOCK</span>
+    </a>
+    <div class="nav-right">
+        <span id="syncBadge" class="sync-badge">● READY</span>
+        <button class="hist-btn" onclick="openHistory()">📋 HISTORY</button>
+        <button class="mode-btn" id="modeBtn" onclick="toggleMode()">🌙 DARK</button>
+        <span style="font-size:10px;font-weight:800;color:#475569;">PHYSICAL STOCK MODULE</span>
+    </div>
+</nav>
+<div class="tbl-wrap" id="tblWrap">
+    <table>
+        <colgroup><col class="c1"><col class="c2"><col class="c3"><col class="c4"><col class="c5"><col class="c6"><col class="c7"><col class="c8"></colgroup>
+        <thead><tr>
+            <th>UID</th><th>Item Description</th><th>📦 Physical Stock</th>
+            <th>Cost</th><th>U/M</th><th>Pack</th><th>Supplier</th><th>Brand / Origin</th>
+        </tr></thead>
+        <tbody id="tbody"></tbody>
+    </table>
+</div>
+<div class="portal-bar">
+    <div class="bar-inner">
+        <span class="bar-icon">🔍</span>
+        <input id="searchIn" type="text" placeholder="Search UID, description, supplier, category…">
+        <span class="bar-count" id="barCount">—</span>
+    </div>
+    <button class="bar-exit" onclick="location.reload()">EXIT</button>
+</div>
+<div class="hist-overlay" id="histOverlay" onclick="closeHistory()"></div>
+<div class="hist-drawer" id="histDrawer">
+    <div class="hist-head">
+        <span class="hist-title">📋 STOCK HISTORY</span>
+        <button class="hist-close" onclick="closeHistory()">✕</button>
+    </div>
+    <div class="hist-body" id="histBody"><div class="hist-empty">Loading…</div></div>
+</div>
+<div class="numpad-popup" id="numpadPopup">
+    <div class="np-drag" id="npDrag">
+        <div class="np-drag-left">
+            <div class="np-dots"><span></span><span></span><span></span><span></span><span></span><span></span></div>
+            <div class="np-name" id="npName">—</div>
+        </div>
+        <button class="np-ok" onclick="npConfirm()">✓</button>
+    </div>
+    <div class="np-existing" id="npExisting"></div>
+    <div class="np-display"><div class="np-val" id="npVal">0</div></div>
+    <div class="np-preview" id="npPreview"></div>
+    <div class="np-grid">
+        <button class="np-btn" onclick="npKey('7')">7</button>
+        <button class="np-btn" onclick="npKey('8')">8</button>
+        <button class="np-btn" onclick="npKey('9')">9</button>
+        <button class="np-btn np-op" onclick="npKey('+')">+</button>
+        <button class="np-btn" onclick="npKey('4')">4</button>
+        <button class="np-btn" onclick="npKey('5')">5</button>
+        <button class="np-btn" onclick="npKey('6')">6</button>
+        <button class="np-btn np-op" onclick="npKey('-')">−</button>
+        <button class="np-btn" onclick="npKey('1')">1</button>
+        <button class="np-btn" onclick="npKey('2')">2</button>
+        <button class="np-btn" onclick="npKey('3')">3</button>
+        <button class="np-btn np-op" onclick="npKey('*')">×</button>
+        <button class="np-btn" onclick="npKey('.')">.</button>
+        <button class="np-btn" onclick="npKey('0')">0</button>
+        <button class="np-btn np-back" onclick="npKey('back')">⌫</button>
+        <button class="np-btn np-op" onclick="npKey('/')">÷</button>
+    </div>
+</div>
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
+<script>
+const firebaseConfig = {
+  apiKey:"AIzaSyAWI0Sd4hY_6X_odo2LCamwbQPSdLEjH1w",
+  authDomain:"chef2chef-stock.firebaseapp.com",
+  databaseURL:"https://chef2chef-stock-default-rtdb.firebaseio.com",
+  projectId:"chef2chef-stock",
+  storageBucket:"chef2chef-stock.firebasestorage.app",
+  messagingSenderId:"510949862594",
+  appId:"1:510949862594:web:2bae9e49826221e5a69f5b"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+const SHEETS_URL = 'https://script.google.com/macros/s/AKfycby9op7Pj91-YsnQm0Bj5F9KYF7uqWSLr9g4v-JSzfmUSRGAKE_oVtGwMNKHzX90JAfi/exec';
+const PAGE_SIZE  = 15;
+
+let ITEMS = [], historyLog = [];
+const stockData = {}, formulaData = {};
+let fbListening = false, fetchingFull = false;
+let lastHistoryTs = localStorage.getItem('c2c_last_hts') || '';
+
+// ── MODE ─────────────────────────────────────────────────────
+function toggleMode() {
+    const light = document.body.classList.toggle('light');
+    document.getElementById('modeBtn').textContent = light ? '☀️ LIGHT' : '🌙 DARK';
+    localStorage.setItem('c2c_mode', light ? 'light' : 'dark');
+}
+
+// ── BADGE ────────────────────────────────────────────────────
+function setSync(state, msg) {
+    const el = document.getElementById('syncBadge');
+    el.className = 'sync-badge' + (state==='ok' ? '' : ' '+state);
+    el.textContent = msg;
+}
+
+// ── LOCAL STORAGE ────────────────────────────────────────────
+function saveLocal() {
+    try { localStorage.setItem('c2c_stock', JSON.stringify({s:stockData,f:formulaData})); } catch(e){}
+}
+function loadLocal() {
+    try {
+        const d = JSON.parse(localStorage.getItem('c2c_stock')||'{}');
+        if (d.s) Object.assign(stockData, d.s);
+        if (d.f) Object.assign(formulaData, d.f);
+    } catch(e){}
+}
+function saveHistory() {
+    try { localStorage.setItem('c2c_history', JSON.stringify(historyLog.slice(0,500))); } catch(e){}
+}
+function loadHistory() {
+    try { historyLog = JSON.parse(localStorage.getItem('c2c_history')||'[]'); } catch(e){}
+}
+
+// ── HISTORY ──────────────────────────────────────────────────
+function openHistory() {
+    document.getElementById('histDrawer').classList.add('open');
+    document.getElementById('histOverlay').classList.add('open');
+    fetchHistory();
+}
+function closeHistory() {
+    document.getElementById('histDrawer').classList.remove('open');
+    document.getElementById('histOverlay').classList.remove('open');
+}
+function fetchHistory() {
+    document.getElementById('histBody').innerHTML = '<div class="hist-empty">Loading…</div>';
+    fetch(SHEETS_URL+'?action=getHistory&_t='+Date.now(), {cache:'no-store',redirect:'follow'})
+        .then(r=>r.json()).then(d=>{
+            if (d.ok && d.history) {
+                d.history.forEach(e => {
+                    if (!historyLog.some(l => l.ts===e.ts && l.uid===e.uid)) historyLog.unshift(e);
+                });
+                if (historyLog.length>500) historyLog = historyLog.slice(0,500);
+                saveHistory();
+                renderHistory();
+            } else document.getElementById('histBody').innerHTML='<div class="hist-empty">No history yet</div>';
+        }).catch(()=>{ document.getElementById('histBody').innerHTML='<div class="hist-empty">Could not load</div>'; });
+}
+function renderHistory() {
+    const body = document.getElementById('histBody');
+    if (!historyLog.length) { body.innerHTML='<div class="hist-empty">No history yet</div>'; return; }
+    body.innerHTML = historyLog.map(e=>{
+        const added  = String(e.added||'');
+        const isPos  = !added.startsWith('-');
+        const src    = e.source==='sheet' ? '📊 SHEET' : '🌐 WEB';
+        const srcCls = e.source==='sheet' ? 'sheet' : 'web';
+        const fDisp  = e.formula ? `<span style="font-family:monospace;color:#fbbf24;font-size:10px">=${xe(e.formula)}</span>` : '';
+        return `<div class="hist-row">
+            <div class="hist-top"><span class="hist-uid">${xe(e.uid)}</span><span class="hist-ts">${xe(e.ts)}</span></div>
+            <div class="hist-desc">${xe(e.desc)}</div>
+            <div class="hist-vals">
+                <span class="hist-old">${e.oldVal}</span>
+                <span class="hist-arrow">→</span>
+                <span class="hist-new">${e.newVal}</span>
+                <span class="hist-change ${isPos?'pos':'neg'}">${added}</span>
+                <span class="hist-source ${srcCls}">${src}</span>
+            </div>
+            ${fDisp ? `<div style="margin-top:4px">${fDisp}</div>` : ''}
+        </div>`;
+    }).join('');
+}
+function addLocalHistory(uid, oldVal, newVal, added, formula, source) {
+    const item = ITEMS.find(r=>r.id===uid);
+    const ts   = new Date().toISOString().replace('T',' ').slice(0,19);
+    const addStr = added>=0 ? '+'+parseFloat(added.toFixed(4)) : String(parseFloat(added.toFixed(4)));
+    historyLog.unshift({ts, uid, desc:item?item.desc:uid, oldVal, newVal, added:addStr, formula:formula||'', source:source||'website'});
+    if (historyLog.length>500) historyLog.pop();
+    saveHistory();
+    if (document.getElementById('histDrawer').classList.contains('open')) renderHistory();
+}
+
+// ── FIREBASE ─────────────────────────────────────────────────
+function fbWrite(uid, qty, formula, added) {
+    const safeKey = uid.replace(/[.#$[\]]/g,'_');
+    const payload = { qty, formula: formula||String(qty), ts: Date.now() };
+    if (added !== undefined) payload.added = added;
+    db.ref('stock/'+safeKey).set(payload);
+}
+
+function startFirebaseListener() {
+    if (fbListening) return;
+    fbListening = true;
+    db.ref('stock').on('value', snap => {
+        const data = snap.val();
+        if (!data) return;
+        let changed = false;
+        Object.entries(data).forEach(([safeKey, val]) => {
+            const item = ITEMS.find(r => r.id.replace(/[.#$[\]]/g,'_') === safeKey);
+            if (!item) return;
+            const uid     = item.id;
+            const newQty  = parseFloat(val.qty) || 0;
+            const newForm = String(val.formula || newQty);
+            const localQty = stockData[uid] || 0;
+            if (newQty !== localQty || newForm !== (formulaData[uid]||'')) {
+                const oldVal = localQty;
+                const added  = val.added !== undefined ? val.added : (newQty - localQty);
+                stockData[uid]   = newQty;
+                formulaData[uid] = newForm;
+                updateCellDisplay(uid);
+                addLocalHistory(uid, oldVal, newQty, added, newForm, 'web');
+                changed = true;
+            }
+        });
+        if (changed) { saveLocal(); setSync('ok','● LIVE'); }
+    });
+}
+
+// ── SHEET POLL — uses history delta (smarter, lighter) ───────
+function startSheetPoll() {
+    setInterval(()=>{
+        if (fetchingFull) return;
+        fetch(SHEETS_URL+'?action=getHistory&_t='+Date.now()+Math.random(), {cache:'no-store',redirect:'follow'})
+            .then(r=>r.json()).then(d=>{
+                if (!d.ok || !d.history) return;
+                const newEntries = d.history.filter(e => e.ts > lastHistoryTs).reverse();
+                if (!newEntries.length) return;
+                newEntries.forEach(e => {
+                    const oldVal = stockData[e.uid] || 0;
+                    if (e.newVal !== oldVal || e.formula !== (formulaData[e.uid]||'')) {
+                        stockData[e.uid]   = parseFloat(e.newVal) || 0;
+                        formulaData[e.uid] = e.formula || String(e.newVal);
+                        fbWrite(e.uid, stockData[e.uid], formulaData[e.uid], parseFloat(e.added));
+                        updateCellDisplay(e.uid);
+                        addLocalHistory(e.uid, oldVal, parseFloat(e.newVal), parseFloat(e.added), e.formula, e.source);
+                    }
+                });
+                lastHistoryTs = d.history[0].ts;
+                localStorage.setItem('c2c_last_hts', lastHistoryTs);
+                saveLocal();
+                setSync('ok','● LIVE');
+            }).catch(()=>{});
+    }, 5000);
+}
+
+// ── WRITE ────────────────────────────────────────────────────
+let retryQ = {};
+
+function sendAdd(uid, addQty) {
+    const oldVal  = stockData[uid] || 0;
+    const newVal  = parseFloat((oldVal + addQty).toFixed(4));
+    const oldForm = formulaData[uid] || String(oldVal);
+    const newForm = oldVal===0 ? String(addQty) : oldForm+(addQty>=0?'+':'')+addQty;
+    stockData[uid]   = newVal;
+    formulaData[uid] = newForm;
+    saveLocal();
+    updateCellDisplay(uid);
+    addLocalHistory(uid, oldVal, newVal, addQty, newForm, 'website');
+    setSync('syncing','⟳ SAVING');
+    fbWrite(uid, newVal, newForm, addQty);
+    fetch(SHEETS_URL+'?uid='+encodeURIComponent(uid)+'&add='+encodeURIComponent(addQty)+'&source=website&_t='+Date.now()+Math.random(),{cache:'no-store',redirect:'follow'})
+        .then(r=>r.json()).then(d=>{
+            if(d.ok){ stockData[uid]=d.newVal; formulaData[uid]=d.formula; fbWrite(uid,d.newVal,d.formula,parseFloat(d.added||addQty)); saveLocal(); updateCellDisplay(uid); delete retryQ[uid]; setSync('ok','● LIVE'); }
+            else { retryQ[uid]={mode:'add',val:addQty}; setSync('syncing','⟳ SHEET SYNC…'); }
+        }).catch(()=>{ retryQ[uid]={mode:'add',val:addQty}; setSync('syncing','⟳ SHEET SYNC…'); });
+}
+
+function sendSet(uid, qty) {
+    const oldVal = stockData[uid] || 0;
+    stockData[uid]   = qty;
+    formulaData[uid] = String(qty);
+    saveLocal();
+    updateCellDisplay(uid);
+    addLocalHistory(uid, oldVal, qty, qty-oldVal, String(qty), 'website');
+    setSync('syncing','⟳ SAVING');
+    fbWrite(uid, qty, String(qty), qty-oldVal);
+    fetch(SHEETS_URL+'?uid='+encodeURIComponent(uid)+'&set='+encodeURIComponent(qty)+'&source=website&_t='+Date.now()+Math.random(),{cache:'no-store',redirect:'follow'})
+        .then(r=>r.json()).then(d=>{
+            if(d.ok){ stockData[uid]=d.newVal; formulaData[uid]=d.formula; fbWrite(uid,d.newVal,d.formula,parseFloat(d.added||(d.newVal-oldVal))); saveLocal(); updateCellDisplay(uid); delete retryQ[uid]; setSync('ok','● LIVE'); }
+            else { retryQ[uid]={mode:'set',val:qty}; setSync('syncing','⟳ SHEET SYNC…'); }
+        }).catch(()=>{ retryQ[uid]={mode:'set',val:qty}; setSync('syncing','⟳ SHEET SYNC…'); });
+}
+
+function sendSetFormula(uid, formula, qty) {
+    const oldVal = stockData[uid] || 0;
+    stockData[uid]   = qty;
+    formulaData[uid] = formula;
+    saveLocal();
+    updateCellDisplay(uid);
+    addLocalHistory(uid, oldVal, qty, qty-oldVal, formula, 'website');
+    setSync('syncing','⟳ SAVING');
+    fbWrite(uid, qty, formula, qty-oldVal);
+    fetch(SHEETS_URL+'?uid='+encodeURIComponent(uid)+'&setFormula='+encodeURIComponent(formula)+'&source=website&_t='+Date.now()+Math.random(),{cache:'no-store',redirect:'follow'})
+        .then(r=>r.json()).then(d=>{
+            if(d.ok){ stockData[uid]=d.newVal; formulaData[uid]=d.formula; fbWrite(uid,d.newVal,d.formula,parseFloat(d.added||(d.newVal-oldVal))); saveLocal(); updateCellDisplay(uid); delete retryQ[uid]; setSync('ok','● LIVE'); }
+            else { retryQ[uid]={mode:'setFormula',val:formula,qty:qty}; setSync('syncing','⟳ SHEET SYNC…'); }
+        }).catch(()=>{ retryQ[uid]={mode:'setFormula',val:formula,qty:qty}; setSync('syncing','⟳ SHEET SYNC…'); });
+}
+
+setInterval(()=>{
+    const entries = Object.entries(retryQ); if(!entries.length) return;
+    entries.forEach(([uid,op])=>{
+        const param = op.mode==='add' ? '&add='+encodeURIComponent(op.val)
+                    : op.mode==='setFormula' ? '&setFormula='+encodeURIComponent(op.val)
+                    : '&set='+encodeURIComponent(op.val);
+        fetch(SHEETS_URL+'?uid='+encodeURIComponent(uid)+param+'&source=website&_t='+Date.now()+Math.random(),{cache:'no-store',redirect:'follow'})
+            .then(r=>r.json()).then(d=>{ if(d.ok){ delete retryQ[uid]; if(!Object.keys(retryQ).length) setSync('ok','● LIVE'); }}).catch(()=>{});
+    });
+}, 3000);
+
+// ── CELL DISPLAY ─────────────────────────────────────────────
+function updateCellDisplay(id) {
+    const sid  = id.replace(/[^a-zA-Z0-9_-]/g,'_');
+    const qty  = stockData[id] || 0;
+    const disp = qty%1===0 ? qty : qty.toFixed(2);
+    const form = formulaData[id] || String(qty);
+    const tdEl   = document.getElementById('std-'+sid);
+    const qtyEl  = document.getElementById('sqty-'+sid);
+    const eqEl   = document.getElementById('eq-'+sid);
+    const wrapEl = document.getElementById('swrap-'+sid);
+    if (!tdEl) return;
+    if (qty > 0) {
+        if (qtyEl) { qtyEl.textContent=disp; if(eqEl && document.activeElement!==eqEl) eqEl.value='='+form; }
+        else { tdEl.innerHTML = stockCellHtml(id); }
+    } else {
+        if (wrapEl) tdEl.innerHTML = `<div class="stock-empty" onclick="openCalc('${id}')"></div>`;
+    }
+}
+
+// ── RENDER ───────────────────────────────────────────────────
+let displayItems = [];
+function xe(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function stockCellHtml(id) {
+    const qty  = stockData[id] || 0;
+    const sid  = id.replace(/[^a-zA-Z0-9_-]/g,'_');
+    if (qty > 0) {
+        const disp = qty%1===0 ? qty : qty.toFixed(2);
+        const form = formulaData[id] || String(qty);
+        return `<div class="stock-wrap" id="swrap-${sid}">
+            <span class="stock-qty" id="sqty-${sid}" onclick="openCalc('${id}')">${disp}</span>
+            <div class="eq-wrap">
+                <input class="eq-input" id="eq-${sid}" type="text" value="${xe('='+form)}"
+                    oninput="onEqIn('${id}','${sid}')"
+                    onkeydown="onEqKd(event,'${id}','${sid}')"
+                    onclick="event.stopPropagation()">
+                <button class="eq-ok" id="eqok-${sid}" onclick="confirmEq('${id}','${sid}')">✓</button>
+            </div>
+        </div>`;
+    }
+    return `<div class="stock-empty" onclick="openCalc('${id}')"></div>`;
+}
+
+function renderTable() {
+    document.getElementById('tbody').innerHTML = displayItems.map(r=>`<tr>
+        <td class="cell-uid">${xe(r.id)}</td>
+        <td><div class="desc-name">${xe(r.desc)}</div><div style="margin-top:2px">
+            ${r.cat?`<span class="cat-pill">${xe(r.cat)}</span>`:''}
+        </div></td>
+        <td id="std-${r.id.replace(/[^a-zA-Z0-9_-]/g,'_')}">${stockCellHtml(r.id)}</td>
+        <td class="cell-cost">${r.cost>0?r.cost.toFixed(2):'—'}</td>
+        <td style="font-weight:700;font-size:11px">${xe(r.um)}</td>
+        <td class="cell-pack">${xe(r.pack)}</td>
+        <td class="cell-sup">${xe(r.sup)}</td>
+        <td>${r.brand?`<span class="brand-pill">${xe(r.brand)}</span>`:''}${r.origin?`<span class="origin-pill">${xe(r.origin)}</span>`:''}</td>
+    </tr>`).join('');
+}
+
+// ── EQUATION BAR ─────────────────────────────────────────────
+function onEqIn(id,sid){ document.getElementById('eqok-'+sid)?.classList.add('on'); }
+function onEqKd(e,id,sid){
+    if(e.key==='Enter'){e.preventDefault();confirmEq(id,sid);}
+    if(e.key==='Escape'){const inp=document.getElementById('eq-'+sid);if(inp)inp.value='='+(formulaData[id]||String(stockData[id]||0));document.getElementById('eqok-'+sid)?.classList.remove('on');}
+}
+function confirmEq(id,sid){
+    const inp=document.getElementById('eq-'+sid); if(!inp) return;
+    let raw=inp.value.trim(); if(raw.startsWith('=')) raw=raw.slice(1);
+    const clean=raw.replace(/[^0-9.+\-*\/()]/g,'');
+    let qty;
+    try{qty=Math.max(0,parseFloat(Function('return ('+clean+')')().toFixed(4)));}
+    catch(e){qty=stockData[id]||0;}
+    inp.value='='+clean;
+    document.getElementById('eqok-'+sid)?.classList.remove('on');
+    inp.blur();
+    sendSetFormula(id, clean, qty);
+}
+
+// ── NUMPAD ───────────────────────────────────────────────────
+let np={val:'0',id:null,um:''};
+let npDrg=false,npOX=0,npOY=0;
+let npPos={x:window.innerWidth-180,y:Math.round(window.innerHeight*0.25)};
+
+function openCalc(id){
+    const item=ITEMS.find(r=>r.id===id); if(!item) return;
+    np.id=id; np.um=item.um; np.val='0';
+    const el=document.getElementById('numpadPopup');
+    el.style.left=npPos.x+'px'; el.style.top=npPos.y+'px';
+    document.getElementById('npName').textContent=item.desc;
+    const ex=stockData[id]||0;
+    document.getElementById('npExisting').innerHTML=ex>0?`Current: <span>${ex} ${item.um}</span>`:'No stock yet';
+    npDraw(); el.classList.add('open');
+    setTimeout(()=>document.addEventListener('click',npOut),50);
+}
+function npOut(e){
+    if(!document.getElementById('numpadPopup').contains(e.target)&&!e.target.closest('.stock-empty')&&!e.target.closest('.stock-qty')){
+        document.getElementById('numpadPopup').classList.remove('open');
+        document.removeEventListener('click',npOut);
+    }
+}
+function npDraw(){
+    const el=document.getElementById('npVal');
+    el.textContent=np.val; el.className='np-val'+(np.val!=='0'?' on':'');
+    const pv=document.getElementById('npPreview');
+    const ex=stockData[np.id]||0;
+    if(!np.val||np.val==='0'){pv.textContent=ex>0?'Will add to '+ex+' '+np.um:'First entry';return;}
+    try{
+        let addQty,newTotal;
+        if(/^[-*\/]/.test(np.val)){newTotal=parseFloat(Function('return ('+ex+np.val+')')().toFixed(4));addQty=parseFloat((newTotal-ex).toFixed(4));}
+        else{addQty=parseFloat(Function('return ('+np.val+')')().toFixed(4));newTotal=parseFloat((ex+addQty).toFixed(4));}
+        newTotal=Math.max(0,newTotal); addQty=parseFloat((newTotal-ex).toFixed(4));
+        pv.textContent=ex+' '+(addQty>=0?'+':'')+addQty+' = '+newTotal+' '+np.um;
+    }catch(e){pv.textContent='...';}
+}
+function npKey(k){
+    const ops=['+','-','*','/'];
+    if(k==='back'){np.val=np.val.length>1?np.val.slice(0,-1):'0';}
+    else if(ops.includes(k)){
+        if(k==='+'){}
+        else if(np.val==='0') np.val=k;
+        else if(ops.includes(np.val.slice(-1))) np.val=np.val.slice(0,-1)+k;
+        else np.val+=k;
+    }else if(k==='.'){const parts=np.val.split(/[-*\/]/);if(!parts[parts.length-1].includes('.')) np.val+='.';
+    }else{np.val=(np.val==='0')?k:np.val+k;}
+    npDraw();
+}
+function npConfirm(){
+    const ex=stockData[np.id]||0,v=np.val;
+    if(!v||v==='0'){document.getElementById('numpadPopup').classList.remove('open');document.removeEventListener('click',npOut);return;}
+    let addQty,newTotal;
+    try{
+        if(/^[-*\/]/.test(v)){newTotal=Math.max(0,parseFloat(Function('return ('+ex+v+')')().toFixed(4)));addQty=parseFloat((newTotal-ex).toFixed(4));}
+        else{addQty=parseFloat(Function('return ('+v+')')().toFixed(4));newTotal=Math.max(0,parseFloat((ex+addQty).toFixed(4)));addQty=parseFloat((newTotal-ex).toFixed(4));}
+    }catch(e){addQty=0;newTotal=ex;}
+    if(navigator.vibrate) navigator.vibrate(35);
+    if(addQty!==0) sendAdd(np.id,addQty);
+    document.getElementById('numpadPopup').classList.remove('open');
+    document.removeEventListener('click',npOut);
+}
+document.addEventListener('keydown',e=>{
+    if(e.key==='Enter'&&document.getElementById('numpadPopup').classList.contains('open')){e.preventDefault();npConfirm();}
+});
+
+// DRAG
+document.getElementById('npDrag').addEventListener('mousedown',dS);
+document.getElementById('npDrag').addEventListener('touchstart',dS,{passive:true});
+function dS(e){npDrg=true;const r=document.getElementById('numpadPopup').getBoundingClientRect();const cx=e.touches?e.touches[0].clientX:e.clientX,cy=e.touches?e.touches[0].clientY:e.clientY;npOX=cx-r.left;npOY=cy-r.top;document.addEventListener('mousemove',dM);document.addEventListener('mouseup',dE);document.addEventListener('touchmove',dM,{passive:true});document.addEventListener('touchend',dE);}
+function dM(e){if(!npDrg)return;const cx=e.touches?e.touches[0].clientX:e.clientX,cy=e.touches?e.touches[0].clientY:e.clientY;const el=document.getElementById('numpadPopup');const nx=Math.max(0,Math.min(window.innerWidth-el.offsetWidth,cx-npOX));const ny=Math.max(0,Math.min(window.innerHeight-el.offsetHeight,cy-npOY));npPos.x=nx;npPos.y=ny;el.style.left=nx+'px';el.style.top=ny+'px';}
+function dE(){npDrg=false;document.removeEventListener('mousemove',dM);document.removeEventListener('mouseup',dE);document.removeEventListener('touchmove',dM);document.removeEventListener('touchend',dE);}
+
+// ── SEARCH ───────────────────────────────────────────────────
+let sT;
+document.getElementById('searchIn').addEventListener('input',e=>{
+    clearTimeout(sT);
+    sT=setTimeout(()=>{
+        const q=e.target.value.toLowerCase().trim();
+        const terms=q.split(/\s+/).filter(Boolean);
+        let filtered=q?ITEMS.filter(r=>{
+            const t=(r.id+' '+r.desc+' '+r.sup+' '+r.cat+' '+r.brand+' '+r.origin).toLowerCase();
+            return terms.every(w=>t.includes(w));
+        }):ITEMS;
+        const total=filtered.length;
+        displayItems=filtered.slice(0,PAGE_SIZE);
+        document.getElementById('barCount').textContent=q?(total>PAGE_SIZE?`${PAGE_SIZE} of ${total.toLocaleString()}`:total.toLocaleString()+' found'):`${PAGE_SIZE} of ${ITEMS.length.toLocaleString()}`;
+        document.getElementById('tblWrap').scrollTop=0;
+        renderTable();
+    },150);
+});
+
+// ── BOOT ─────────────────────────────────────────────────────
+window.addEventListener('load',()=>{
+    if(localStorage.getItem('c2c_mode')==='light'){
+        document.body.classList.add('light');
+        document.getElementById('modeBtn').textContent='☀️ LIGHT';
+    }
+    loadLocal();
+    loadHistory();
+
+    let p=0, attempt=0;
+    const bar=document.getElementById('loadBar'), txt=document.getElementById('loadTxt');
+    const iv=setInterval(()=>{p=Math.min(p+Math.random()*12,88);bar.style.width=p+'%';},60);
+
+    function finishLoad() {
+        clearInterval(iv); bar.style.width='100%';
+        displayItems=ITEMS.slice(0,PAGE_SIZE);
+        txt.textContent=ITEMS.length.toLocaleString()+' items loaded ✓';
+        document.getElementById('barCount').textContent=PAGE_SIZE+' of '+ITEMS.length.toLocaleString();
+        setSync('ok','● LIVE');
+        setTimeout(()=>{
+            renderTable();
+            document.getElementById('loadScreen').style.display='none';
+            startFirebaseListener();
+            startSheetPoll();
+            fetch(SHEETS_URL+'?action=getHistory&_t='+Date.now(),{redirect:'follow'})
+                .then(r=>r.json()).then(d=>{
+                    if(d.ok && d.history.length){ lastHistoryTs=d.history[0].ts; localStorage.setItem('c2c_last_hts',lastHistoryTs); }
+                }).catch(()=>{});
+        },200);
+    }
+
+    function fetchFromSheet() {
+        attempt++;
+        txt.textContent=attempt>1?'Retrying ('+attempt+'/3)…':'Connecting to sheet…';
+        fetch(SHEETS_URL+'?action=getAll&_t='+Date.now()+Math.random(),{cache:'no-store',redirect:'follow'})
+            .then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
+            .then(d=>{
+                if(!d.ok||!d.items) throw new Error(d.error||'No data');
+                ITEMS=d.items;
+                ITEMS.forEach(item=>{
+                    stockData[item.id]=parseFloat(item.stock)||0;
+                    if(item.formula) formulaData[item.id]=item.formula;
+                });
+                saveLocal();
+                try{ localStorage.setItem('c2c_items', JSON.stringify(ITEMS)); }catch(e){}
+                db.ref('stock').once('value').then(snap=>{
+                    const fbData=snap.val();
+                    if(fbData){
+                        Object.entries(fbData).forEach(([safeKey,val])=>{
+                            const item=ITEMS.find(r=>r.id.replace(/[.#$[\]]/g,'_')===safeKey);
+                            if(!item) return;
+                            stockData[item.id]=parseFloat(val.qty)||0;
+                            formulaData[item.id]=String(val.formula||val.qty||0);
+                        });
+                        saveLocal();
+                    }
+                    finishLoad();
+                }).catch(()=>finishLoad());
+            })
+            .catch(err=>{
+                if(attempt<3){ txt.textContent='Retrying…'; setTimeout(fetchFromSheet,2000); }
+                else{
+                    clearInterval(iv); bar.style.width='100%';
+                    txt.textContent='✕ Failed — tap to retry';
+                    txt.style.cursor='pointer';
+                    txt.onclick=()=>{attempt=0;p=0;bar.style.width='0%';txt.style.cursor='';fetchFromSheet();};
+                    setSync('error','✕ ERROR');
+                }
+            });
+    }
+
+    const localItems = localStorage.getItem('c2c_items');
+    if (localItems) {
+        try {
+            ITEMS = JSON.parse(localItems);
+            if (ITEMS && ITEMS.length > 100) {
+                txt.textContent='Loaded from cache ⚡';
+                finishLoad();
+                setTimeout(fetchFromSheet, 2000);
+                return;
+            }
+        } catch(e){ ITEMS=[]; }
+    }
+    fetchFromSheet();
+});
+</script>
+</body>
+</html>

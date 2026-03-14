@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Chef2Chef | Stock Engine</title>
+    <title>🥩 Chef2Chef | Stock Engine</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🥩</text></svg>">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
@@ -168,7 +168,7 @@
         <colgroup><col class="c1"><col class="c2"><col class="c3"><col class="c4"><col class="c5"><col class="c6"><col class="c7"><col class="c8"></colgroup>
         <thead><tr>
             <th>UID</th><th>Item Description</th><th>📦 Physical Stock</th>
-            <th>Cost</th><th>U/M</th><th>Pack</th><th>Supplier</th><th>Brand / Origin</th>
+            <th>QB Stock</th><th>U/M</th><th>Pack</th><th>Supplier</th><th>Brand / Origin</th>
         </tr></thead>
         <tbody id="tbody"></tbody>
     </table>
@@ -234,7 +234,7 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbzG1B7MJGSb2ZlMTiONbFr-wQjMhT-UP8_FuD0eXn1_O-OBiSR_EkPERYOTblDz48H4/exec';
+const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbxMLov_17GxueYsralH8T1NkIWJ_bPcw8U20WNlMoCCvQ1pztkg6B5-eONZdPt1OHl3/exec';
 const PAGE_SIZE  = 15;
 
 let ITEMS = [], historyLog = [];
@@ -509,7 +509,16 @@ function renderTable() {
             ${r.cat?`<span class="cat-pill">${xe(r.cat)}</span>`:''}
         </div></td>
         <td id="std-${r.id.replace(/[^a-zA-Z0-9_-]/g,'_')}">${stockCellHtml(r.id)}</td>
-        <td class="cell-cost">${r.cost>0?r.cost.toFixed(2):'—'}</td>
+        <td>${(()=>{
+            const phys = stockData[r.id]||0;
+            const qb   = r.qb||0;
+            if(!qb) return '<span style="color:#475569;font-weight:700;font-size:12px">—</span>';
+            const diff = phys - qb;
+            const color = diff===0 ? '#10b981' : diff>0 ? '#60a5fa' : '#ef4444';
+            const sign  = diff>0 ? '+' : '';
+            const diffBadge = `<span style="font-size:9px;font-weight:800;color:${color};background:${color}18;border:1px solid ${color}44;border-radius:20px;padding:1px 6px;margin-left:4px">${sign}${diff%1===0?diff:diff.toFixed(2)}</span>`;
+            return `<span style="font-size:14px;font-weight:800;color:#e2e8f0">${qb%1===0?qb:qb.toFixed(2)}</span>${diffBadge}`;
+        })()}</td>
         <td style="font-weight:700;font-size:11px">${xe(r.um)}</td>
         <td class="cell-pack">${xe(r.pack)}</td>
         <td class="cell-sup">${xe(r.sup)}</td>

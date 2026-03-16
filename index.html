@@ -643,76 +643,135 @@ function getFiltered(){
   return items;
 }
 
-function renderTable(){
-  const items=getFiltered();
-  const desktop=isDesktop();
-  document.getElementById('barCount').textContent=items.length.toLocaleString();
-  if(!items.length){document.getElementById('tbody').innerHTML='<div class="empty-state">No items found</div>';return;}
+// ── VIRTUAL SCROLL ────────────────────────────────────────────
+// Renders only visible rows + small buffer. With 13k items this
+// means ~20 DOM nodes instead of 13,000. Huge perf difference.
+let vsItems    = [];   // current filtered list
+let vsRowH     = 0;    // measured row height
+let vsStart    = 0;    // first rendered index
+let vsEnd      = 0;    // last rendered index
+const VS_BUF   = 5;    // extra rows above/below viewport
 
-  document.getElementById('tbody').innerHTML=items.map(r=>{
-    const sid=r.id.replace(/[^a-zA-Z0-9_-]/g,'_');
-    if(desktop){
-      // Full 8-column desktop row
-      return`<div class="item-row" id="row-${sid}">
-        <div class="cell cell-uid">${xe(r.id)}</div>
-        <div class="cell cell-desc">
-          <div class="desc-name">${xe(r.desc)}</div>
-          ${r.cat?`<div class="desc-meta"><span class="pill pill-cat">${xe(r.cat)}</span></div>`:''}
-        </div>
-        <div class="cell cell-stock">${stockCellHtml(r.id)}</div>
-        <div class="cell cell-um">${xe(r.um)}</div>
-        <div class="cell cell-pack-col">${xe(r.pack)}</div>
-        <div class="cell cell-sup">${xe(r.sup)}</div>
-        <div class="cell cell-brand-col">
-          ${r.brand?`<span class="pill pill-brand">${xe(r.brand)}</span> `:''}
+function vsRowHeight() {
+  // Measure once, cache it
+  if (vsRowH > 0) return vsRowH;
+  const desktop = isDesktop();
+  vsRowH = desktop ? 72 : Math.round((window.innerHeight - 132) / 7);
+  return vsRowH;
+}
+
+function rowHtml(r) {
+  const sid = r.id.replace(/[^a-zA-Z0-9_-]/g,'_');
+  const desktop = isDesktop();
+  if (desktop) {
+    return `<div class="item-row" id="row-${sid}" style="height:${vsRowH}px">
+      <div class="cell cell-uid">${xe(r.id)}</div>
+      <div class="cell cell-desc">
+        <div class="desc-name">${xe(r.desc)}</div>
+        ${r.cat?`<div class="desc-meta"><span class="pill pill-cat">${xe(r.cat)}</span></div>`:''}
+      </div>
+      <div class="cell cell-stock">${stockCellHtml(r.id)}</div>
+      <div class="cell cell-um">${xe(r.um)}</div>
+      <div class="cell cell-pack-col">${xe(r.pack)}</div>
+      <div class="cell cell-sup">${xe(r.sup)}</div>
+      <div class="cell cell-brand-col">
+        ${r.brand?`<span class="pill pill-brand">${xe(r.brand)}</span> `:''}
+        ${r.origin?`<span class="pill pill-origin">${xe(r.origin)}</span>`:''}
+      </div>
+    </div>`;
+  } else {
+    return `<div class="item-row" id="row-${sid}" style="min-height:${vsRowH}px">
+      <div class="cell cell-uid">${xe(r.id)}</div>
+      <div class="cell cell-desc">
+        <div class="desc-name">${xe(r.desc)} <span style="color:var(--pack-clr);font-size:10.5px">(${xe(r.pack)})</span></div>
+        <div class="desc-meta">
+          ${r.brand?`<span class="pill pill-brand">${xe(r.brand)}</span>`:''}
           ${r.origin?`<span class="pill pill-origin">${xe(r.origin)}</span>`:''}
         </div>
-      </div>`;
-    } else {
-      // Compact 5-column mobile row
-      return`<div class="item-row" id="row-${sid}">
-        <div class="cell cell-uid">${xe(r.id)}</div>
-        <div class="cell cell-desc">
-          <div class="desc-name">${xe(r.desc)} <span style="color:var(--pack-clr);font-size:10.5px">(${xe(r.pack)})</span></div>
-          <div class="desc-meta">
-            ${r.brand?`<span class="pill pill-brand">${xe(r.brand)}</span>`:''}
-            ${r.origin?`<span class="pill pill-origin">${xe(r.origin)}</span>`:''}
-          </div>
-        </div>
-        <div class="cell cell-stock">${stockCellHtml(r.id)}</div>
-        <div class="cell cell-um">${xe(r.um)}</div>
-        <div class="cell cell-sup">${xe(r.sup)}</div>
-      </div>`;
-    }
-  }).join('');
-}
-
-function updateRowDisplay(uid){
-  const sid=uid.replace(/[^a-zA-Z0-9_-]/g,'_');
-  const row=document.getElementById('row-'+sid);
-  if(!row)return;
-  const qty=stockData[uid]||0;
-  const formula=formulaData[uid]||'';
-  const qtyEl=document.getElementById('sqty-'+sid);
-  const eqEl=document.getElementById('eq-'+sid);
-  const stockCell=row.querySelector('.cell-stock');
-  if(qty>0&&qtyEl&&eqEl){
-    qtyEl.textContent=qty%1===0?qty:qty.toFixed(2);
-    if(document.activeElement!==eqEl){
-      eqEl.value='='+(formula||String(qty));
-      document.getElementById('eqok-'+sid)?.classList.remove('on');
-    }
-  } else if(stockCell){
-    stockCell.innerHTML=stockCellHtml(uid);
+      </div>
+      <div class="cell cell-stock">${stockCellHtml(r.id)}</div>
+      <div class="cell cell-um">${xe(r.um)}</div>
+      <div class="cell cell-sup">${xe(r.sup)}</div>
+    </div>`;
   }
-  row.classList.remove('updated');void row.offsetWidth;row.classList.add('updated');
 }
 
-// Re-render on resize so layout switches cleanly
+function vsRender(scrollTop) {
+  const tbody  = document.getElementById('tbody');
+  const wrap   = document.getElementById('tblArea');
+  const rh     = vsRowHeight();
+  const total  = vsItems.length;
+  if (!total) { tbody.innerHTML = '<div class="empty-state">No items found</div>'; return; }
+
+  const viewH  = wrap.clientHeight;
+  const start  = Math.max(0, Math.floor(scrollTop / rh) - VS_BUF);
+  const end    = Math.min(total - 1, Math.ceil((scrollTop + viewH) / rh) + VS_BUF);
+
+  // Skip if window didn't change enough to matter
+  if (start === vsStart && end === vsEnd) return;
+  vsStart = start; vsEnd = end;
+
+  const topPad    = start * rh;
+  const bottomPad = Math.max(0, (total - end - 1) * rh);
+
+  tbody.innerHTML =
+    `<div style="height:${topPad}px"></div>` +
+    vsItems.slice(start, end + 1).map(rowHtml).join('') +
+    `<div style="height:${bottomPad}px"></div>`;
+}
+
+function renderTable() {
+  vsRowH  = 0; // reset so height is remeasured on layout change
+  vsItems = getFiltered();
+  vsStart = -1; vsEnd = -1; // force full re-render
+  document.getElementById('barCount').textContent = vsItems.length.toLocaleString();
+  const wrap = document.getElementById('tblArea');
+  wrap.scrollTop = 0;
+  vsRender(0);
+}
+
+// Scroll listener — throttled with rAF for 60fps smoothness
+let vsTicking = false;
+document.getElementById('tblArea').addEventListener('scroll', function() {
+  if (!vsTicking) {
+    requestAnimationFrame(() => { vsRender(this.scrollTop); vsTicking = false; });
+    vsTicking = true;
+  }
+}, { passive: true });
+
+function updateRowDisplay(uid) {
+  const sid = uid.replace(/[^a-zA-Z0-9_-]/g,'_');
+  const row = document.getElementById('row-' + sid);
+
+  // Row is in the DOM — update it in place
+  if (row) {
+    const qty     = stockData[uid] || 0;
+    const formula = formulaData[uid] || '';
+    const qtyEl   = document.getElementById('sqty-' + sid);
+    const eqEl    = document.getElementById('eq-' + sid);
+    const sc      = row.querySelector('.cell-stock');
+    if (qty > 0 && qtyEl && eqEl) {
+      qtyEl.textContent = qty % 1 === 0 ? qty : qty.toFixed(2);
+      if (document.activeElement !== eqEl) {
+        eqEl.value = '=' + (formula || String(qty));
+        document.getElementById('eqok-' + sid)?.classList.remove('on');
+      }
+    } else if (sc) {
+      sc.innerHTML = stockCellHtml(uid);
+    }
+    row.classList.remove('updated'); void row.offsetWidth; row.classList.add('updated');
+    return;
+  }
+
+  // Row is off-screen — data already updated in stockData/formulaData,
+  // it will render correctly when user scrolls to it. Nothing to do.
+}
+
+// Re-render on resize
 let resizeTimer;
-window.addEventListener('resize',()=>{
+window.addEventListener('resize', () => {
   clearTimeout(resizeTimer);
-  resizeTimer=setTimeout(()=>{buildColHeads();renderTable();},200);
+  resizeTimer = setTimeout(() => { vsRowH = 0; buildColHeads(); renderTable(); }, 200);
 });
 
 // ── SEARCH ────────────────────────────────────────────────────

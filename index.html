@@ -377,6 +377,13 @@ const firebaseConfig={apiKey:"AIzaSyAWI0Sd4hY_6X_odo2LCamwbQPSdLEjH1w",authDomai
 firebase.initializeApp(firebaseConfig);
 firebase.auth().signInAnonymously().catch(()=>{}); // anonymous auth for security rules
 const db=firebase.database();
+
+// Normalize formula so Sheet and App always match exactly
+// strips spaces, removes leading =
+function normalizeFormula(f){
+  if(!f) return '';
+  return String(f).replace(/\s/g,'').replace(/^=/,'');
+}
 const SHEETS_URL='https://script.google.com/macros/s/AKfycbydWsYSln3EFQOnqWuAhlFa0p04ld2UKSwPpwsYrllr_rKj7JHGHhDOQjBZOl942UrC/exec';
 
 // ── STATE ─────────────────────────────────────────────────────
@@ -456,7 +463,7 @@ function renderHistory(){
         <span class="hist-chg ${isPos?'pos':'neg'}">${xe(added)}</span>
         <span class="hist-src ${srcCls}">${src}</span>
       </div>
-      ${e.formula?`<div style="margin-top:3px;font-family:monospace;font-size:9px;color:#fbbf24">=<span>${xe(e.formula)}</span></div>`:''}
+      ${e.formula ? `<div style="margin-top:3px;font-family:monospace;font-size:9px;color:#fbbf24">=<span>${xe(normalizeFormula(e.formula))}</span></div>` : ''}
     </div>`;
   }).join('');
 }
@@ -490,12 +497,15 @@ function updateSheetBackground(uid, qty, formula, added) {
     action:  'updateRow',
     uid:     uid,
     qty:     qty,
-    formula: formula || '',
+    formula: normalizeFormula(formula) || '',
     added:   added ?? 0,
     _t:      Date.now()
   });
-  fetch(SHEETS_URL + '?' + params.toString(), { cache:'no-store', redirect:'follow' })
-    .catch(() => {}); // completely silent — timer sync is the safety net
+  fetch(SHEETS_URL + '?' + params.toString(), {
+    cache:     'no-store',
+    redirect:  'follow',
+    keepalive: true   // ~200ms faster — keeps connection alive
+  }).catch(() => {});
 }
 
 function fbWrite(uid, qty, formula, added) {
@@ -516,10 +526,6 @@ function fbWrite(uid, qty, formula, added) {
 function startFirebaseListener(){
   if(fbListening)return;
   fbListening=true;
-
-  // ── child_changed: fires ONLY when a single item changes (not full snapshot)
-  // This is the key performance fix — with 13k items, on('value') was sending
-  // the entire stock object on every write. child_changed sends just the one item.
   db.ref('stock').on('child_changed',snap=>{
     const k=snap.key;
     const val=snap.val();
@@ -527,10 +533,11 @@ function startFirebaseListener(){
     const item=ITEMS.find(r=>r.id.replace(/[.#$[\]]/g,'_')===k);
     if(!item)return;
     const uid=item.id;
-    if(isOwnEcho(uid))return; // skip our own write echoing back
-    const newQty=parseFloat(val.qty)||0;
-    const newForm=String(val.formula||newQty);
-    if(Math.abs(newQty-(stockData[uid]||0))>0.0001||newForm!==(formulaData[uid]||'')){
+    if(isOwnEcho(uid))return;
+    const newQty  = parseFloat(val.qty)||0;
+    const newForm = normalizeFormula(val.formula||String(newQty));
+    const locForm = normalizeFormula(formulaData[uid]||'');
+    if(Math.abs(newQty-(stockData[uid]||0))>0.0001||newForm!==locForm){
       const oldVal=stockData[uid]||0;
       stockData[uid]=newQty; formulaData[uid]=newForm;
       updateRowDisplay(uid);
@@ -549,7 +556,8 @@ function startFirebaseListener(){
 function sendAdd(uid, addQty) {
   const oldVal  = stockData[uid] || 0;
   const newVal  = parseFloat((oldVal + addQty).toFixed(4));
-  const oldForm = formulaData[uid] || String(oldVal);
+  const oldForm = normalizeFormula(formulaData[uid] || String(oldVal));
+  // Build cumulative formula: 5 → 5+3 → 5+3+2 etc.
   const newForm = oldVal === 0 ? String(addQty) : oldForm + (addQty >= 0 ? '+' : '') + addQty;
   stockData[uid] = newVal; formulaData[uid] = newForm;
   saveLocal(); updateRowDisplay(uid);
@@ -557,21 +565,28 @@ function sendAdd(uid, addQty) {
   setSync('syncing', '⟳ SAVING');
   fbWrite(uid, newVal, newForm, addQty);
 }
+  saveLocal(); updateRowDisplay(uid);
+  addLocalHistory(uid, oldVal, newVal, addQty, newForm, isDesktop() ? 'website' : 'mobile');
+  setSync('syncing', '⟳ SAVING');
+  fbWrite(uid, newVal, newForm, addQty);
+}
 function sendSet(uid, qty) {
   const oldVal = stockData[uid] || 0;
-  stockData[uid] = qty; formulaData[uid] = String(qty);
-  saveLocal(); updateRowDisplay(uid);
-  addLocalHistory(uid, oldVal, qty, qty - oldVal, String(qty), isDesktop() ? 'website' : 'mobile');
-  setSync('syncing', '⟳ SAVING');
-  fbWrite(uid, qty, String(qty), qty - oldVal);
-}
-function sendSetFormula(uid, formula, qty) {
-  const oldVal = stockData[uid] || 0;
+  const formula = String(qty); // absolute set — formula is just the number
   stockData[uid] = qty; formulaData[uid] = formula;
   saveLocal(); updateRowDisplay(uid);
   addLocalHistory(uid, oldVal, qty, qty - oldVal, formula, isDesktop() ? 'website' : 'mobile');
   setSync('syncing', '⟳ SAVING');
   fbWrite(uid, qty, formula, qty - oldVal);
+}
+function sendSetFormula(uid, formula, qty) {
+  const oldVal = stockData[uid] || 0;
+  const clean  = normalizeFormula(formula);
+  stockData[uid] = qty; formulaData[uid] = clean;
+  saveLocal(); updateRowDisplay(uid);
+  addLocalHistory(uid, oldVal, qty, qty - oldVal, clean, isDesktop() ? 'website' : 'mobile');
+  setSync('syncing', '⟳ SAVING');
+  fbWrite(uid, qty, clean, qty - oldVal);
 }
 
 // ── FORMULA BAR ───────────────────────────────────────────────

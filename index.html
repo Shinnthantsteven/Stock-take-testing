@@ -554,8 +554,8 @@ function startFirebaseListener(){
 // This eliminates ALL cold-start latency from the user experience.
 
 function sendAdd(uid, addQty) {
-  const oldVal  = stockData[uid] || 0;
-  const newVal  = parseFloat((oldVal + addQty).toFixed(4));
+  const oldVal = stockData[uid] || 0;
+  const newVal = parseFloat((oldVal + addQty).toFixed(4));
   const oldForm = normalizeFormula(formulaData[uid] || String(oldVal));
   // Build cumulative formula: 5 → 5+3 → 5+3+2 etc.
   const newForm = oldVal === 0 ? String(addQty) : oldForm + (addQty >= 0 ? '+' : '') + addQty;

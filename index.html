@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Chef2Chef | Stock Engine</title>
+
 <!-- PWA META -->
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -20,6 +21,7 @@ const _l=document.createElement('link');_l.rel='manifest';_l.href=URL.createObje
 /* Service Worker — caches fonts & Firebase SDK */
 if('serviceWorker'in navigator){const sw=`const C='c2c-v2';self.addEventListener('install',e=>self.skipWaiting());self.addEventListener('activate',e=>e.waitUntil(clients.claim()));self.addEventListener('fetch',e=>{const u=e.request.url;if(u.includes('script.google.com')||u.includes('firebaseio.com'))return;if(u.includes('fonts.gstatic')||u.includes('gstatic.com/firebasejs')||u.includes('fonts.googleapis')){e.respondWith(caches.open(C).then(c=>c.match(e.request).then(r=>r||fetch(e.request).then(res=>{c.put(e.request,res.clone());return res;}))));}});`;navigator.serviceWorker.register(URL.createObjectURL(new Blob([sw],{type:'text/javascript'}))).catch(()=>{});}
 </script>
+
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
 /* ── VARIABLES ── */
@@ -41,6 +43,7 @@ body.light{
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 html,body{height:100%;height:100dvh;overflow:hidden;font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);}
+
 /* ── LOADING ── */
 #loadScreen{position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;}
 .load-logo{font-weight:800;font-size:18px;display:flex;align-items:center;gap:8px;}
@@ -49,6 +52,7 @@ html,body{height:100%;height:100dvh;overflow:hidden;font-family:'Plus Jakarta Sa
 body.light .load-bar-wrap{background:rgba(0,0,0,.08);}
 .load-bar{height:100%;background:var(--brand);border-radius:3px;width:0%;transition:width .2s;}
 .load-txt{font-size:11px;font-weight:700;color:var(--text3);}
+
 /* ── NAV ── */
 .nav{height:50px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;border-bottom:1px solid var(--border);background:var(--bg);flex-shrink:0;}
 .nav-logo{font-weight:800;font-size:15px;display:flex;align-items:center;gap:8px;color:inherit;text-decoration:none;}
@@ -63,31 +67,38 @@ body.light .mode-btn{background:rgba(0,0,0,.05);border-color:rgba(0,0,0,.10);}
 .hist-btn{background:rgba(99,102,241,.12);border:1px solid rgba(99,102,241,.3);color:#818cf8;border-radius:20px;padding:3px 10px;font-size:10px;font-weight:800;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;white-space:nowrap;}
 .hist-btn:hover{background:rgba(99,102,241,.22);}
 .nav-label{font-size:9px;font-weight:800;color:var(--text3);letter-spacing:.5px;display:none;}
+
 /* ── INSTALL BANNER ── */
 #installBanner{display:none;align-items:center;justify-content:space-between;padding:6px 16px;background:rgba(16,185,129,.08);border-bottom:1px solid var(--brand-border);flex-shrink:0;}
 #installBanner.show{display:flex;}
 .install-txt{font-size:10px;font-weight:700;color:var(--brand);}
 .install-btn{background:var(--brand);border:none;color:#020617;padding:4px 12px;border-radius:20px;font-size:10px;font-weight:800;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;}
 .install-x{background:none;border:none;color:var(--text3);font-size:14px;cursor:pointer;padding:0 4px;}
+
 /* ── TABLE SHARED ── */
 .tbl-area{overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;}
 .tbl-area::-webkit-scrollbar{width:3px;}
 .tbl-area::-webkit-scrollbar-thumb{background:rgba(255,255,255,.06);border-radius:2px;}
 body.light .tbl-area::-webkit-scrollbar-thumb{background:rgba(0,0,0,.08);}
+
 .col-heads{position:sticky;top:0;z-index:50;background:var(--bg2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);}
 .col-h{padding:8px 10px;font-size:8px;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:.9px;}
 .col-h:first-child{padding-left:18px;}
 .col-h:last-child{padding-right:18px;}
+
 .item-row{border-bottom:1px solid var(--border2);align-items:center;transition:background .12s;}
 .item-row:hover{background:rgba(255,255,255,.025);}
 body.light .item-row:hover{background:rgba(0,0,0,.02);}
 .item-row.updated{animation:flashRow .7s ease;}
 @keyframes flashRow{0%{background:rgba(16,185,129,.1);}100%{background:transparent;}}
+
 .cell{padding:8px 10px;overflow:hidden;}
 .cell:first-child{padding-left:18px;}
 .cell:last-child{padding-right:18px;}
+
 /* UID */
 .cell-uid{font-family:monospace;font-size:10px;font-weight:700;color:var(--uid-clr);line-height:1.5;}
+
 /* Description */
 .desc-name{font-weight:700;font-size:14px;color:var(--text);line-height:1.4;margin-bottom:3px;}
 .desc-meta{display:flex;flex-wrap:wrap;gap:3px;margin-top:2px;}
@@ -95,6 +106,7 @@ body.light .item-row:hover{background:rgba(0,0,0,.02);}
 .pill-cat{background:rgba(251,191,36,.12);color:#fbbf24;border:1px solid rgba(251,191,36,.3);}
 .pill-brand{background:rgba(59,130,246,.10);color:#60a5fa;border:1px solid rgba(59,130,246,.22);}
 .pill-origin{background:rgba(16,185,129,.08);color:#10b981;border:1px solid rgba(16,185,129,.2);}
+
 /* Stock cell */
 .cell-stock{display:flex;align-items:center;justify-content:center;}
 .stock-wrap{display:flex;flex-direction:column;align-items:center;gap:3px;}
@@ -109,11 +121,13 @@ body.light .eq-input:focus{color:rgba(0,0,0,.8);background:rgba(251,191,36,.06);
 .stock-empty-btn{height:28px;border:1.5px dashed rgba(255,255,255,.12);border-radius:7px;background:rgba(255,255,255,.02);cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.15);font-size:18px;}
 .stock-empty-btn:hover,.stock-empty-btn:active{border-color:rgba(16,185,129,.5);background:rgba(16,185,129,.04);}
 body.light .stock-empty-btn{border-color:rgba(0,0,0,.13);color:rgba(0,0,0,.15);}
+
 .cell-cost{font-size:15px;font-weight:800;color:var(--cost-clr);}
 .cell-um{font-size:11px;font-weight:700;color:var(--text2);}
 .cell-pack{font-size:13px;font-weight:700;color:var(--pack-clr);}
 .cell-sup{font-size:13px;font-weight:700;color:var(--text);line-height:1.4;}
 .empty-state{text-align:center;padding:60px 20px;color:var(--text3);font-size:12px;font-weight:700;}
+
 /* ── PORTAL BAR (shared mobile + desktop) ── */
 .portal-bar{position:fixed;bottom:calc(14px + var(--safe-bottom));left:50%;transform:translateX(-50%);border-radius:100px;border:1.5px solid rgba(255,255,255,.22);display:flex;align-items:center;z-index:1000;overflow:hidden;background:rgba(2,6,23,.7);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);}
 body.light .portal-bar{border-color:rgba(0,0,0,.18);background:rgba(248,250,252,.88);}
@@ -127,6 +141,7 @@ body.light .portal-bar::before{background:linear-gradient(90deg,transparent,rgba
 .bar-count{font-size:10px;font-weight:800;color:var(--brand);background:var(--brand-dim);border:1px solid var(--brand-border);border-radius:50px;padding:3px 11px;white-space:nowrap;flex-shrink:0;}
 .bar-exit{background:var(--danger);border:none;color:white;padding:0 22px;height:46px;font-weight:800;font-size:12px;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;border-radius:0 100px 100px 0;flex-shrink:0;}
 .bar-exit:active{background:#dc2626;}
+
 /* ── NUMPAD FLOATING DRAGGABLE ── */
 @keyframes popIn{from{transform:scale(0.86);opacity:0;}to{transform:scale(1);opacity:1;}}
 .np-popup{position:fixed;z-index:9000;display:none;flex-direction:column;width:176px;border-radius:20px;background:rgba(255,255,255,.09);backdrop-filter:blur(40px) saturate(200%);-webkit-backdrop-filter:blur(40px) saturate(200%);border:1px solid rgba(255,255,255,.22);box-shadow:0 1px 0 rgba(255,255,255,.3) inset,0 8px 32px rgba(0,0,0,.35);overflow:hidden;user-select:none;touch-action:none;}
@@ -166,6 +181,7 @@ body.light .np-btn{background:rgba(0,0,0,.06);border-color:rgba(0,0,0,.09);color
 body.light .np-btn:active{background:rgba(0,0,0,.13);}
 .np-btn-back{color:rgba(255,255,255,.4);font-size:13px;}
 body.light .np-btn-back{color:rgba(0,0,0,.35);}
+
 /* ── HISTORY DRAWER ── */
 .hist-overlay{position:fixed;inset:0;z-index:7000;background:rgba(0,0,0,.5);backdrop-filter:blur(4px);display:none;}
 .hist-overlay.open{display:block;}
@@ -196,8 +212,9 @@ body.light .np-btn-back{color:rgba(0,0,0,.35);}
 .hist-src.sheet{background:rgba(251,191,36,.1);color:#fbbf24;border:1px solid rgba(251,191,36,.2);}
 .hist-src.mobile{background:rgba(16,185,129,.1);color:#10b981;border:1px solid rgba(16,185,129,.2);}
 .hist-empty{text-align:center;padding:50px 20px;color:var(--text3);font-size:12px;font-weight:700;}
+
 /* ══════════════════════════════════════════════
-   MOBILE (default — < 768px)
+   MOBILE  (default — < 768px)
    2 cols: Description+UID+Supplier | Stock+UM+Formula
 ══════════════════════════════════════════════ */
 .tbl-area{height:calc(100dvh - 50px - 66px);mask-image:linear-gradient(to bottom,black 88%,transparent 100%);-webkit-mask-image:linear-gradient(to bottom,black 88%,transparent 100%);}
@@ -228,26 +245,32 @@ body.light .np-btn-back{color:rgba(0,0,0,.35);}
 .cell-um{display:none;}
 .cell-sup{display:none;}
 .portal-bar{width:calc(100% - 20px);max-width:600px;}
+
 /* ══════════════════════════════════════════════
-   DESKTOP (≥ 768px)
+   DESKTOP  (≥ 768px)
    7 cols: UID | Description | Stock | U/M | Pack | Supplier | Brand/Origin
 ══════════════════════════════════════════════ */
 @media(min-width:768px){
   :root{--row-h:auto;}
   html,body{overflow:hidden;}
+
   .nav{height:54px;padding:0 28px;}
   .nav-logo{font-size:16px;}
   .nav-label{display:inline;font-size:10px;}
   .hist-btn{display:inline-flex;}
+
   .tbl-area{height:calc(100dvh - 54px - 68px);mask-image:linear-gradient(to bottom,black 85%,transparent 100%);-webkit-mask-image:linear-gradient(to bottom,black 85%,transparent 100%);padding:0 28px 20px;}
+
   .col-heads{display:grid;grid-template-columns:100px 1fr 160px 54px 90px 16% 135px;padding:0;border-radius:14px;border:1px solid var(--border);}
   .col-h{padding:10px 10px;font-size:8.5px;}
   .col-h:first-child{border-radius:14px 0 0 14px;padding-left:18px;}
   .col-h:last-child{border-radius:0 14px 14px 0;padding-right:18px;}
+
   .item-row{display:grid;grid-template-columns:100px 1fr 160px 54px 90px 16% 135px;padding:0;min-height:72px;}
   .cell{padding:12px 10px;}
   .cell:first-child{padding-left:18px;}
   .cell:last-child{padding-right:18px;}
+
   .cell-uid{font-size:11px;color:var(--uid-clr);}
   .desc-name{font-size:14px;}
   .stock-qty{font-size:17px;}
@@ -258,23 +281,28 @@ body.light .np-btn-back{color:rgba(0,0,0,.35);}
   .cell-brand-col{display:block;}
   .cell-um{font-size:11px;font-weight:700;text-align:left;}
   .cell-sup{font-size:13px;font-weight:700;-webkit-line-clamp:2;line-height:1.4;}
+
   /* On desktop, brand/origin pills are in their own column */
   .desc-meta{display:none;}
+
   .portal-bar{width:82%;max-width:1060px;}
 }
 </style>
 </head>
 <body>
+
 <div id="loadScreen">
   <div class="load-logo"><span style="font-size:22px">🥩</span> CHEF2CHEF <span>STOCK</span></div>
   <div class="load-bar-wrap"><div class="load-bar" id="loadBar"></div></div>
   <div class="load-txt" id="loadTxt">Connecting…</div>
 </div>
+
 <div id="installBanner">
   <span class="install-txt">📱 Add Chef2Chef Stock to your Home Screen</span>
   <button class="install-btn" id="installBtn">Install App</button>
   <button class="install-x" onclick="document.getElementById('installBanner').classList.remove('show');localStorage.setItem('c2c_nodismiss','1')">✕</button>
 </div>
+
 <nav class="nav">
   <a class="nav-logo" href="#"><span style="font-size:22px">🥩</span> CHEF2CHEF <span>STOCK</span></a>
   <div class="nav-right">
@@ -285,10 +313,12 @@ body.light .np-btn-back{color:rgba(0,0,0,.35);}
     <span class="nav-label">PHYSICAL STOCK MODULE</span>
   </div>
 </nav>
+
 <div class="tbl-area" id="tblArea">
   <div class="col-heads" id="colHeads"></div>
   <div id="tbody"></div>
 </div>
+
 <div class="portal-bar">
   <div class="bar-inner">
     <span class="bar-icon">🔍</span>
@@ -297,6 +327,7 @@ body.light .np-btn-back{color:rgba(0,0,0,.35);}
   </div>
   <button class="bar-exit" onclick="location.reload()">EXIT</button>
 </div>
+
 <!-- NUMPAD -->
 <div class="np-popup" id="npPopup">
   <div class="np-drag" id="npDrag">
@@ -334,6 +365,7 @@ body.light .np-btn-back{color:rgba(0,0,0,.35);}
     <button class="np-btn" onclick="npKey('0')">0</button>
   </div>
 </div>
+
 <!-- HISTORY -->
 <div class="hist-overlay" id="histOverlay" onclick="closeHistory()"></div>
 <div class="hist-drawer" id="histDrawer">
@@ -343,6 +375,7 @@ body.light .np-btn-back{color:rgba(0,0,0,.35);}
   </div>
   <div class="hist-body" id="histBody"><div class="hist-empty">Loading…</div></div>
 </div>
+
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
@@ -350,29 +383,35 @@ body.light .np-btn-back{color:rgba(0,0,0,.35);}
 // ── CONFIG ────────────────────────────────────────────────────
 const firebaseConfig={apiKey:"AIzaSyAWI0Sd4hY_6X_odo2LCamwbQPSdLEjH1w",authDomain:"chef2chef-stock.firebaseapp.com",databaseURL:"https://chef2chef-stock-default-rtdb.firebaseio.com",projectId:"chef2chef-stock",storageBucket:"chef2chef-stock.firebasestorage.app",messagingSenderId:"510949862594",appId:"1:510949862594:web:2bae9e49826221e5a69f5b"};
 firebase.initializeApp(firebaseConfig);
-firebase.auth().signInAnonymously().catch(()=>{});
+firebase.auth().signInAnonymously().catch(()=>{}); // anonymous auth for security rules
 const db=firebase.database();
+
 // Normalize formula so Sheet and App always match exactly
+// strips spaces, removes leading =
 function normalizeFormula(f){
   if(!f) return '';
   return String(f).replace(/\s/g,'').replace(/^=/,'');
 }
 const SHEETS_URL='https://script.google.com/macros/s/AKfycbyHiiuDy1HQzz_D9O1f1hZyL__81DyFW4bT2bieNlmIWj86NRtSQ9lfH-O5AHEtR3fp/exec';
+
 // ── STATE ─────────────────────────────────────────────────────
 let ITEMS=[],historyLog=[];
 const stockData={},formulaData={};
 let fbListening=false;
-let lastHistoryTs = localStorage.getItem('c2c_last_hts') || '';
 let searchQuery='';
+
 // ── LAYOUT DETECTION ─────────────────────────────────────────
 const isDesktop=()=>window.innerWidth>=768;
+
 // ── HELPERS ───────────────────────────────────────────────────
 function xe(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
 function setSync(state,msg){
   const el=document.getElementById('syncBadge');
   el.className='sync-badge'+(state==='ok'?'':' '+state);
   el.textContent=msg;
 }
+
 // ── MODE ──────────────────────────────────────────────────────
 function toggleMode(){
   const light=document.body.classList.toggle('light');
@@ -380,16 +419,19 @@ function toggleMode(){
   localStorage.setItem('c2c_mode',light?'light':'dark');
 }
 function forceRefresh(){
+  // Clear item cache so next load hits Apps Script fresh
   localStorage.removeItem('c2c_items');
   localStorage.removeItem('c2c_items_ts');
   setSync('syncing','⟳ REFRESHING');
   location.reload();
 }
+
 // ── LOCAL STORAGE ─────────────────────────────────────────────
 function saveLocal(){try{localStorage.setItem('c2c_stock',JSON.stringify({s:stockData,f:formulaData}));}catch(e){}}
 function loadLocal(){try{const d=JSON.parse(localStorage.getItem('c2c_stock')||'{}');if(d.s)Object.assign(stockData,d.s);if(d.f)Object.assign(formulaData,d.f);}catch(e){}}
 function saveHistory(){try{localStorage.setItem('c2c_history',JSON.stringify(historyLog.slice(0,500)));}catch(e){}}
 function loadHistory(){try{historyLog=JSON.parse(localStorage.getItem('c2c_history')||'[]');}catch(e){}}
+
 // ── HISTORY ───────────────────────────────────────────────────
 function openHistory(){
   document.getElementById('histDrawer').classList.add('open');
@@ -442,34 +484,65 @@ function addLocalHistory(uid,oldVal,newVal,added,formula,source){
   saveHistory();
   if(document.getElementById('histDrawer').classList.contains('open'))renderHistory();
 }
+
 // ── FIREBASE + REAL-TIME SHEET WEBHOOK ───────────────────────
+// Write path:
+//   1. Firebase write (instant <100ms) — all devices update immediately
+//   2. After Firebase confirms → background webhook to Apps Script
+//      updates the ONE row in the sheet (1-3 seconds, fire-and-forget)
+//   Result: Sheet stays ~1-3s behind, app is always instant
+
+// OWN-WRITE LOCK — prevents listener echoing our own writes back
 const ownWrites = {};
 function lockWrite(uid){ ownWrites[uid] = Date.now(); }
 function isOwnEcho(uid){ return ownWrites[uid] && (Date.now() - ownWrites[uid]) < 8000; }
 setInterval(()=>{ const now=Date.now(); Object.keys(ownWrites).forEach(k=>{ if(now-ownWrites[k]>10000) delete ownWrites[k]; }); }, 30000);
+
+// Fire-and-forget: update single row in Sheet after Firebase confirms
+// Never blocks the user — completely silent if it fails (timer backup covers it)
 function updateSheetBackground(uid, qty, formula, added) {
-  const params = new URLSearchParams({action: 'updateRow',uid: uid,qty: qty,formula: normalizeFormula(formula) || '',added: added ?? 0,_t: Date.now()});
-  fetch(SHEETS_URL + '?' + params.toString(), {cache: 'no-store',redirect: 'follow',keepalive: true}).catch(() => {});
+  const params = new URLSearchParams({
+    action:  'updateRow',
+    uid:     uid,
+    qty:     qty,
+    formula: normalizeFormula(formula) || '',
+    added:   added ?? 0,
+    _t:      Date.now()
+  });
+  fetch(SHEETS_URL + '?' + params.toString(), {
+    cache:     'no-store',
+    redirect:  'follow',
+    keepalive: true   // ~200ms faster — keeps connection alive
+  }).catch(() => {});
 }
+
 function fbWrite(uid, qty, formula, added) {
   lockWrite(uid);
   const k = uid.replace(/[.#$[\]]/g, '_');
-  db.ref('stock/' + k).set({qty, formula: formula || String(qty),ts: Date.now(), added: added ?? 0}).then(() => {
+  db.ref('stock/' + k).set({
+    qty, formula: formula || String(qty),
+    ts: Date.now(), added: added ?? 0
+  }).then(() => {
     setSync('ok', '● LIVE');
+    // Only AFTER Firebase confirms → update sheet in background
     updateSheetBackground(uid, qty, formula || String(qty), added ?? 0);
-  }).catch(() => {setSync('error', '✕ OFFLINE');});
+  }).catch(() => {
+    setSync('error', '✕ OFFLINE');
+  });
 }
+
 function startFirebaseListener(){
   if(fbListening)return;
   fbListening=true;
   db.ref('stock').on('child_changed',snap=>{
-    const k=snap.key; const val=snap.val();
+    const k=snap.key;
+    const val=snap.val();
     if(!val||!ITEMS.length)return;
     const item=ITEMS.find(r=>r.id.replace(/[.#$[\]]/g,'_')===k);
     if(!item)return;
     const uid=item.id;
     if(isOwnEcho(uid))return;
-    const newQty = parseFloat(val.qty)||0;
+    const newQty  = parseFloat(val.qty)||0;
     const newForm = normalizeFormula(val.formula||String(newQty));
     const locForm = normalizeFormula(formulaData[uid]||'');
     if(Math.abs(newQty-(stockData[uid]||0))>0.0001||newForm!==locForm){
@@ -481,11 +554,18 @@ function startFirebaseListener(){
     }
   });
 }
+
 // ── WRITE OPS — Firebase ONLY ─────────────────────────────────
+// Apps Script is no longer in the write path.
+// The app writes to Firebase instantly (<100ms).
+// Apps Script timer runs every 2min and silently syncs Firebase→Sheet.
+// This eliminates ALL cold-start latency from the user experience.
+
 function sendAdd(uid, addQty) {
-  const oldVal = stockData[uid] || 0;
-  const newVal = parseFloat((oldVal + addQty).toFixed(4));
+  const oldVal  = stockData[uid] || 0;
+  const newVal  = parseFloat((oldVal + addQty).toFixed(4));
   const oldForm = normalizeFormula(formulaData[uid] || String(oldVal));
+  // Build cumulative formula: 5 → 5+3 → 5+3+2 etc.
   const newForm = oldVal === 0 ? String(addQty) : oldForm + (addQty >= 0 ? '+' : '') + addQty;
   stockData[uid] = newVal; formulaData[uid] = newForm;
   saveLocal(); updateRowDisplay(uid);
@@ -495,7 +575,7 @@ function sendAdd(uid, addQty) {
 }
 function sendSet(uid, qty) {
   const oldVal = stockData[uid] || 0;
-  const formula = String(qty);
+  const formula = String(qty); // absolute set — formula is just the number
   stockData[uid] = qty; formulaData[uid] = formula;
   saveLocal(); updateRowDisplay(uid);
   addLocalHistory(uid, oldVal, qty, qty - oldVal, formula, isDesktop() ? 'website' : 'mobile');
@@ -504,13 +584,14 @@ function sendSet(uid, qty) {
 }
 function sendSetFormula(uid, formula, qty) {
   const oldVal = stockData[uid] || 0;
-  const clean = normalizeFormula(formula);
+  const clean  = normalizeFormula(formula);
   stockData[uid] = qty; formulaData[uid] = clean;
   saveLocal(); updateRowDisplay(uid);
   addLocalHistory(uid, oldVal, qty, qty - oldVal, clean, isDesktop() ? 'website' : 'mobile');
   setSync('syncing', '⟳ SAVING');
   fbWrite(uid, qty, clean, qty - oldVal);
 }
+
 // ── FORMULA BAR ───────────────────────────────────────────────
 function onEqIn(id,sid){document.getElementById('eqok-'+sid)?.classList.add('on');}
 function onEqKd(e,id,sid){
@@ -528,10 +609,12 @@ function confirmEq(id,sid){
   inp.blur();
   sendSetFormula(id,clean,qty);
 }
+
 // ── RENDER ────────────────────────────────────────────────────
+// Mobile stock cell — number + UM badge + formula bar stacked vertically
 function stockCellHtmlMobile(id, um) {
-  const qty = stockData[id]||0;
-  const sid = id.replace(/[^a-zA-Z0-9_-]/g,'_');
+  const qty     = stockData[id]||0;
+  const sid     = id.replace(/[^a-zA-Z0-9_-]/g,'_');
   const formula = formulaData[id]||'';
   if (qty > 0) {
     const disp = qty%1===0 ? qty : qty.toFixed(2);
@@ -548,6 +631,7 @@ function stockCellHtmlMobile(id, um) {
   }
   return `<div class="stock-empty-btn" onclick="openNp('${id}')">＋ ${um ? `<span style="font-size:9px;opacity:.5;margin-left:3px">${xe(um)}</span>` : ''}</div>`;
 }
+
 function stockCellHtml(id){
   const qty=stockData[id]||0;
   const sid=id.replace(/[^a-zA-Z0-9_-]/g,'_');
@@ -568,6 +652,7 @@ function stockCellHtml(id){
   }
   return`<div class="stock-empty-btn" onclick="openNp('${id}')">＋</div>`;
 }
+
 function buildColHeads(){
   const desktop=isDesktop();
   document.getElementById('colHeads').innerHTML=desktop
@@ -581,6 +666,7 @@ function buildColHeads(){
     :`<div class="col-h">Item Description</div>
       <div class="col-h">📦 Stock</div>`;
 }
+
 function getFiltered(){
   let items=ITEMS;
   if(searchQuery){
@@ -592,17 +678,24 @@ function getFiltered(){
   }
   return items;
 }
-let vsItems = [];
-let vsRowH = 0;
-let vsStart = 0;
-let vsEnd = 0;
-const VS_BUF = 5;
+
+// ── VIRTUAL SCROLL ────────────────────────────────────────────
+// Renders only visible rows + small buffer. With 13k items this
+// means ~20 DOM nodes instead of 13,000. Huge perf difference.
+let vsItems    = [];   // current filtered list
+let vsRowH     = 0;    // measured row height
+let vsStart    = 0;    // first rendered index
+let vsEnd      = 0;    // last rendered index
+const VS_BUF   = 5;    // extra rows above/below viewport
+
 function vsRowHeight() {
+  // Measure once, cache it
   if (vsRowH > 0) return vsRowH;
   const desktop = isDesktop();
   vsRowH = desktop ? 72 : Math.round((window.innerHeight - 132) / 7);
   return vsRowH;
 }
+
 function rowHtml(r) {
   const sid = r.id.replace(/[^a-zA-Z0-9_-]/g,'_');
   const desktop = isDesktop();
@@ -623,6 +716,7 @@ function rowHtml(r) {
       </div>
     </div>`;
   } else {
+    // 2-col mobile: left = desc+uid+supplier, right = stock+um+formula
     return `<div class="item-row" id="row-${sid}" style="min-height:${vsRowH}px">
       <div class="cell">
         <div class="desc-name">${xe(r.desc)} <span style="color:var(--pack-clr);font-size:10px">(${xe(r.pack)})</span></div>
@@ -637,33 +731,42 @@ function rowHtml(r) {
     </div>`;
   }
 }
+
 function vsRender(scrollTop) {
-  const tbody = document.getElementById('tbody');
-  const wrap = document.getElementById('tblArea');
-  const rh = vsRowHeight();
-  const total = vsItems.length;
+  const tbody  = document.getElementById('tbody');
+  const wrap   = document.getElementById('tblArea');
+  const rh     = vsRowHeight();
+  const total  = vsItems.length;
   if (!total) { tbody.innerHTML = '<div class="empty-state">No items found</div>'; return; }
-  const viewH = wrap.clientHeight;
-  const start = Math.max(0, Math.floor(scrollTop / rh) - VS_BUF);
-  const end = Math.min(total - 1, Math.ceil((scrollTop + viewH) / rh) + VS_BUF);
+
+  const viewH  = wrap.clientHeight;
+  const start  = Math.max(0, Math.floor(scrollTop / rh) - VS_BUF);
+  const end    = Math.min(total - 1, Math.ceil((scrollTop + viewH) / rh) + VS_BUF);
+
+  // Skip if window didn't change enough to matter
   if (start === vsStart && end === vsEnd) return;
   vsStart = start; vsEnd = end;
-  const topPad = start * rh;
+
+  const topPad    = start * rh;
   const bottomPad = Math.max(0, (total - end - 1) * rh);
+
   tbody.innerHTML =
     `<div style="height:${topPad}px"></div>` +
     vsItems.slice(start, end + 1).map(rowHtml).join('') +
     `<div style="height:${bottomPad}px"></div>`;
 }
+
 function renderTable() {
-  vsRowH = 0;
+  vsRowH  = 0; // reset so height is remeasured on layout change
   vsItems = getFiltered();
-  vsStart = -1; vsEnd = -1;
+  vsStart = -1; vsEnd = -1; // force full re-render
   document.getElementById('barCount').textContent = vsItems.length.toLocaleString();
   const wrap = document.getElementById('tblArea');
   wrap.scrollTop = 0;
   vsRender(0);
 }
+
+// Scroll listener — throttled with rAF for 60fps smoothness
 let vsTicking = false;
 document.getElementById('tblArea').addEventListener('scroll', function() {
   if (!vsTicking) {
@@ -671,14 +774,15 @@ document.getElementById('tblArea').addEventListener('scroll', function() {
     vsTicking = true;
   }
 }, { passive: true });
+
 function updateRowDisplay(uid) {
   const sid = uid.replace(/[^a-zA-Z0-9_-]/g,'_');
   const row = document.getElementById('row-' + sid);
   if (row) {
-    const qty = stockData[uid] || 0;
+    const qty     = stockData[uid] || 0;
     const formula = formulaData[uid] || '';
-    const qtyEl = document.getElementById('sqty-' + sid);
-    const eqEl = document.getElementById('eq-' + sid);
+    const qtyEl   = document.getElementById('sqty-' + sid);
+    const eqEl    = document.getElementById('eq-' + sid);
     if (qty > 0 && qtyEl && eqEl) {
       qtyEl.textContent = qty % 1 === 0 ? qty : qty.toFixed(2);
       if (document.activeElement !== eqEl) {
@@ -686,6 +790,7 @@ function updateRowDisplay(uid) {
         document.getElementById('eqok-' + sid)?.classList.remove('on');
       }
     } else {
+      // Re-render stock cell
       if (!isDesktop()) {
         const cmr = document.getElementById('cmr-' + sid);
         const item = ITEMS.find(r=>r.id===uid);
@@ -699,20 +804,26 @@ function updateRowDisplay(uid) {
     return;
   }
 }
+
+// Re-render on resize
 let resizeTimer;
 window.addEventListener('resize', () => {
   clearTimeout(resizeTimer);
   resizeTimer = setTimeout(() => { vsRowH = 0; buildColHeads(); renderTable(); }, 200);
 });
+
+// ── SEARCH ────────────────────────────────────────────────────
 let sT;
 document.getElementById('searchIn').addEventListener('input',e=>{
   clearTimeout(sT);
   sT=setTimeout(()=>{searchQuery=e.target.value.toLowerCase().trim();renderTable();},120);
 });
+
 // ── NUMPAD ────────────────────────────────────────────────────
 let np={id:null,val:'0',op:'+'};
 let npPos={x:window.innerWidth-190,y:70};
 let npDrg=false,npOX=0,npOY=0;
+
 function openNp(id){
   const item=ITEMS.find(r=>r.id===id);if(!item)return;
   np.id=id;np.val='0';np.op='+';
@@ -796,6 +907,7 @@ document.addEventListener('keydown',e=>{
   if(e.key==='Enter'){e.preventDefault();npConfirm();}
   if(e.key==='Escape')closeNp();
 });
+
 // ── DRAG ──────────────────────────────────────────────────────
 document.getElementById('npDrag').addEventListener('mousedown',dS);
 document.getElementById('npDrag').addEventListener('touchstart',dS,{passive:true});
@@ -818,6 +930,7 @@ function dM(e){
   npPos.x=nx;npPos.y=ny;p.style.left=nx+'px';p.style.top=ny+'px';
 }
 function dE(){npDrg=false;document.removeEventListener('mousemove',dM);document.removeEventListener('mouseup',dE);document.removeEventListener('touchmove',dM);document.removeEventListener('touchend',dE);}
+
 // ── PWA INSTALL ───────────────────────────────────────────────
 let dip=null;
 window.addEventListener('beforeinstallprompt',e=>{
@@ -827,31 +940,7 @@ window.addEventListener('beforeinstallprompt',e=>{
 document.getElementById('installBtn').addEventListener('click',()=>{
   if(dip){dip.prompt();dip.userChoice.then(()=>{dip=null;document.getElementById('installBanner').classList.remove('show');});}
 });
-// ── SHEET POLLING SOLUTION (Sheet → Web sync) ─────────────────
-function startSheetPoll() {
-  setInterval(() => {
-    fetch(SHEETS_URL+'?action=getHistory&_t='+Date.now(),{cache:'no-store',redirect:'follow'})
-      .then(r=>r.json()).then(d=>{
-        if(!d.ok||!d.history) return;
-        const newEntries = d.history.filter(e => e.ts > lastHistoryTs);
-        if(!newEntries.length) return;
-        newEntries.forEach(e => {
-          const uid = e.uid;
-          const oldVal = stockData[uid] || 0;
-          if (e.newVal !== oldVal || e.formula !== (formulaData[uid]||'')) {
-            stockData[uid] = parseFloat(e.newVal) || 0;
-            formulaData[uid] = e.formula || String(e.newVal);
-            updateRowDisplay(uid);
-            addLocalHistory(uid, oldVal, parseFloat(e.newVal), parseFloat(e.added), e.formula, e.source);
-          }
-        });
-        lastHistoryTs = d.history[0].ts;
-        localStorage.setItem('c2c_last_hts', lastHistoryTs);
-        saveLocal();
-        setSync('ok','● LIVE');
-      });
-  }, 4000); // 4 seconds — fast and reliable
-}
+
 // ── BOOT ──────────────────────────────────────────────────────
 window.addEventListener('load',()=>{
   if(localStorage.getItem('c2c_mode')==='light'){
@@ -859,9 +948,11 @@ window.addEventListener('load',()=>{
     document.getElementById('modeBtn').textContent='☀️ LIGHT';
   }
   loadLocal();loadHistory();
+
   let p=0,attempt=0;
   const bar=document.getElementById('loadBar'),txt=document.getElementById('loadTxt');
   const iv=setInterval(()=>{p=Math.min(p+Math.random()*12,88);bar.style.width=p+'%';},60);
+
   function finishLoad(){
     clearInterval(iv);bar.style.width='100%';
     txt.textContent=ITEMS.length.toLocaleString()+' items loaded ✓';
@@ -871,10 +962,10 @@ window.addEventListener('load',()=>{
       buildColHeads();
       renderTable();
       document.getElementById('loadScreen').style.display='none';
-      startFirebaseListener();
-      startSheetPoll();   // ← ONLY THIS LINE WAS ADDED
+      startFirebaseListener(); // Firebase is the only real-time channel
     },200);
   }
+
   function fetchFromSheet(){
     attempt++;
     txt.textContent=attempt>1?'Retrying ('+attempt+'/3)…':'Connecting to sheet…';
@@ -890,8 +981,9 @@ window.addEventListener('load',()=>{
         saveLocal();
         try{
           localStorage.setItem('c2c_items', JSON.stringify(ITEMS));
-          localStorage.setItem('c2c_items_ts', String(Date.now()));
+          localStorage.setItem('c2c_items_ts', String(Date.now())); // stamp cache time
         }catch(e){}
+        // Merge Firebase on top (most current values)
         db.ref('stock').once('value').then(snap=>{
           const fb=snap.val();
           if(fb)Object.entries(fb).forEach(([k,v])=>{
@@ -913,17 +1005,23 @@ window.addEventListener('load',()=>{
         }
       });
   }
-  const CACHE_KEY = 'c2c_items';
-  const CACHE_TS = 'c2c_items_ts';
-  const CACHE_TTL = 6 * 60 * 60 * 1000;
-  const cachedTs = parseInt(localStorage.getItem(CACHE_TS)||'0');
-  const cacheValid = (Date.now() - cachedTs) < CACHE_TTL;
+
+  // ── SMART CACHE: items metadata almost never changes
+  // Cache for 6 hours — only cold-fetch from Apps Script when stale
+  const CACHE_KEY   = 'c2c_items';
+  const CACHE_TS    = 'c2c_items_ts';
+  const CACHE_TTL   = 6 * 60 * 60 * 1000; // 6 hours in ms
+  const cachedTs    = parseInt(localStorage.getItem(CACHE_TS)||'0');
+  const cacheValid  = (Date.now() - cachedTs) < CACHE_TTL;
   const cachedItems = localStorage.getItem(CACHE_KEY);
+
   if(cachedItems && cacheValid){
+    // Cache hit — load instantly, no Apps Script needed
     try{
       ITEMS=JSON.parse(cachedItems);
       if(ITEMS && ITEMS.length>10){
         txt.textContent='Loaded from cache ⚡';
+        // Get latest stock values from Firebase (fast, single read)
         db.ref('stock').once('value').then(snap=>{
           const fb=snap.val();
           if(fb) Object.entries(fb).forEach(([k,v])=>{
@@ -938,6 +1036,8 @@ window.addEventListener('load',()=>{
       }
     }catch(e){ ITEMS=[]; }
   }
+
+  // Cache miss or stale — fetch from Apps Script, then cache
   fetchFromSheet();
 });
 </script>

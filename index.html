@@ -50,7 +50,17 @@ body.light .load-bar-wrap{background:rgba(0,0,0,.08);}
 .load-txt{font-size:11px;font-weight:700;color:var(--text3);}
 
 /* ── NAV ── */
-.nav{height:50px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;border-bottom:1px solid var(--border);background:var(--bg);flex-shrink:0;}
+.nav{
+  min-height:50px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:0 16px;
+  padding-top:env(safe-area-inset-top, 0px);
+  border-bottom:1px solid var(--border);
+  background:var(--bg);
+  flex-shrink:0;
+}
 .nav-logo{font-weight:800;font-size:15px;display:flex;align-items:center;gap:8px;color:inherit;text-decoration:none;}
 .nav-logo span{color:var(--brand);}
 .nav-right{display:flex;align-items:center;gap:7px;}
@@ -206,7 +216,7 @@ body.light .np-btn-back{color:rgba(0,0,0,.35);}
    MOBILE (default — < 768px)
    2 cols: Description+UID+Supplier | Stock+UM+Formula
 ══════════════════════════════════════════════ */
-.tbl-area{height:calc(100dvh - 50px - 66px);mask-image:linear-gradient(to bottom,black 88%,transparent 100%);-webkit-mask-image:linear-gradient(to bottom,black 88%,transparent 100%);}
+.tbl-area{height:calc(100dvh - 50px - 66px - env(safe-area-inset-top, 0px));mask-image:linear-gradient(to bottom,black 88%,transparent 100%);-webkit-mask-image:linear-gradient(to bottom,black 88%,transparent 100%);}
 .col-heads{display:grid;grid-template-columns:1fr 110px;padding:0 12px;}
 .col-h{padding:6px 8px;font-size:7.5px;}
 .col-h:first-child{padding-left:12px;}
@@ -460,6 +470,17 @@ const isDesktop=()=>window.innerWidth>=768;
 
 function xe(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 
+// Strip UID prefix from description e.g. "AfVgCh001 (Shombo Pepper-1kg)" → "Shombo Pepper-1kg"
+function cleanDesc(desc, id){
+  let d = String(desc||'').trim();
+  if(id && d.startsWith(id)){
+    d = d.slice(id.length).trim();
+    // Remove leading bracket/dash/colon and trailing bracket
+    d = d.replace(/^[\s\(\-\:\|]+/, '').replace(/\)\s*$/, '').trim();
+  }
+  return d || desc;
+}
+
 function setSync(state,msg){
   const el=document.getElementById('syncBadge');
   el.className='sync-badge'+(state==='ok'?'':' '+state);
@@ -709,10 +730,11 @@ function rowHtml(r){
   const sid=r.id.replace(/[^a-zA-Z0-9_-]/g,'_');
   const desktop=isDesktop();
   if(desktop){
+    const dDesc = cleanDesc(r.desc, r.id);
     return`<div class="item-row" id="row-${sid}">
       <div class="cell cell-uid">${xe(r.id)}</div>
       <div class="cell cell-desc">
-        <div class="desc-name">${xe(r.desc)}</div>
+        <div class="desc-name">${xe(dDesc)}</div>
         ${r.cat?`<div class="desc-meta"><span class="pill pill-cat">${xe(r.cat)}</span></div>`:''}
       </div>
       <div class="cell cell-stock">${stockCellHtml(r.id)}</div>
@@ -725,9 +747,10 @@ function rowHtml(r){
       </div>
     </div>`;
   } else {
+    const mDesc = cleanDesc(r.desc, r.id);
     return`<div class="item-row" id="row-${sid}" style="min-height:${vsRowH}px">
       <div class="cell">
-        <div class="desc-name">${xe(r.desc)} <span style="color:var(--pack-clr);font-size:10px">(${xe(r.pack)})</span></div>
+        <div class="desc-name">${xe(mDesc)} <span style="color:var(--pack-clr);font-size:10px">(${xe(r.pack)})</span></div>
         <span class="mob-uid">${xe(r.id)}</span>
         <span class="mob-sup">(${xe(r.sup)})</span>
         <div class="desc-meta">

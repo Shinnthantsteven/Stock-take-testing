@@ -526,9 +526,9 @@ body.light .fkb-btn-op{background:rgba(99,102,241,.10);color:#6366f1;}
 </div>
 
 <div class="portal-bar">
-  <div class="bar-inner">
+  <div class="bar-inner" onclick="if(!isDesktop())qkbOpen()">
     <span class="bar-icon">🔍</span>
-    <input id="searchIn" type="search" placeholder="Search UID, description, supplier, category…" autocomplete="off" spellcheck="false" readonly inputmode="none">
+    <input id="searchIn" type="search" placeholder="Search UID, description, supplier, category…" autocomplete="off" spellcheck="false" readonly inputmode="none" style="pointer-events:none;">
     <span class="bar-count" id="barCount">—</span>
   </div>
   <button class="bar-exit" onclick="location.reload()">EXIT</button>
@@ -1048,26 +1048,13 @@ window.addEventListener('resize',()=>{
 let sT;
 const searchInEl = document.getElementById('searchIn');
 
-// Mobile: tap opens custom keyboard, never native
-searchInEl.addEventListener('touchstart', e => {
-  if (!isDesktop()) {
-    e.preventDefault();
-    qkbOpen();
-  }
-}, { passive: false });
-
-// Desktop: make input writable and use normally
-searchInEl.addEventListener('focus', e => {
+// Desktop only — on desktop remove readonly so native keyboard works
+searchInEl.addEventListener('focus', () => {
   if (isDesktop()) {
     searchInEl.removeAttribute('readonly');
     searchInEl.removeAttribute('inputmode');
-  } else {
-    e.preventDefault();
-    searchInEl.blur();
-    qkbOpen();
   }
 });
-
 searchInEl.addEventListener('input', e => {
   clearTimeout(sT);
   sT = setTimeout(() => { searchQuery = e.target.value.toLowerCase().trim(); renderTable(); }, 120);

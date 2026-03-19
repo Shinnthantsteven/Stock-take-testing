@@ -528,7 +528,7 @@ body.light .fkb-btn-op{background:rgba(99,102,241,.10);color:#6366f1;}
 <div class="portal-bar">
   <div class="bar-inner">
     <span class="bar-icon">🔍</span>
-    <input id="searchIn" type="search" placeholder="Search UID, description, supplier, category…" autocomplete="off" spellcheck="false">
+    <input id="searchIn" type="search" placeholder="Search UID, description, supplier, category…" autocomplete="off" spellcheck="false" readonly inputmode="none">
     <span class="bar-count" id="barCount">—</span>
   </div>
   <button class="bar-exit" onclick="location.reload()">EXIT</button>
@@ -1046,12 +1046,31 @@ window.addEventListener('resize',()=>{
 
 // ── SEARCH ────────────────────────────────────────────────────
 let sT;
-document.getElementById('searchIn').addEventListener('focus',e=>{
-  if(!isDesktop()){e.target.blur();qkbOpen();}
+const searchInEl = document.getElementById('searchIn');
+
+// Mobile: tap opens custom keyboard, never native
+searchInEl.addEventListener('touchstart', e => {
+  if (!isDesktop()) {
+    e.preventDefault();
+    qkbOpen();
+  }
+}, { passive: false });
+
+// Desktop: make input writable and use normally
+searchInEl.addEventListener('focus', e => {
+  if (isDesktop()) {
+    searchInEl.removeAttribute('readonly');
+    searchInEl.removeAttribute('inputmode');
+  } else {
+    e.preventDefault();
+    searchInEl.blur();
+    qkbOpen();
+  }
 });
-document.getElementById('searchIn').addEventListener('input',e=>{
+
+searchInEl.addEventListener('input', e => {
   clearTimeout(sT);
-  sT=setTimeout(()=>{searchQuery=e.target.value.toLowerCase().trim();renderTable();},120);
+  sT = setTimeout(() => { searchQuery = e.target.value.toLowerCase().trim(); renderTable(); }, 120);
 });
 
 // ── NUMPAD ────────────────────────────────────────────────────
@@ -1226,27 +1245,28 @@ function qkbClear(){
 }
 function qkbKey(k){
   if(k==='back'){
-    qkbQuery=qkbQuery.slice(0,-1);
+    qkbQuery = qkbQuery.slice(0,-1);
   } else {
-    qkbQuery+=k;
+    qkbQuery += k;
   }
   qkbRefresh();
-  searchQuery=qkbQuery.trim();
-  clearTimeout(sT);
-  sT=setTimeout(()=>renderTable(),80);
 }
 function qkbRefresh(){
-  const disp=document.getElementById('qkbDisplay');
-  const inp=document.getElementById('searchIn');
+  const disp = document.getElementById('qkbDisplay');
+  const inp = document.getElementById('searchIn');
   if(qkbQuery){
-    disp.textContent=qkbQuery;
+    disp.textContent = qkbQuery;
     disp.classList.remove('empty');
-    inp.value=qkbQuery;
+    inp.value = qkbQuery;
   } else {
-    disp.textContent='Search…';
+    disp.textContent = 'Search…';
     disp.classList.add('empty');
-    inp.value='';
+    inp.value = '';
   }
+  // live filter
+  searchQuery = qkbQuery.toLowerCase().trim();
+  clearTimeout(sT);
+  sT = setTimeout(() => renderTable(), 80);
 }
 
 // ── CUSTOM MOBILE FORMULA KEYBOARD ───────────────────────────

@@ -272,18 +272,24 @@ body.light .qkb{background:rgba(230,235,245,.97);border-top-color:rgba(0,0,0,.10
   border-radius:22px;padding:7px 14px;min-height:36px;
   white-space:nowrap;overflow:hidden;
   letter-spacing:.2px;
+  display:flex;align-items:center;
 }
-.qkb-input-display::after{
-  content:'|';
-  color:var(--brand);
-  font-weight:300;
+.qkb-text-before,.qkb-text-after{color:var(--text);}
+.qkb-cursor{
+  display:inline-block;
+  width:2px;
+  height:1.1em;
+  background:var(--brand);
+  border-radius:1px;
+  vertical-align:middle;
+  margin:0 0px;
   animation:qkbBlink .9s step-end infinite;
-  margin-left:1px;
+  user-select:none;
+  flex-shrink:0;
 }
-.qkb-input-display.empty::after{display:none;}
 @keyframes qkbBlink{0%,100%{opacity:1;}50%{opacity:0;}}
 body.light .qkb-input-display{background:rgba(0,0,0,.05);border-color:rgba(0,0,0,.12);}
-.qkb-input-display.empty{color:var(--text3);}
+.qkb-input-display.empty{color:var(--text3);display:block;}
 .qkb-clear{
   background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.28);
   color:#ef4444;border-radius:20px;padding:6px 12px;
@@ -315,23 +321,26 @@ body.light .qkb-input-display{background:rgba(0,0,0,.05);border-color:rgba(0,0,0
 body.light .qkb-key{background:rgba(0,0,0,.07);border-color:rgba(0,0,0,.10);color:#0f172a;}
 body.light .qkb-key:active{background:rgba(0,0,0,.18);}
 .qkb-key-space{
-  flex:2;max-width:80px;
+  flex:3;
   background:rgba(16,185,129,.12);
   border-color:rgba(16,185,129,.22);
   color:var(--brand);
-  font-size:10px;font-weight:800;
-  letter-spacing:.5px;
+  font-size:12px;font-weight:800;
+  letter-spacing:1px;
 }
 /* Big backspace */
 .qkb-key-back{
-  flex:2;max-width:72px;height:42px;
-  font-size:20px;
+  flex:1.4;height:42px;
+  font-size:22px;
   background:rgba(239,68,68,.15);
   border-color:rgba(239,68,68,.28);
   color:#ef4444;
   border-radius:7px;
+  max-width:none;
 }
 body.light .qkb-key-back{background:rgba(239,68,68,.10);}
+/* Bottom row — a bit taller */
+.qkb-row-bottom .qkb-key{height:46px;}
 
 /* ── CUSTOM MOBILE FORMULA KEYBOARD ── */
 .fkb-overlay{
@@ -623,6 +632,7 @@ body.light .fkb-btn-op{background:rgba(99,102,241,.10);color:#6366f1;}
     <div class="qkb-key" onclick="qkbKey('k')">K</div>
     <div class="qkb-key" onclick="qkbKey('l')">L</div>
   </div>
+  <!-- Row 3: letters only -->
   <div class="qkb-row">
     <div class="qkb-key" onclick="qkbKey('z')">Z</div>
     <div class="qkb-key" onclick="qkbKey('x')">X</div>
@@ -631,7 +641,10 @@ body.light .fkb-btn-op{background:rgba(99,102,241,.10);color:#6366f1;}
     <div class="qkb-key" onclick="qkbKey('b')">B</div>
     <div class="qkb-key" onclick="qkbKey('n')">N</div>
     <div class="qkb-key" onclick="qkbKey('m')">M</div>
-    <div class="qkb-key qkb-key-space" onclick="qkbKey(' ')">⎵</div>
+  </div>
+  <!-- Row 4: big space + big backspace -->
+  <div class="qkb-row qkb-row-bottom">
+    <div class="qkb-key qkb-key-space" onclick="qkbKey(' ')">SPACE</div>
     <div class="qkb-key qkb-key-back" onclick="qkbKey('back')">⌫</div>
   </div>
 </div>
@@ -1150,36 +1163,61 @@ document.getElementById('installBtn').addEventListener('click',()=>{if(dip){dip.
 // ── CUSTOM MOBILE QWERTY SEARCH KEYBOARD — GLOBAL SCOPE ──────
 // ══════════════════════════════════════════════════════════════
 let qkbQuery = '';
+let qkbCursorPos = 0;       // cursor index within qkbQuery
+
+// ── iOS-style trackpad state ──
+let qkbTrackpad = false;    // are we in trackpad drag mode?
+let qkbTrackX = 0;          // last touch X when trackpad started
+let qkbTrackCursorStart = 0;// cursor pos when trackpad drag began
+const QKB_TRACK_SENSITIVITY = 10; // px per character step
 
 function qkbOpen() {
   if (isDesktop()) return;
   document.activeElement?.blur();
   qkbQuery = searchQuery;
+  qkbCursorPos = qkbQuery.length;
   qkbRefresh();
   document.getElementById('qkb').classList.add('open');
 }
 function qkbDone() {
   document.getElementById('qkb').classList.remove('open');
+  qkbTrackpad = false;
 }
 function qkbClear() {
   qkbQuery = '';
+  qkbCursorPos = 0;
   qkbRefresh();
   searchQuery = '';
   renderTable();
 }
 function qkbKey(k) {
   if (k === 'back') {
-    qkbQuery = qkbQuery.slice(0, -1);
+    if (qkbCursorPos > 0) {
+      qkbQuery = qkbQuery.slice(0, qkbCursorPos - 1) + qkbQuery.slice(qkbCursorPos);
+      qkbCursorPos--;
+    }
+  } else if (k === ' ') {
+    // regular tap on space = insert space at cursor
+    qkbQuery = qkbQuery.slice(0, qkbCursorPos) + ' ' + qkbQuery.slice(qkbCursorPos);
+    qkbCursorPos++;
   } else {
-    qkbQuery += k;
+    qkbQuery = qkbQuery.slice(0, qkbCursorPos) + k + qkbQuery.slice(qkbCursorPos);
+    qkbCursorPos++;
   }
   qkbRefresh();
 }
+
 function qkbRefresh() {
   const disp = document.getElementById('qkbDisplay');
-  const inp = document.getElementById('searchIn');
+  const inp  = document.getElementById('searchIn');
   if (qkbQuery) {
-    disp.textContent = qkbQuery;
+    // Show text with blinking | cursor at the right position
+    const before = qkbQuery.slice(0, qkbCursorPos);
+    const after  = qkbQuery.slice(qkbCursorPos);
+    // Use a <span> for cursor so CSS animation works without ::after conflict
+    disp.innerHTML = '<span class="qkb-text-before"></span><span class="qkb-cursor"></span><span class="qkb-text-after"></span>';
+    disp.querySelector('.qkb-text-before').textContent = before;
+    disp.querySelector('.qkb-text-after').textContent  = after;
     disp.classList.remove('empty');
     inp.value = qkbQuery;
   } else {
@@ -1191,6 +1229,59 @@ function qkbRefresh() {
   clearTimeout(sT);
   sT = setTimeout(() => renderTable(), 80);
 }
+
+// ── SPACE KEY: tap = space, hold+drag = iOS trackpad ──────────
+(function() {
+  let holdTimer = null;
+
+  function spaceEl() { return document.querySelector('.qkb-key-space'); }
+
+  function onSpaceTouchStart(e) {
+    qkbTrackpad = false;
+    qkbTrackX = e.touches[0].clientX;
+    qkbTrackCursorStart = qkbCursorPos;
+    holdTimer = setTimeout(() => {
+      qkbTrackpad = true;
+      if (navigator.vibrate) navigator.vibrate(30);
+      // visual cue
+      spaceEl().style.background = 'rgba(16,185,129,.35)';
+    }, 300);
+  }
+
+  function onSpaceTouchMove(e) {
+    if (!qkbTrackpad) return;
+    e.preventDefault();
+    const dx = e.touches[0].clientX - qkbTrackX;
+    const steps = Math.round(dx / QKB_TRACK_SENSITIVITY);
+    qkbCursorPos = Math.max(0, Math.min(qkbQuery.length, qkbTrackCursorStart + steps));
+    qkbRefresh();
+  }
+
+  function onSpaceTouchEnd(e) {
+    clearTimeout(holdTimer);
+    if (qkbTrackpad) {
+      // just finished dragging — don't insert space
+      qkbTrackpad = false;
+      spaceEl().style.background = '';
+    } else {
+      // short tap — insert space normally
+      qkbKey(' ');
+    }
+  }
+
+  // Attach after DOM ready
+  document.addEventListener('DOMContentLoaded', () => {}, false);
+  // We attach via event delegation since the element exists at parse time
+  document.addEventListener('touchstart', e => {
+    if (e.target.closest('.qkb-key-space')) onSpaceTouchStart(e);
+  }, { passive: true });
+  document.addEventListener('touchmove', e => {
+    if (qkbTrackpad) { onSpaceTouchMove(e); }
+  }, { passive: false });
+  document.addEventListener('touchend', e => {
+    if (e.target.closest('.qkb-key-space') || qkbTrackpad) onSpaceTouchEnd(e);
+  }, { passive: true });
+})();
 
 // ══════════════════════════════════════════════════════════════
 // ── CUSTOM MOBILE FORMULA KEYBOARD — GLOBAL SCOPE ────────────

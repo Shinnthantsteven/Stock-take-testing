@@ -261,12 +261,7 @@ body.light .np-btn-back{color:rgba(0,0,0,.35);}
 .qkb.open{display:flex;}
 body.light .qkb{background:rgba(230,235,245,.97);border-top-color:rgba(0,0,0,.10);}
 
-.qkb-bar{
-  display:flex;align-items:center;gap:8px;
-  padding:6px 8px 4px;
-  border-top:1px solid rgba(255,255,255,.08);
-  margin-top:2px;
-}
+
 /* iOS-style pill with blinking cursor */
 .qkb-input-display{
   flex:1;font-size:15px;font-weight:700;color:var(--text);
@@ -323,16 +318,16 @@ body.light .qkb-input-display{background:rgba(0,0,0,.05);border-color:rgba(0,0,0
 body.light .qkb-key{background:rgba(0,0,0,.07);border-color:rgba(0,0,0,.10);color:#0f172a;}
 body.light .qkb-key:active{background:rgba(0,0,0,.18);}
 .qkb-key-space{
-  flex:3;
+  flex:4;
   background:rgba(16,185,129,.12);
   border-color:rgba(16,185,129,.22);
   color:var(--brand);
   font-size:12px;font-weight:800;
   letter-spacing:1px;
 }
-/* Big backspace */
+/* Compact backspace */
 .qkb-key-back{
-  flex:1.4;height:42px;
+  flex:1;height:42px;
   font-size:22px;
   background:rgba(239,68,68,.15);
   border-color:rgba(239,68,68,.28);
@@ -341,10 +336,17 @@ body.light .qkb-key:active{background:rgba(0,0,0,.18);}
   max-width:none;
 }
 body.light .qkb-key-back{background:rgba(239,68,68,.10);}
-/* Bottom row fills into the iPhone home indicator space */
+/* Bottom row */
 .qkb-row-bottom{padding-bottom:env(safe-area-inset-bottom, 8px);}
 .qkb-row-bottom .qkb-key{height:44px;}
 .qkb-row-bottom .qkb-key-back{height:44px;}
+/* Tight gap between keys and search bar */
+.qkb-bar{
+  display:flex;align-items:center;gap:8px;
+  padding:4px 8px 4px;
+  border-top:1px solid rgba(255,255,255,.08);
+  margin-top:0;
+}
 
 /* ── CUSTOM MOBILE FORMULA KEYBOARD ── */
 .fkb-overlay{
@@ -640,12 +642,12 @@ body.light .fkb-btn-op{background:rgba(99,102,241,.10);color:#6366f1;}
     <div class="qkb-key" onclick="qkbKey('n')">N</div>
     <div class="qkb-key" onclick="qkbKey('m')">M</div>
   </div>
-  <!-- Row 4: big space + big backspace -->
+  <!-- Row 4: ⌫ small left, SPACE big right -->
   <div class="qkb-row qkb-row-bottom">
-    <div class="qkb-key qkb-key-space" onclick="qkbKey(' ')">SPACE</div>
     <div class="qkb-key qkb-key-back" onclick="qkbKey('back')">⌫</div>
+    <div class="qkb-key qkb-key-space" onclick="qkbKey(' ')">SPACE</div>
   </div>
-  <!-- Search bar at bottom — more items visible above -->
+  <!-- Search bar tight below keys -->
   <div class="qkb-bar">
     <div class="qkb-input-display empty" id="qkbDisplay">Search…</div>
     <button class="qkb-clear" onclick="qkbClear()">✕</button>

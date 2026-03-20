@@ -325,9 +325,11 @@ body.light .qkb-key:active{background:rgba(0,0,0,.18);}
   font-size:12px;font-weight:800;
   letter-spacing:1px;
 }
-/* Compact backspace */
+/* Number row — slightly smaller font to fit 10 keys */
+.qkb-key-num{font-size:13px;font-weight:700;color:rgba(255,255,255,.75);}
+body.light .qkb-key-num{color:rgba(0,0,0,.5);}
 .qkb-key-back{
-  flex:1;height:42px;
+  flex:1;height:44px;
   font-size:22px;
   background:rgba(239,68,68,.15);
   border-color:rgba(239,68,68,.28);
@@ -337,14 +339,12 @@ body.light .qkb-key:active{background:rgba(0,0,0,.18);}
 }
 body.light .qkb-key-back{background:rgba(239,68,68,.10);}
 /* Bottom row */
-.qkb-row-bottom{padding-bottom:env(safe-area-inset-bottom, 8px);}
 .qkb-row-bottom .qkb-key{height:44px;}
-.qkb-row-bottom .qkb-key-back{height:44px;}
-/* Tight gap between keys and search bar */
+/* Search bar — tight against keys, small bottom gap for iOS gesture */
 .qkb-bar{
   display:flex;align-items:center;gap:8px;
-  padding:4px 8px 4px;
-  border-top:1px solid rgba(255,255,255,.08);
+  padding:4px 8px;
+  padding-bottom:calc(4px + env(safe-area-inset-bottom, 10px));
   margin-top:0;
 }
 
@@ -610,6 +610,19 @@ body.light .fkb-btn-op{background:rgba(99,102,241,.10);color:#6366f1;}
 
 <!-- CUSTOM MOBILE QWERTY SEARCH KEYBOARD -->
 <div class="qkb" id="qkb">
+  <!-- Numbers row -->
+  <div class="qkb-row">
+    <div class="qkb-key qkb-key-num" onclick="qkbKey('1')">1</div>
+    <div class="qkb-key qkb-key-num" onclick="qkbKey('2')">2</div>
+    <div class="qkb-key qkb-key-num" onclick="qkbKey('3')">3</div>
+    <div class="qkb-key qkb-key-num" onclick="qkbKey('4')">4</div>
+    <div class="qkb-key qkb-key-num" onclick="qkbKey('5')">5</div>
+    <div class="qkb-key qkb-key-num" onclick="qkbKey('6')">6</div>
+    <div class="qkb-key qkb-key-num" onclick="qkbKey('7')">7</div>
+    <div class="qkb-key qkb-key-num" onclick="qkbKey('8')">8</div>
+    <div class="qkb-key qkb-key-num" onclick="qkbKey('9')">9</div>
+    <div class="qkb-key qkb-key-num" onclick="qkbKey('0')">0</div>
+  </div>
   <div class="qkb-row">
     <div class="qkb-key" onclick="qkbKey('q')">Q</div>
     <div class="qkb-key" onclick="qkbKey('w')">W</div>
@@ -642,10 +655,10 @@ body.light .fkb-btn-op{background:rgba(99,102,241,.10);color:#6366f1;}
     <div class="qkb-key" onclick="qkbKey('n')">N</div>
     <div class="qkb-key" onclick="qkbKey('m')">M</div>
   </div>
-  <!-- Row 4: ⌫ small left, SPACE big right -->
+  <!-- Row 4: SPACE wide left + ⌫ right -->
   <div class="qkb-row qkb-row-bottom">
-    <div class="qkb-key qkb-key-back" onclick="qkbKey('back')">⌫</div>
     <div class="qkb-key qkb-key-space" onclick="qkbKey(' ')">SPACE</div>
+    <div class="qkb-key qkb-key-back" onclick="qkbKey('back')">⌫</div>
   </div>
   <!-- Search bar tight below keys -->
   <div class="qkb-bar">

@@ -318,24 +318,25 @@ body.light .qkb-input-display{background:rgba(0,0,0,.05);border-color:rgba(0,0,0
 body.light .qkb-key{background:rgba(0,0,0,.07);border-color:rgba(0,0,0,.10);color:#0f172a;}
 body.light .qkb-key:active{background:rgba(0,0,0,.18);}
 .qkb-key-space{
-  flex:4;
+  flex:5;
   background:rgba(16,185,129,.12);
   border-color:rgba(16,185,129,.22);
   color:var(--brand);
   font-size:12px;font-weight:800;
   letter-spacing:1px;
 }
-/* Number row — slightly smaller font to fit 10 keys */
+/* Number row */
 .qkb-key-num{font-size:13px;font-weight:700;color:rgba(255,255,255,.75);}
 body.light .qkb-key-num{color:rgba(0,0,0,.5);}
+/* Backspace — small fixed width right */
 .qkb-key-back{
-  flex:1;height:44px;
+  flex:0 0 60px;
+  height:44px;
   font-size:22px;
   background:rgba(239,68,68,.15);
   border-color:rgba(239,68,68,.28);
   color:#ef4444;
   border-radius:7px;
-  max-width:none;
 }
 body.light .qkb-key-back{background:rgba(239,68,68,.10);}
 /* Bottom row */
@@ -655,7 +656,7 @@ body.light .fkb-btn-op{background:rgba(99,102,241,.10);color:#6366f1;}
     <div class="qkb-key" onclick="qkbKey('n')">N</div>
     <div class="qkb-key" onclick="qkbKey('m')">M</div>
   </div>
-  <!-- Row 4: SPACE wide left + ⌫ right -->
+  <!-- Row 4: SPACE wide LEFT + ⌫ small RIGHT -->
   <div class="qkb-row qkb-row-bottom">
     <div class="qkb-key qkb-key-space" onclick="qkbKey(' ')">SPACE</div>
     <div class="qkb-key qkb-key-back" onclick="qkbKey('back')">⌫</div>
@@ -1197,9 +1198,15 @@ function qkbOpen() {
   qkbCursorPos = qkbQuery.length;
   qkbRefresh();
   document.getElementById('qkb').classList.add('open');
+  // Shrink table to eliminate black gap
+  requestAnimationFrame(() => {
+    const kbh = document.getElementById('qkb').offsetHeight;
+    document.getElementById('tblArea').style.height = (window.innerHeight - 50 - kbh) + 'px';
+  });
 }
 function qkbDone() {
   document.getElementById('qkb').classList.remove('open');
+  document.getElementById('tblArea').style.height = '';
   qkbTrackpad = false;
 }
 function qkbClear() {

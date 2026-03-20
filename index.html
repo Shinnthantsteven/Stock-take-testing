@@ -254,8 +254,8 @@ body.light .np-btn-back{color:rgba(0,0,0,.35);}
   position:fixed;bottom:0;left:0;right:0;z-index:5000;
   background:rgba(13,24,41,.97);
   border-top:1px solid rgba(255,255,255,.10);
-  padding:6px 4px calc(28px + env(safe-area-inset-bottom, 18px));
-  display:none;flex-direction:column;gap:5px;
+  padding:4px 4px 0;
+  display:none;flex-direction:column;gap:3px;
   backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
 }
 .qkb.open{display:flex;}
@@ -263,7 +263,9 @@ body.light .qkb{background:rgba(230,235,245,.97);border-top-color:rgba(0,0,0,.10
 
 .qkb-bar{
   display:flex;align-items:center;gap:8px;
-  padding:4px 8px 6px;
+  padding:6px 8px 4px;
+  border-top:1px solid rgba(255,255,255,.08);
+  margin-top:2px;
 }
 /* iOS-style pill with blinking cursor */
 .qkb-input-display{
@@ -305,7 +307,7 @@ body.light .qkb-input-display{background:rgba(0,0,0,.05);border-color:rgba(0,0,0
 
 .qkb-row{display:flex;justify-content:center;gap:4px;}
 .qkb-key{
-  flex:1;max-width:38px;height:42px;
+  flex:1;max-width:38px;height:36px;
   border:1px solid rgba(255,255,255,.09);
   background:rgba(255,255,255,.09);
   border-radius:7px;
@@ -339,8 +341,10 @@ body.light .qkb-key:active{background:rgba(0,0,0,.18);}
   max-width:none;
 }
 body.light .qkb-key-back{background:rgba(239,68,68,.10);}
-/* Bottom row — a bit taller */
-.qkb-row-bottom .qkb-key{height:46px;}
+/* Bottom row fills into the iPhone home indicator space */
+.qkb-row-bottom{padding-bottom:env(safe-area-inset-bottom, 8px);}
+.qkb-row-bottom .qkb-key{height:44px;}
+.qkb-row-bottom .qkb-key-back{height:44px;}
 
 /* ── CUSTOM MOBILE FORMULA KEYBOARD ── */
 .fkb-overlay{
@@ -604,11 +608,6 @@ body.light .fkb-btn-op{background:rgba(99,102,241,.10);color:#6366f1;}
 
 <!-- CUSTOM MOBILE QWERTY SEARCH KEYBOARD -->
 <div class="qkb" id="qkb">
-  <div class="qkb-bar">
-    <div class="qkb-input-display empty" id="qkbDisplay">Search…</div>
-    <button class="qkb-clear" onclick="qkbClear()">✕</button>
-    <button class="qkb-done" onclick="qkbDone()">Done</button>
-  </div>
   <div class="qkb-row">
     <div class="qkb-key" onclick="qkbKey('q')">Q</div>
     <div class="qkb-key" onclick="qkbKey('w')">W</div>
@@ -632,7 +631,6 @@ body.light .fkb-btn-op{background:rgba(99,102,241,.10);color:#6366f1;}
     <div class="qkb-key" onclick="qkbKey('k')">K</div>
     <div class="qkb-key" onclick="qkbKey('l')">L</div>
   </div>
-  <!-- Row 3: letters only -->
   <div class="qkb-row">
     <div class="qkb-key" onclick="qkbKey('z')">Z</div>
     <div class="qkb-key" onclick="qkbKey('x')">X</div>
@@ -646,6 +644,12 @@ body.light .fkb-btn-op{background:rgba(99,102,241,.10);color:#6366f1;}
   <div class="qkb-row qkb-row-bottom">
     <div class="qkb-key qkb-key-space" onclick="qkbKey(' ')">SPACE</div>
     <div class="qkb-key qkb-key-back" onclick="qkbKey('back')">⌫</div>
+  </div>
+  <!-- Search bar at bottom — more items visible above -->
+  <div class="qkb-bar">
+    <div class="qkb-input-display empty" id="qkbDisplay">Search…</div>
+    <button class="qkb-clear" onclick="qkbClear()">✕</button>
+    <button class="qkb-done" onclick="qkbDone()">Done</button>
   </div>
 </div>
 

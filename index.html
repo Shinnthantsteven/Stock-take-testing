@@ -340,14 +340,14 @@ body.light .qkb-key-num{color:rgba(0,0,0,.5);}
 }
 body.light .qkb-key-back{background:rgba(239,68,68,.10);}
 .qkb-row:not(.qkb-row-bottom) .qkb-key{max-width:38px;}
+.qkb-row:nth-child(4) .qkb-key{max-width:46px;}
 .qkb-row-bottom{padding:0 2px;}
 .qkb-row-bottom .qkb-key{height:44px;}
 
-/* Search bar — tight against keys, small bottom gap for iOS gesture */
+/* Search bar — tight to bottom, only true safe area */
 .qkb-bar{
   display:flex;align-items:center;gap:8px;
-  padding:4px 8px;
-  padding-bottom:calc(4px + env(safe-area-inset-bottom, 10px));
+  padding:4px 8px env(safe-area-inset-bottom, 4px);
   margin-top:0;
 }
 

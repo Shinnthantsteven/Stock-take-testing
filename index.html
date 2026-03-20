@@ -254,8 +254,8 @@ body.light .np-btn-back{color:rgba(0,0,0,.35);}
   position:fixed;bottom:0;left:0;right:0;z-index:5000;
   background:rgba(13,24,41,.97);
   border-top:1px solid rgba(255,255,255,.10);
-  padding:6px 4px calc(6px + var(--safe-bottom));
-  display:none;flex-direction:column;gap:4px;
+  padding:6px 4px calc(28px + env(safe-area-inset-bottom, 18px));
+  display:none;flex-direction:column;gap:5px;
   backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
 }
 .qkb.open{display:flex;}
@@ -265,13 +265,23 @@ body.light .qkb{background:rgba(230,235,245,.97);border-top-color:rgba(0,0,0,.10
   display:flex;align-items:center;gap:8px;
   padding:4px 8px 6px;
 }
+/* iOS-style pill with blinking cursor */
 .qkb-input-display{
   flex:1;font-size:15px;font-weight:700;color:var(--text);
   background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);
   border-radius:22px;padding:7px 14px;min-height:36px;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  white-space:nowrap;overflow:hidden;
   letter-spacing:.2px;
 }
+.qkb-input-display::after{
+  content:'|';
+  color:var(--brand);
+  font-weight:300;
+  animation:qkbBlink .9s step-end infinite;
+  margin-left:1px;
+}
+.qkb-input-display.empty::after{display:none;}
+@keyframes qkbBlink{0%,100%{opacity:1;}50%{opacity:0;}}
 body.light .qkb-input-display{background:rgba(0,0,0,.05);border-color:rgba(0,0,0,.12);}
 .qkb-input-display.empty{color:var(--text3);}
 .qkb-clear{
@@ -289,7 +299,7 @@ body.light .qkb-input-display{background:rgba(0,0,0,.05);border-color:rgba(0,0,0
 
 .qkb-row{display:flex;justify-content:center;gap:4px;}
 .qkb-key{
-  flex:1;max-width:38px;height:40px;
+  flex:1;max-width:38px;height:42px;
   border:1px solid rgba(255,255,255,.09);
   background:rgba(255,255,255,.09);
   border-radius:7px;
@@ -305,14 +315,22 @@ body.light .qkb-input-display{background:rgba(0,0,0,.05);border-color:rgba(0,0,0
 body.light .qkb-key{background:rgba(0,0,0,.07);border-color:rgba(0,0,0,.10);color:#0f172a;}
 body.light .qkb-key:active{background:rgba(0,0,0,.18);}
 .qkb-key-space{
-  flex:1.2;max-width:44px;
+  flex:2;max-width:80px;
   background:rgba(16,185,129,.12);
   border-color:rgba(16,185,129,.22);
   color:var(--brand);
   font-size:10px;font-weight:800;
   letter-spacing:.5px;
 }
-.qkb-key-back{flex:1.4;max-width:52px;font-size:13px;background:rgba(239,68,68,.12);border-color:rgba(239,68,68,.2);color:#ef4444;}
+/* Big backspace */
+.qkb-key-back{
+  flex:2;max-width:72px;height:42px;
+  font-size:20px;
+  background:rgba(239,68,68,.15);
+  border-color:rgba(239,68,68,.28);
+  color:#ef4444;
+  border-radius:7px;
+}
 body.light .qkb-key-back{background:rgba(239,68,68,.10);}
 
 /* ── CUSTOM MOBILE FORMULA KEYBOARD ── */

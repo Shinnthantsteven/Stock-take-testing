@@ -302,7 +302,7 @@ body.light .qkb-input-display{background:rgba(0,0,0,.05);border-color:rgba(0,0,0
 
 .qkb-row{display:flex;justify-content:center;gap:4px;}
 .qkb-key{
-  flex:1;max-width:38px;height:36px;
+  flex:1;height:36px;
   border:1px solid rgba(255,255,255,.09);
   background:rgba(255,255,255,.09);
   border-radius:7px;
@@ -339,8 +339,10 @@ body.light .qkb-key-num{color:rgba(0,0,0,.5);}
   border-radius:7px;
 }
 body.light .qkb-key-back{background:rgba(239,68,68,.10);}
-/* Bottom row */
+.qkb-row:not(.qkb-row-bottom) .qkb-key{max-width:38px;}
+.qkb-row-bottom{padding:0 2px;}
 .qkb-row-bottom .qkb-key{height:44px;}
+
 /* Search bar — tight against keys, small bottom gap for iOS gesture */
 .qkb-bar{
   display:flex;align-items:center;gap:8px;

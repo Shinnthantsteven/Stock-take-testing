@@ -4,43 +4,34 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Chef2Chef | Stock Engine</title>
-<!-- PWA META -->
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="C2C Stock">
 <meta name="theme-color" content="#020617">
 <meta name="mobile-web-app-capable" content="yes">
-<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22%23020617%22/><text y=%22.85em%22 font-size=%2272%22 x=%2250%25%22 text-anchor=%22middle%22>🥩</text></svg>">
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.85em%22 font-size=%2286%22 x=%2250%25%22 text-anchor=%22middle%22>🥩</text></svg>">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🥩</text></svg>">
 <script>
-const _m={name:"Chef2Chef Stock",short_name:"C2C Stock",description:"Physical Stock Count Module",start_url:"./",display:"standalone",background_color:"#020617",theme_color:"#020617",orientation:"any",icons:[{src:"data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='100' fill='%23020617'/><text y='.85em' font-size='384' x='50%' text-anchor='middle'>🥩</text></svg>",sizes:"512x512",type:"image/svg+xml"}]};
+const _m={name:"Chef2Chef Stock",short_name:"C2C Stock",description:"Physical Stock Count Module",start_url:"./",display:"standalone",background_color:"#020617",theme_color:"#020617",orientation:"any",icons:[{src:"data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><text y='.85em' font-size='440' x='50%' text-anchor='middle'>🥩</text></svg>",sizes:"512x512",type:"image/svg+xml"}]};
 const _b=new Blob([JSON.stringify(_m)],{type:'application/json'});
 const _l=document.createElement('link');_l.rel='manifest';_l.href=URL.createObjectURL(_b);document.head.appendChild(_l);
 if('serviceWorker'in navigator){const sw=`const C='c2c-v2';self.addEventListener('install',e=>self.skipWaiting());self.addEventListener('activate',e=>e.waitUntil(clients.claim()));self.addEventListener('fetch',e=>{const u=e.request.url;if(u.includes('script.google.com')||u.includes('firebaseio.com'))return;if(u.includes('fonts.gstatic')||u.includes('gstatic.com/firebasejs')||u.includes('fonts.googleapis')){e.respondWith(caches.open(C).then(c=>c.match(e.request).then(r=>r||fetch(e.request).then(res=>{c.put(e.request,res.clone());return res;}))));}});`;navigator.serviceWorker.register(URL.createObjectURL(new Blob([sw],{type:'text/javascript'}))).catch(()=>{});}
 </script>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
-/* ── VARIABLES ── */
 :root{
-  --brand:#10b981; --brand-dim:rgba(16,185,129,.10); --brand-border:rgba(16,185,129,.28);
-  --danger:#ef4444; --warn:#fbbf24;
-  --bg:#020617; --bg2:#0d1829;
-  --text:#f1f5f9; --text2:#94a3b8; --text3:#475569;
-  --border:rgba(255,255,255,.08); --border2:rgba(255,255,255,.04);
-  --uid-clr:#475569; --pack-clr:#818cf8; --cost-clr:#10b981;
+  --brand:#10b981;--brand-dim:rgba(16,185,129,.10);--brand-border:rgba(16,185,129,.28);
+  --danger:#ef4444;--warn:#fbbf24;
+  --bg:#020617;--bg2:#0d1829;
+  --text:#f1f5f9;--text2:#94a3b8;--text3:#475569;
+  --border:rgba(255,255,255,.08);--border2:rgba(255,255,255,.04);
+  --uid-clr:#475569;--pack-clr:#818cf8;--cost-clr:#10b981;
   --safe-bottom:env(safe-area-inset-bottom,0px);
   --row-h:calc((100dvh - 132px) / 7);
 }
-body.light{
-  --bg:#f8fafc; --bg2:#e2e8f0;
-  --text:#0f172a; --text2:#475569; --text3:#94a3b8;
-  --border:rgba(0,0,0,.08); --border2:rgba(0,0,0,.04);
-  --uid-clr:#94a3b8; --pack-clr:#6366f1; --cost-clr:#059669;
-}
+body.light{--bg:#f8fafc;--bg2:#e2e8f0;--text:#0f172a;--text2:#475569;--text3:#94a3b8;--border:rgba(0,0,0,.08);--border2:rgba(0,0,0,.04);--uid-clr:#94a3b8;--pack-clr:#6366f1;--cost-clr:#059669;}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 html,body{height:100%;height:100dvh;overflow:hidden;font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);}
-
-/* ── LOADING ── */
 #loadScreen{position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;}
 .load-logo{font-weight:800;font-size:18px;display:flex;align-items:center;gap:8px;}
 .load-logo span{color:var(--brand);}
@@ -48,19 +39,7 @@ html,body{height:100%;height:100dvh;overflow:hidden;font-family:'Plus Jakarta Sa
 body.light .load-bar-wrap{background:rgba(0,0,0,.08);}
 .load-bar{height:100%;background:var(--brand);border-radius:3px;width:0%;transition:width .2s;}
 .load-txt{font-size:11px;font-weight:700;color:var(--text3);}
-
-/* ── NAV ── */
-.nav{
-  min-height:50px;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  padding:0 16px;
-  padding-top:env(safe-area-inset-top, 0px);
-  border-bottom:1px solid var(--border);
-  background:var(--bg);
-  flex-shrink:0;
-}
+.nav{min-height:50px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;padding-top:env(safe-area-inset-top,0px);border-bottom:1px solid var(--border);background:var(--bg);flex-shrink:0;}
 .nav-logo{font-weight:800;font-size:15px;display:flex;align-items:center;gap:8px;color:inherit;text-decoration:none;}
 .nav-logo span{color:var(--brand);}
 .nav-right{display:flex;align-items:center;gap:7px;}
@@ -73,15 +52,11 @@ body.light .mode-btn{background:rgba(0,0,0,.05);border-color:rgba(0,0,0,.10);}
 .hist-btn{background:rgba(99,102,241,.12);border:1px solid rgba(99,102,241,.3);color:#818cf8;border-radius:20px;padding:3px 10px;font-size:10px;font-weight:800;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;white-space:nowrap;}
 .hist-btn:hover{background:rgba(99,102,241,.22);}
 .nav-label{font-size:9px;font-weight:800;color:var(--text3);letter-spacing:.5px;display:none;}
-
-/* ── INSTALL BANNER ── */
 #installBanner{display:none;align-items:center;justify-content:space-between;padding:6px 16px;background:rgba(16,185,129,.08);border-bottom:1px solid var(--brand-border);flex-shrink:0;}
 #installBanner.show{display:flex;}
 .install-txt{font-size:10px;font-weight:700;color:var(--brand);}
 .install-btn{background:var(--brand);border:none;color:#020617;padding:4px 12px;border-radius:20px;font-size:10px;font-weight:800;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;}
 .install-x{background:none;border:none;color:var(--text3);font-size:14px;cursor:pointer;padding:0 4px;}
-
-/* ── TABLE SHARED ── */
 .tbl-area{overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;}
 .tbl-area::-webkit-scrollbar{width:3px;}
 .tbl-area::-webkit-scrollbar-thumb{background:rgba(255,255,255,.06);border-radius:2px;}
@@ -98,8 +73,6 @@ body.light .item-row:hover{background:rgba(0,0,0,.02);}
 .cell{padding:8px 10px;overflow:hidden;}
 .cell:first-child{padding-left:18px;}
 .cell:last-child{padding-right:18px;}
-
-/* Shared type styles */
 .cell-uid{font-family:monospace;font-size:10px;font-weight:700;color:var(--uid-clr);line-height:1.5;}
 .desc-name{font-weight:700;font-size:14px;color:var(--text);line-height:1.4;margin-bottom:3px;}
 .desc-meta{display:flex;flex-wrap:wrap;gap:3px;margin-top:2px;}
@@ -123,11 +96,8 @@ body.light .stock-empty-btn{border-color:rgba(0,0,0,.13);color:rgba(0,0,0,.15);}
 .cell-um{font-size:11px;font-weight:700;color:var(--text2);}
 .cell-sup{font-size:13px;font-weight:700;color:var(--text);line-height:1.4;}
 .cell-pack-col{font-size:13px;font-weight:700;color:var(--pack-clr);}
-.cell-brand-col{}
 .cell-cost{font-size:14px;font-weight:800;color:var(--cost-clr);}
 .empty-state{text-align:center;padding:60px 20px;color:var(--text3);font-size:12px;font-weight:700;}
-
-/* ── PORTAL BAR ── */
 .portal-bar{position:fixed;bottom:calc(14px + var(--safe-bottom));left:50%;transform:translateX(-50%);border-radius:100px;border:1.5px solid rgba(255,255,255,.22);display:flex;align-items:center;z-index:1000;overflow:hidden;background:rgba(2,6,23,.7);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);}
 body.light .portal-bar{border-color:rgba(0,0,0,.18);background:rgba(248,250,252,.88);}
 .portal-bar::before{content:'';position:absolute;top:-1.5px;left:12%;right:12%;height:3px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.85) 40%,white 50%,rgba(255,255,255,.85) 60%,transparent);border-radius:999px;pointer-events:none;z-index:2;}
@@ -140,8 +110,6 @@ body.light .portal-bar::before{background:linear-gradient(90deg,transparent,rgba
 .bar-count{font-size:10px;font-weight:800;color:var(--brand);background:var(--brand-dim);border:1px solid var(--brand-border);border-radius:50px;padding:3px 11px;white-space:nowrap;flex-shrink:0;}
 .bar-exit{background:var(--danger);border:none;color:white;padding:0 22px;height:46px;font-weight:800;font-size:12px;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;border-radius:0 100px 100px 0;flex-shrink:0;}
 .bar-exit:active{background:#dc2626;}
-
-/* ── NUMPAD ── */
 @keyframes popIn{from{transform:scale(0.86);opacity:0;}to{transform:scale(1);opacity:1;}}
 .np-popup{position:fixed;z-index:9000;display:none;flex-direction:column;width:176px;border-radius:20px;background:rgba(255,255,255,.09);backdrop-filter:blur(40px) saturate(200%);-webkit-backdrop-filter:blur(40px) saturate(200%);border:1px solid rgba(255,255,255,.22);box-shadow:0 1px 0 rgba(255,255,255,.3) inset,0 8px 32px rgba(0,0,0,.35);overflow:hidden;user-select:none;touch-action:none;}
 .np-popup.open{display:flex;animation:popIn .2s cubic-bezier(.16,1,.3,1);}
@@ -180,8 +148,6 @@ body.light .np-btn{background:rgba(0,0,0,.06);border-color:rgba(0,0,0,.09);color
 body.light .np-btn:active{background:rgba(0,0,0,.13);}
 .np-btn-back{color:rgba(255,255,255,.4);font-size:13px;}
 body.light .np-btn-back{color:rgba(0,0,0,.35);}
-
-/* ── HISTORY DRAWER ── */
 .hist-overlay{position:fixed;inset:0;z-index:7000;background:rgba(0,0,0,.5);backdrop-filter:blur(4px);display:none;}
 .hist-overlay.open{display:block;}
 .hist-drawer{position:fixed;top:0;right:-105%;width:min(400px,92%);height:100dvh;background:var(--bg);border-left:1px solid var(--border);z-index:7001;display:flex;flex-direction:column;transition:right .3s cubic-bezier(.16,1,.3,1);box-shadow:-12px 0 40px rgba(0,0,0,.5);}
@@ -212,11 +178,8 @@ body.light .np-btn-back{color:rgba(0,0,0,.35);}
 .hist-src.mobile{background:rgba(16,185,129,.1);color:#10b981;border:1px solid rgba(16,185,129,.2);}
 .hist-empty{text-align:center;padding:50px 20px;color:var(--text3);font-size:12px;font-weight:700;}
 
-/* ══════════════════════════════════════════════
-   MOBILE (default — < 768px)
-   2 cols: Description+UID+Supplier | Stock+UM+Formula
-══════════════════════════════════════════════ */
-.tbl-area{height:calc(100dvh - 50px - 66px - env(safe-area-inset-top, 0px));mask-image:linear-gradient(to bottom,black 88%,transparent 100%);-webkit-mask-image:linear-gradient(to bottom,black 88%,transparent 100%);}
+/* MOBILE */
+.tbl-area{height:calc(100dvh - 50px - 66px - env(safe-area-inset-top,0px));mask-image:linear-gradient(to bottom,black 88%,transparent 100%);-webkit-mask-image:linear-gradient(to bottom,black 88%,transparent 100%);}
 .col-heads{display:grid;grid-template-columns:1fr 110px;padding:0 12px;}
 .col-h{padding:6px 8px;font-size:7.5px;}
 .col-h:first-child{padding-left:12px;}
@@ -225,301 +188,162 @@ body.light .np-btn-back{color:rgba(0,0,0,.35);}
 .cell{padding:10px 8px;}
 .cell:first-child{padding-left:12px;}
 .cell:last-child{padding-right:12px;}
-
-/* Mobile left cell */
 .desc-name{font-size:14px;font-weight:700;color:var(--text);line-height:1.35;margin-bottom:4px;}
 .mob-uid{font-family:monospace;font-size:10px;font-weight:800;color:var(--uid-clr);margin-bottom:2px;display:block;}
 .mob-sup{font-size:10px;font-weight:600;color:var(--text3);display:block;}
 .desc-meta{display:flex;flex-wrap:wrap;gap:3px;margin-top:4px;}
-
-/* Mobile right cell */
 .cell-mob-right{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;}
 .stock-qty{font-size:20px;font-weight:800;color:var(--brand);line-height:1;cursor:pointer;}
 .mob-um{font-size:9px;font-weight:800;padding:2px 7px;border-radius:20px;background:var(--brand-dim);border:1px solid var(--brand-border);color:var(--brand);white-space:nowrap;}
 .eq-input{width:90px;font-size:8px;}
 .stock-empty-btn{width:90px;height:32px;}
-
-/* Hide desktop-only columns on mobile */
-.cell-uid{display:none;}
-.cell-um{display:none;}
-.cell-sup{display:none;}
-.cell-pack-col{display:none;}
-.cell-brand-col{display:none;}
-.cell-cost{display:none;}
-
+.cell-uid{display:none;}.cell-um{display:none;}.cell-sup{display:none;}.cell-pack-col{display:none;}.cell-brand-col{display:none;}.cell-cost{display:none;}
 .portal-bar{width:calc(100% - 20px);max-width:600px;}
 
-/* ── CUSTOM MOBILE QWERTY SEARCH KEYBOARD ── */
+/* ═══════════════════════════════════════════════
+   QWERTY — THE FIX
+   safe-area-inset-bottom goes on .qkb itself.
+   .qkb-bar has ZERO bottom padding.
+   Result: keyboard background fills screen edge,
+   no dead gap, no squishing of keys.
+═══════════════════════════════════════════════ */
 .qkb{
   position:fixed;bottom:0;left:0;right:0;z-index:5000;
-  background:rgba(13,24,41,.97);
+  background:rgba(10,18,35,.98);
   border-top:1px solid rgba(255,255,255,.10);
+  /* keys + bar padding on top/sides, safe-area fills bottom */
   padding:4px 4px 0;
-  display:none;flex-direction:column;gap:3px;
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  display:none;flex-direction:column;gap:4px;
   backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
 }
 .qkb.open{display:flex;}
-body.light .qkb{background:rgba(230,235,245,.97);border-top-color:rgba(0,0,0,.10);}
+body.light .qkb{background:rgba(222,230,244,.98);border-top-color:rgba(0,0,0,.10);}
 
-
-/* iOS-style pill with blinking cursor */
-.qkb-input-display{
-  flex:1;font-size:15px;font-weight:700;color:var(--text);
-  background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);
-  border-radius:22px;padding:7px 14px;min-height:36px;
-  white-space:nowrap;overflow:hidden;
-  letter-spacing:.2px;
-  display:flex;align-items:center;
-}
-.qkb-text-before,.qkb-text-after{color:var(--text);}
-.qkb-cursor{
-  display:inline-block;
-  width:2px;
-  height:1.1em;
-  background:var(--brand);
-  border-radius:1px;
-  vertical-align:middle;
-  margin:0 0px;
-  animation:qkbBlink .9s step-end infinite;
-  user-select:none;
-  flex-shrink:0;
-}
-@keyframes qkbBlink{0%,100%{opacity:1;}50%{opacity:0;}}
-body.light .qkb-input-display{background:rgba(0,0,0,.05);border-color:rgba(0,0,0,.12);}
-.qkb-input-display.empty{color:var(--text3);display:block;}
-.qkb-clear{
-  background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.28);
-  color:#ef4444;border-radius:20px;padding:6px 12px;
-  font-size:10px;font-weight:800;cursor:pointer;
-  font-family:'Plus Jakarta Sans',sans-serif;white-space:nowrap;flex-shrink:0;
-}
-.qkb-done{
-  background:var(--brand);border:none;
-  color:#020617;border-radius:20px;padding:6px 14px;
-  font-size:10px;font-weight:800;cursor:pointer;
-  font-family:'Plus Jakarta Sans',sans-serif;white-space:nowrap;flex-shrink:0;
-}
-
+/* rows */
 .qkb-row{display:flex;justify-content:center;gap:4px;}
+
+/* base key — same height for ALL rows, equally distributed */
 .qkb-key{
   flex:1;height:36px;
   border:1px solid rgba(255,255,255,.09);
-  background:rgba(255,255,255,.09);
+  background:rgba(255,255,255,.11);
   border-radius:7px;
   font-size:14px;font-weight:600;
-  color:rgba(255,255,255,.90);
+  color:rgba(255,255,255,.92);
   cursor:pointer;
   display:flex;align-items:center;justify-content:center;
-  transition:background .07s,transform .06s;
-  -webkit-tap-highlight-color:transparent;
   user-select:none;
 }
-.qkb-key:active{background:rgba(255,255,255,.25);transform:scale(.88);}
-body.light .qkb-key{background:rgba(0,0,0,.07);border-color:rgba(0,0,0,.10);color:#0f172a;}
-body.light .qkb-key:active{background:rgba(0,0,0,.18);}
+.qkb-key.pressed{background:rgba(255,255,255,.30);}
+body.light .qkb-key{background:rgba(0,0,0,.08);border-color:rgba(0,0,0,.11);color:#0f172a;}
+body.light .qkb-key.pressed{background:rgba(0,0,0,.20);}
+
+/* number row — same height, slightly smaller font */
+.qkb-row-num .qkb-key{font-size:12px;font-weight:700;color:rgba(255,255,255,.65);}
+body.light .qkb-row-num .qkb-key{color:rgba(0,0,0,.45);}
+
+/* prevent letter keys stretching on wide screens */
+.qkb-row:not(.qkb-row-bottom):not(.qkb-row-num) .qkb-key{max-width:38px;}
+
+/* space — same height as other keys */
 .qkb-key-space{
   flex:5;
-  background:rgba(16,185,129,.12);
-  border-color:rgba(16,185,129,.22);
+  background:rgba(16,185,129,.13);
+  border-color:rgba(16,185,129,.25);
   color:var(--brand);
-  font-size:12px;font-weight:800;
-  letter-spacing:1px;
+  font-size:11px;font-weight:800;letter-spacing:1px;
+  max-width:none !important;
 }
-/* Number row */
-.qkb-key-num{font-size:13px;font-weight:700;color:rgba(255,255,255,.75);}
-body.light .qkb-key-num{color:rgba(0,0,0,.5);}
-/* Backspace — small fixed width right */
+body.light .qkb-key-space{background:rgba(16,185,129,.12);}
+
+/* backspace */
 .qkb-key-back{
-  flex:0 0 60px;
-  height:44px;
-  font-size:22px;
-  background:rgba(239,68,68,.15);
-  border-color:rgba(239,68,68,.28);
+  flex:0 0 54px;
+  font-size:18px;
+  background:rgba(239,68,68,.14);
+  border-color:rgba(239,68,68,.27);
   color:#ef4444;
-  border-radius:7px;
+  max-width:none !important;
 }
 body.light .qkb-key-back{background:rgba(239,68,68,.10);}
-.qkb-row:not(.qkb-row-bottom) .qkb-key{max-width:38px;}
-.qkb-row:nth-child(4) .qkb-key{max-width:46px;}
 .qkb-row-bottom{padding:0 2px;}
-.qkb-row-bottom .qkb-key{height:44px;}
 
-/* Search bar — tight to bottom, only true safe area */
+/* search pill — NO bottom padding here, safe-area is on .qkb */
 .qkb-bar{
-  display:flex;align-items:center;gap:8px;
-  padding:4px 8px env(safe-area-inset-bottom, 4px);
-  margin-top:0;
+  display:flex;align-items:center;gap:6px;
+  padding:2px 6px 4px;
 }
+.qkb-input-display{
+  flex:1;font-size:14px;font-weight:700;color:var(--text);
+  background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);
+  border-radius:20px;padding:6px 12px;min-height:32px;
+  white-space:nowrap;overflow:hidden;
+  display:flex;align-items:center;
+}
+/* spaces visible */
+.qkb-text-before,.qkb-text-after{white-space:pre;color:var(--text);}
+.qkb-cursor{display:inline-block;width:2px;height:1em;background:var(--brand);border-radius:1px;vertical-align:middle;animation:qkbBlink .9s step-end infinite;flex-shrink:0;}
+@keyframes qkbBlink{0%,100%{opacity:1;}50%{opacity:0;}}
+body.light .qkb-input-display{background:rgba(0,0,0,.05);border-color:rgba(0,0,0,.12);}
+.qkb-input-display.empty{color:var(--text3);}
+.qkb-clear{background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.28);color:#ef4444;border-radius:18px;padding:6px 12px;font-size:10px;font-weight:800;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;white-space:nowrap;flex-shrink:0;}
+.qkb-done{background:var(--brand);border:none;color:#020617;border-radius:18px;padding:6px 14px;font-size:10px;font-weight:800;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;white-space:nowrap;flex-shrink:0;}
 
-/* ── CUSTOM MOBILE FORMULA KEYBOARD ── */
-.fkb-overlay{
-  position:fixed;bottom:0;left:0;right:0;z-index:8000;
-  background:rgba(13,24,41,.97);
-  border-top:1px solid rgba(255,255,255,.10);
-  padding:8px 8px calc(8px + var(--safe-bottom));
-  display:none;
-  flex-direction:column;
-  gap:6px;
-  backdrop-filter:blur(20px);
-  -webkit-backdrop-filter:blur(20px);
-}
+/* FORMULA KEYBOARD */
+.fkb-overlay{position:fixed;bottom:0;left:0;right:0;z-index:8000;background:rgba(13,24,41,.97);border-top:1px solid rgba(255,255,255,.10);padding:8px 8px 0;padding-bottom:calc(8px + env(safe-area-inset-bottom,0px));display:none;flex-direction:column;gap:6px;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);}
 .fkb-overlay.open{display:flex;}
 body.light .fkb-overlay{background:rgba(235,240,250,.97);border-top-color:rgba(0,0,0,.10);}
-
 .fkb-top{display:flex;align-items:center;gap:8px;padding:0 4px 2px;}
 .fkb-label{font-size:10px;font-weight:800;color:var(--text3);flex:1;}
-.fkb-display{
-  flex:1;font-family:monospace;font-size:15px;font-weight:700;
-  color:var(--text);background:rgba(255,255,255,.06);
-  border:1px solid rgba(255,255,255,.12);border-radius:8px;
-  padding:6px 10px;min-height:34px;
-  overflow:hidden;white-space:nowrap;text-overflow:ellipsis;
-}
+.fkb-display{flex:1;font-family:monospace;font-size:15px;font-weight:700;color:var(--text);background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:6px 10px;min-height:34px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
 body.light .fkb-display{background:rgba(0,0,0,.05);border-color:rgba(0,0,0,.12);color:var(--text);}
-.fkb-close{
-  background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);
-  color:#ef4444;border-radius:8px;padding:6px 12px;
-  font-size:10px;font-weight:800;cursor:pointer;
-  font-family:'Plus Jakarta Sans',sans-serif;white-space:nowrap;
-}
-
+.fkb-close{background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);color:#ef4444;border-radius:8px;padding:6px 12px;font-size:10px;font-weight:800;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;white-space:nowrap;}
 .fkb-row{display:grid;gap:5px;}
-.fkb-row-1{grid-template-columns:repeat(6,1fr);}
-.fkb-row-2{grid-template-columns:repeat(6,1fr);}
-.fkb-row-3{grid-template-columns:repeat(6,1fr);}
-
-.fkb-btn{
-  border:1px solid rgba(255,255,255,.09);
-  background:rgba(255,255,255,.08);
-  border-radius:9px;height:44px;
-  font-size:16px;font-weight:600;
-  color:rgba(255,255,255,.90);
-  cursor:pointer;
-  font-family:'Plus Jakarta Sans',sans-serif;
-  display:flex;align-items:center;justify-content:center;
-  transition:background .08s,transform .07s;
-  -webkit-tap-highlight-color:transparent;
-}
+.fkb-row-1,.fkb-row-2,.fkb-row-3{grid-template-columns:repeat(6,1fr);}
+.fkb-btn{border:1px solid rgba(255,255,255,.09);background:rgba(255,255,255,.08);border-radius:9px;height:44px;font-size:16px;font-weight:600;color:rgba(255,255,255,.90);cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;display:flex;align-items:center;justify-content:center;transition:background .08s,transform .07s;-webkit-tap-highlight-color:transparent;}
 .fkb-btn:active{background:rgba(255,255,255,.22);transform:scale(.88);}
 body.light .fkb-btn{background:rgba(0,0,0,.07);border-color:rgba(0,0,0,.10);color:#0f172a;}
 body.light .fkb-btn:active{background:rgba(0,0,0,.15);}
-
-.fkb-btn-op{
-  background:rgba(99,102,241,.15);
-  border-color:rgba(99,102,241,.25);
-  color:#818cf8;font-size:15px;
-}
+.fkb-btn-op{background:rgba(99,102,241,.15);border-color:rgba(99,102,241,.25);color:#818cf8;font-size:15px;}
 body.light .fkb-btn-op{background:rgba(99,102,241,.10);color:#6366f1;}
-
 .fkb-btn-back{background:rgba(239,68,68,.12);border-color:rgba(239,68,68,.22);color:#ef4444;font-size:14px;}
-.fkb-btn-ok{
-  background:var(--brand);border-color:var(--brand);
-  color:#020617;font-weight:800;font-size:13px;
-  box-shadow:0 2px 10px rgba(16,185,129,.3);
-}
+.fkb-btn-ok{background:var(--brand);border-color:var(--brand);color:#020617;font-weight:800;font-size:13px;box-shadow:0 2px 10px rgba(16,185,129,.3);}
 .fkb-btn-ok:active{background:#0ea572;}
 
-/* ══════════════════════════════════════════════
-   DESKTOP (≥ 768px)
-   7 cols: UID | Description | Stock | U/M | Pack | Supplier | Brand/Origin
-══════════════════════════════════════════════ */
+/* DESKTOP */
 @media(min-width:768px){
   :root{--row-h:auto;}
   html,body{overflow:hidden;}
-
   .nav{height:54px;padding:0 28px;}
   .nav-logo{font-size:16px;}
   .nav-label{display:inline;font-size:10px;}
   .hist-btn{display:inline-flex;}
-
-  .tbl-area{
-    height:calc(100dvh - 54px - 68px);
-    mask-image:linear-gradient(to bottom,black 85%,transparent 100%);
-    -webkit-mask-image:linear-gradient(to bottom,black 85%,transparent 100%);
-    padding:0 24px 20px;
-  }
-
-  .col-heads{
-    display:grid;
-    grid-template-columns:90px 1fr 150px 52px 80px 180px 130px;
-    padding:0;
-    border-radius:12px;
-    border:1px solid var(--border);
-    margin-bottom:4px;
-  }
+  .tbl-area{height:calc(100dvh - 54px - 68px);mask-image:linear-gradient(to bottom,black 85%,transparent 100%);-webkit-mask-image:linear-gradient(to bottom,black 85%,transparent 100%);padding:0 24px 20px;}
+  .col-heads{display:grid;grid-template-columns:90px 1fr 150px 52px 80px 180px 130px;padding:0;border-radius:12px;border:1px solid var(--border);margin-bottom:4px;}
   .col-h{padding:10px 12px;font-size:8.5px;}
   .col-h:first-child{border-radius:12px 0 0 12px;padding-left:16px;}
   .col-h:last-child{border-radius:0 12px 12px 0;padding-right:16px;}
-
-  .item-row{
-    display:grid;
-    grid-template-columns:90px 1fr 150px 52px 80px 180px 130px;
-    padding:0;
-    min-height:68px;
-    border-radius:8px;
-    margin-bottom:2px;
-    border:1px solid var(--border2);
-    border-bottom:1px solid var(--border2);
-  }
+  .item-row{display:grid;grid-template-columns:90px 1fr 150px 52px 80px 180px 130px;padding:0;min-height:68px;border-radius:8px;margin-bottom:2px;border:1px solid var(--border2);}
   .item-row:hover{border-color:rgba(255,255,255,.06);}
-
   .cell{padding:10px 12px;display:flex;align-items:center;}
   .cell:first-child{padding-left:16px;border-radius:8px 0 0 8px;}
   .cell:last-child{padding-right:16px;border-radius:0 8px 8px 0;}
-
-  .cell-uid{
-    display:flex;
-    font-family:monospace;
-    font-size:10px;
-    font-weight:700;
-    color:var(--uid-clr);
-    line-height:1.4;
-    word-break:break-all;
-  }
-  .cell-um{
-    display:flex;
-    font-size:11px;
-    font-weight:700;
-    color:var(--text2);
-    justify-content:center;
-    text-align:center;
-  }
-  .cell-sup{
-    display:flex;
-    font-size:11px;
-    font-weight:600;
-    color:var(--text2);
-    align-items:center;
-    line-height:1.4;
-  }
-  .cell-pack-col{
-    display:flex;
-    font-size:11px;
-    font-weight:700;
-    color:var(--pack-clr);
-    align-items:center;
-  }
-  .cell-brand-col{
-    display:flex;
-    flex-direction:column;
-    justify-content:center;
-    gap:3px;
-  }
+  .cell-uid{display:flex;font-family:monospace;font-size:10px;font-weight:700;color:var(--uid-clr);line-height:1.4;word-break:break-all;}
+  .cell-um{display:flex;font-size:11px;font-weight:700;color:var(--text2);justify-content:center;text-align:center;}
+  .cell-sup{display:flex;font-size:11px;font-weight:600;color:var(--text2);align-items:center;line-height:1.4;}
+  .cell-pack-col{display:flex;font-size:11px;font-weight:700;color:var(--pack-clr);align-items:center;}
+  .cell-brand-col{display:flex;flex-direction:column;justify-content:center;gap:3px;}
   .cell-cost{display:none;}
-
   .cell-desc{display:flex;flex-direction:column;justify-content:center;}
   .desc-name{font-size:13px;font-weight:700;color:var(--text);line-height:1.35;margin-bottom:2px;}
   .desc-meta{display:flex;flex-wrap:wrap;gap:3px;margin-top:2px;}
-
   .cell-stock{justify-content:flex-start;padding-left:12px;}
   .stock-wrap{align-items:flex-start;}
   .stock-qty{font-size:18px;}
   .eq-input{width:118px;font-size:9px;}
   .stock-empty-btn{width:80px;height:30px;}
-
-  .mob-uid{display:none;}
-  .mob-sup{display:none;}
-
+  .mob-uid{display:none;}.mob-sup{display:none;}
   .portal-bar{width:80%;max-width:1100px;}
 }
 </style>
@@ -544,7 +368,7 @@ body.light .fkb-btn-op{background:rgba(99,102,241,.10);color:#6366f1;}
     <span class="sync-badge" id="syncBadge">● LIVE</span>
     <button class="hist-btn" onclick="openHistory()">📋 HISTORY</button>
     <button class="mode-btn" id="modeBtn" onclick="toggleMode()">🌙 DARK</button>
-    <button class="mode-btn" onclick="forceRefresh()" title="Force refresh">↺</button>
+    <button class="mode-btn" onclick="forceRefresh()">↺</button>
     <span class="nav-label">PHYSICAL STOCK MODULE</span>
   </div>
 </nav>
@@ -568,10 +392,7 @@ body.light .fkb-btn-op{background:rgba(99,102,241,.10);color:#6366f1;}
   <div class="np-drag" id="npDrag">
     <div class="np-drag-left">
       <div class="np-dots"><span></span><span></span><span></span><span></span><span></span><span></span></div>
-      <div style="flex:1;min-width:0">
-        <div class="np-drag-name" id="npName">—</div>
-        <span class="np-um-badge" id="npUm"></span>
-      </div>
+      <div style="flex:1;min-width:0"><div class="np-drag-name" id="npName">—</div><span class="np-um-badge" id="npUm"></span></div>
     </div>
     <button class="np-ok" onclick="npConfirm()">✓</button>
   </div>
@@ -586,92 +407,52 @@ body.light .fkb-btn-op{background:rgba(99,102,241,.10);color:#6366f1;}
     <button class="np-op-tab" data-op="=" onclick="setOp(this)">＝</button>
   </div>
   <div class="np-grid">
-    <button class="np-btn" onclick="npKey('7')">7</button>
-    <button class="np-btn" onclick="npKey('8')">8</button>
-    <button class="np-btn" onclick="npKey('9')">9</button>
-    <button class="np-btn np-btn-back" onclick="npKey('back')">⌫</button>
-    <button class="np-btn" onclick="npKey('4')">4</button>
-    <button class="np-btn" onclick="npKey('5')">5</button>
-    <button class="np-btn" onclick="npKey('6')">6</button>
-    <button class="np-btn" onclick="npKey('.')">·</button>
-    <button class="np-btn" onclick="npKey('1')">1</button>
-    <button class="np-btn" onclick="npKey('2')">2</button>
-    <button class="np-btn" onclick="npKey('3')">3</button>
-    <button class="np-btn" onclick="npKey('0')">0</button>
+    <button class="np-btn" onclick="npKey('7')">7</button><button class="np-btn" onclick="npKey('8')">8</button>
+    <button class="np-btn" onclick="npKey('9')">9</button><button class="np-btn np-btn-back" onclick="npKey('back')">⌫</button>
+    <button class="np-btn" onclick="npKey('4')">4</button><button class="np-btn" onclick="npKey('5')">5</button>
+    <button class="np-btn" onclick="npKey('6')">6</button><button class="np-btn" onclick="npKey('.')">·</button>
+    <button class="np-btn" onclick="npKey('1')">1</button><button class="np-btn" onclick="npKey('2')">2</button>
+    <button class="np-btn" onclick="npKey('3')">3</button><button class="np-btn" onclick="npKey('0')">0</button>
   </div>
 </div>
 
 <!-- HISTORY -->
 <div class="hist-overlay" id="histOverlay" onclick="closeHistory()"></div>
 <div class="hist-drawer" id="histDrawer">
-  <div class="hist-head">
-    <span class="hist-title">📋 STOCK HISTORY</span>
-    <button class="hist-close" onclick="closeHistory()">✕</button>
-  </div>
+  <div class="hist-head"><span class="hist-title">📋 STOCK HISTORY</span><button class="hist-close" onclick="closeHistory()">✕</button></div>
   <div class="hist-body" id="histBody"><div class="hist-empty">Loading…</div></div>
 </div>
 
-<!-- CUSTOM MOBILE QWERTY SEARCH KEYBOARD -->
+<!-- QWERTY -->
 <div class="qkb" id="qkb">
-  <!-- Numbers row -->
-  <div class="qkb-row">
-    <div class="qkb-key qkb-key-num" onclick="qkbKey('1')">1</div>
-    <div class="qkb-key qkb-key-num" onclick="qkbKey('2')">2</div>
-    <div class="qkb-key qkb-key-num" onclick="qkbKey('3')">3</div>
-    <div class="qkb-key qkb-key-num" onclick="qkbKey('4')">4</div>
-    <div class="qkb-key qkb-key-num" onclick="qkbKey('5')">5</div>
-    <div class="qkb-key qkb-key-num" onclick="qkbKey('6')">6</div>
-    <div class="qkb-key qkb-key-num" onclick="qkbKey('7')">7</div>
-    <div class="qkb-key qkb-key-num" onclick="qkbKey('8')">8</div>
-    <div class="qkb-key qkb-key-num" onclick="qkbKey('9')">9</div>
-    <div class="qkb-key qkb-key-num" onclick="qkbKey('0')">0</div>
+  <div class="qkb-row qkb-row-num" id="qkbNum">
+    <div class="qkb-key">1</div><div class="qkb-key">2</div><div class="qkb-key">3</div><div class="qkb-key">4</div><div class="qkb-key">5</div>
+    <div class="qkb-key">6</div><div class="qkb-key">7</div><div class="qkb-key">8</div><div class="qkb-key">9</div><div class="qkb-key">0</div>
   </div>
-  <div class="qkb-row">
-    <div class="qkb-key" onclick="qkbKey('q')">Q</div>
-    <div class="qkb-key" onclick="qkbKey('w')">W</div>
-    <div class="qkb-key" onclick="qkbKey('e')">E</div>
-    <div class="qkb-key" onclick="qkbKey('r')">R</div>
-    <div class="qkb-key" onclick="qkbKey('t')">T</div>
-    <div class="qkb-key" onclick="qkbKey('y')">Y</div>
-    <div class="qkb-key" onclick="qkbKey('u')">U</div>
-    <div class="qkb-key" onclick="qkbKey('i')">I</div>
-    <div class="qkb-key" onclick="qkbKey('o')">O</div>
-    <div class="qkb-key" onclick="qkbKey('p')">P</div>
+  <div class="qkb-row" id="qkbQ">
+    <div class="qkb-key">Q</div><div class="qkb-key">W</div><div class="qkb-key">E</div><div class="qkb-key">R</div><div class="qkb-key">T</div>
+    <div class="qkb-key">Y</div><div class="qkb-key">U</div><div class="qkb-key">I</div><div class="qkb-key">O</div><div class="qkb-key">P</div>
   </div>
-  <div class="qkb-row">
-    <div class="qkb-key" onclick="qkbKey('a')">A</div>
-    <div class="qkb-key" onclick="qkbKey('s')">S</div>
-    <div class="qkb-key" onclick="qkbKey('d')">D</div>
-    <div class="qkb-key" onclick="qkbKey('f')">F</div>
-    <div class="qkb-key" onclick="qkbKey('g')">G</div>
-    <div class="qkb-key" onclick="qkbKey('h')">H</div>
-    <div class="qkb-key" onclick="qkbKey('j')">J</div>
-    <div class="qkb-key" onclick="qkbKey('k')">K</div>
-    <div class="qkb-key" onclick="qkbKey('l')">L</div>
+  <div class="qkb-row" id="qkbA">
+    <div class="qkb-key">A</div><div class="qkb-key">S</div><div class="qkb-key">D</div><div class="qkb-key">F</div><div class="qkb-key">G</div>
+    <div class="qkb-key">H</div><div class="qkb-key">J</div><div class="qkb-key">K</div><div class="qkb-key">L</div>
   </div>
-  <div class="qkb-row">
-    <div class="qkb-key" onclick="qkbKey('z')">Z</div>
-    <div class="qkb-key" onclick="qkbKey('x')">X</div>
-    <div class="qkb-key" onclick="qkbKey('c')">C</div>
-    <div class="qkb-key" onclick="qkbKey('v')">V</div>
-    <div class="qkb-key" onclick="qkbKey('b')">B</div>
-    <div class="qkb-key" onclick="qkbKey('n')">N</div>
-    <div class="qkb-key" onclick="qkbKey('m')">M</div>
+  <div class="qkb-row" id="qkbZ">
+    <div class="qkb-key">Z</div><div class="qkb-key">X</div><div class="qkb-key">C</div><div class="qkb-key">V</div>
+    <div class="qkb-key">B</div><div class="qkb-key">N</div><div class="qkb-key">M</div>
   </div>
-  <!-- Row 4: SPACE wide LEFT + ⌫ small RIGHT -->
   <div class="qkb-row qkb-row-bottom">
-    <div class="qkb-key qkb-key-space" onclick="qkbKey(' ')">SPACE</div>
-    <div class="qkb-key qkb-key-back" onclick="qkbKey('back')">⌫</div>
+    <div class="qkb-key qkb-key-space" id="qkbSpace">SPACE</div>
+    <div class="qkb-key qkb-key-back" id="qkbBack">⌫</div>
   </div>
-  <!-- Search bar tight below keys -->
   <div class="qkb-bar">
     <div class="qkb-input-display empty" id="qkbDisplay">Search…</div>
-    <button class="qkb-clear" onclick="qkbClear()">✕</button>
-    <button class="qkb-done" onclick="qkbDone()">Done</button>
+    <button class="qkb-clear" id="qkbClearBtn">✕</button>
+    <button class="qkb-done" id="qkbDoneBtn">Done</button>
   </div>
 </div>
 
-<!-- CUSTOM MOBILE FORMULA KEYBOARD -->
+<!-- FORMULA KEYBOARD -->
 <div class="fkb-overlay" id="fkbOverlay">
   <div class="fkb-top">
     <span class="fkb-label">FORMULA</span>
@@ -679,28 +460,19 @@ body.light .fkb-btn-op{background:rgba(99,102,241,.10);color:#6366f1;}
     <button class="fkb-close" onclick="fkbCancel()">✕ CANCEL</button>
   </div>
   <div class="fkb-row fkb-row-1">
-    <button class="fkb-btn" onclick="fkbKey('7')">7</button>
-    <button class="fkb-btn" onclick="fkbKey('8')">8</button>
-    <button class="fkb-btn" onclick="fkbKey('9')">9</button>
-    <button class="fkb-btn fkb-btn-op" onclick="fkbKey('+')">＋</button>
-    <button class="fkb-btn fkb-btn-op" onclick="fkbKey('-')">－</button>
-    <button class="fkb-btn fkb-btn-back" onclick="fkbKey('back')">⌫</button>
+    <button class="fkb-btn" onclick="fkbKey('7')">7</button><button class="fkb-btn" onclick="fkbKey('8')">8</button>
+    <button class="fkb-btn" onclick="fkbKey('9')">9</button><button class="fkb-btn fkb-btn-op" onclick="fkbKey('+')">＋</button>
+    <button class="fkb-btn fkb-btn-op" onclick="fkbKey('-')">－</button><button class="fkb-btn fkb-btn-back" onclick="fkbKey('back')">⌫</button>
   </div>
   <div class="fkb-row fkb-row-2">
-    <button class="fkb-btn" onclick="fkbKey('4')">4</button>
-    <button class="fkb-btn" onclick="fkbKey('5')">5</button>
-    <button class="fkb-btn" onclick="fkbKey('6')">6</button>
-    <button class="fkb-btn fkb-btn-op" onclick="fkbKey('*')">×</button>
-    <button class="fkb-btn fkb-btn-op" onclick="fkbKey('/')">÷</button>
-    <button class="fkb-btn fkb-btn-op" onclick="fkbKey('()')">()</button>
+    <button class="fkb-btn" onclick="fkbKey('4')">4</button><button class="fkb-btn" onclick="fkbKey('5')">5</button>
+    <button class="fkb-btn" onclick="fkbKey('6')">6</button><button class="fkb-btn fkb-btn-op" onclick="fkbKey('*')">×</button>
+    <button class="fkb-btn fkb-btn-op" onclick="fkbKey('/')">÷</button><button class="fkb-btn fkb-btn-op" onclick="fkbKey('()')">()</button>
   </div>
   <div class="fkb-row fkb-row-3">
-    <button class="fkb-btn" onclick="fkbKey('1')">1</button>
-    <button class="fkb-btn" onclick="fkbKey('2')">2</button>
-    <button class="fkb-btn" onclick="fkbKey('3')">3</button>
-    <button class="fkb-btn" onclick="fkbKey('0')">0</button>
-    <button class="fkb-btn fkb-btn-op" onclick="fkbKey('.')">·</button>
-    <button class="fkb-btn fkb-btn-ok" onclick="fkbConfirm()">✓ OK</button>
+    <button class="fkb-btn" onclick="fkbKey('1')">1</button><button class="fkb-btn" onclick="fkbKey('2')">2</button>
+    <button class="fkb-btn" onclick="fkbKey('3')">3</button><button class="fkb-btn" onclick="fkbKey('0')">0</button>
+    <button class="fkb-btn fkb-btn-op" onclick="fkbKey('.')">·</button><button class="fkb-btn fkb-btn-ok" onclick="fkbConfirm()">✓ OK</button>
   </div>
 </div>
 
@@ -708,722 +480,152 @@ body.light .fkb-btn-op{background:rgba(99,102,241,.10);color:#6366f1;}
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
 <script>
-// ── CONFIG ────────────────────────────────────────────────────
 const firebaseConfig={apiKey:"AIzaSyAWI0Sd4hY_6X_odo2LCamwbQPSdLEjH1w",authDomain:"chef2chef-stock.firebaseapp.com",databaseURL:"https://chef2chef-stock-default-rtdb.firebaseio.com",projectId:"chef2chef-stock",storageBucket:"chef2chef-stock.firebasestorage.app",messagingSenderId:"510949862594",appId:"1:510949862594:web:2bae9e49826221e5a69f5b"};
 firebase.initializeApp(firebaseConfig);
 firebase.auth().signInAnonymously().catch(()=>{});
 const db=firebase.database();
-
-function normalizeFormula(f){
-  if(!f) return '';
-  return String(f).replace(/\s/g,'').replace(/^=/,'');
-}
+function normalizeFormula(f){if(!f)return'';return String(f).replace(/\s/g,'').replace(/^=/,'');}
 const SHEETS_URL='https://script.google.com/macros/s/AKfycbyHiiuDy1HQzz_D9O1f1hZyL__81DyFW4bT2bieNlmIWj86NRtSQ9lfH-O5AHEtR3fp/exec';
-
-// ── STATE ─────────────────────────────────────────────────────
 let ITEMS=[],historyLog=[];
 const stockData={},formulaData={};
 let fbListening=false,searchQuery='';
 const isDesktop=()=>window.innerWidth>=768;
-
 function xe(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
-
-function cleanDesc(desc, id){
-  let d = String(desc||'').trim();
-  if(id && d.startsWith(id)){
-    d = d.slice(id.length).trim();
-    d = d.replace(/^[\s\(\-\:\|]+/, '').replace(/\)\s*$/, '').trim();
-  }
-  return d || desc;
-}
-
-function setSync(state,msg){
-  const el=document.getElementById('syncBadge');
-  el.className='sync-badge'+(state==='ok'?'':' '+state);
-  el.textContent=msg;
-}
-
-function toggleMode(){
-  const light=document.body.classList.toggle('light');
-  document.getElementById('modeBtn').textContent=light?'☀️ LIGHT':'🌙 DARK';
-  localStorage.setItem('c2c_mode',light?'light':'dark');
-}
-function forceRefresh(){
-  localStorage.removeItem('c2c_items');
-  localStorage.removeItem('c2c_items_ts');
-  setSync('syncing','⟳ REFRESHING');
-  location.reload();
-}
-
+function cleanDesc(desc,id){let d=String(desc||'').trim();if(id&&d.startsWith(id)){d=d.slice(id.length).trim();d=d.replace(/^[\s\(\-\:\|]+/,'').replace(/\)\s*$/,'').trim();}return d||desc;}
+function setSync(state,msg){const el=document.getElementById('syncBadge');el.className='sync-badge'+(state==='ok'?'':' '+state);el.textContent=msg;}
+function toggleMode(){const light=document.body.classList.toggle('light');document.getElementById('modeBtn').textContent=light?'☀️ LIGHT':'🌙 DARK';localStorage.setItem('c2c_mode',light?'light':'dark');}
+function forceRefresh(){localStorage.removeItem('c2c_items');localStorage.removeItem('c2c_items_ts');setSync('syncing','⟳ REFRESHING');location.reload();}
 function saveLocal(){try{localStorage.setItem('c2c_stock',JSON.stringify({s:stockData,f:formulaData}));}catch(e){}}
 function loadLocal(){try{const d=JSON.parse(localStorage.getItem('c2c_stock')||'{}');if(d.s)Object.assign(stockData,d.s);if(d.f)Object.assign(formulaData,d.f);}catch(e){}}
 function saveHistory(){try{localStorage.setItem('c2c_history',JSON.stringify(historyLog.slice(0,500)));}catch(e){}}
 function loadHistory(){try{historyLog=JSON.parse(localStorage.getItem('c2c_history')||'[]');}catch(e){}}
-
-function openHistory(){
-  document.getElementById('histDrawer').classList.add('open');
-  document.getElementById('histOverlay').classList.add('open');
-  fetchHistory();
-}
-function closeHistory(){
-  document.getElementById('histDrawer').classList.remove('open');
-  document.getElementById('histOverlay').classList.remove('open');
-}
-function fetchHistory(){
-  document.getElementById('histBody').innerHTML='<div class="hist-empty">Loading…</div>';
-  fetch(SHEETS_URL+'?action=getHistory&_t='+Date.now(),{cache:'no-store',redirect:'follow'})
-    .then(r=>r.json()).then(d=>{
-      if(d.ok&&d.history){
-        d.history.forEach(e=>{if(!historyLog.some(l=>l.ts===e.ts&&l.uid===e.uid))historyLog.unshift(e);});
-        historyLog=historyLog.slice(0,500);
-        saveHistory();
-      }
-      renderHistory();
-    }).catch(()=>renderHistory());
-}
-function renderHistory(){
-  const body=document.getElementById('histBody');
-  if(!historyLog.length){body.innerHTML='<div class="hist-empty">No history yet</div>';return;}
-  body.innerHTML=historyLog.map(e=>{
-    const added=String(e.added||'');
-    const isPos=!added.startsWith('-');
-    const src=e.source==='sheet'?'📊 SHEET':e.source==='mobile'?'📱 MOBILE':'🌐 WEB';
-    const srcCls=e.source==='sheet'?'sheet':e.source==='mobile'?'mobile':'web';
-    return`<div class="hist-row">
-      <div class="hist-top"><span class="hist-uid">${xe(e.uid)}</span><span class="hist-ts">${xe(e.ts)}</span></div>
-      <div class="hist-desc">${xe(e.desc)}</div>
-      <div class="hist-vals">
-        <span class="hist-old">${e.oldVal}</span><span class="hist-arr">→</span>
-        <span class="hist-new">${e.newVal}</span>
-        <span class="hist-chg ${isPos?'pos':'neg'}">${xe(added)}</span>
-        <span class="hist-src ${srcCls}">${src}</span>
-      </div>
-      ${e.formula?`<div style="margin-top:3px;font-family:monospace;font-size:9px;color:#fbbf24">=<span>${xe(normalizeFormula(e.formula))}</span></div>`:''}
-    </div>`;
-  }).join('');
-}
-function addLocalHistory(uid,oldVal,newVal,added,formula,source){
-  const item=ITEMS.find(r=>r.id===uid);
-  const ts=new Date().toISOString().replace('T',' ').slice(0,19);
-  const addStr=added>=0?'+'+parseFloat(added.toFixed(4)):String(parseFloat(added.toFixed(4)));
-  historyLog.unshift({ts,uid,desc:item?item.desc:uid,oldVal,newVal,added:addStr,formula:formula||'',source:source||'web'});
-  if(historyLog.length>500)historyLog.pop();
-  saveHistory();
-  if(document.getElementById('histDrawer').classList.contains('open'))renderHistory();
-}
-
-// ── FIREBASE ──────────────────────────────────────────────────
+function openHistory(){document.getElementById('histDrawer').classList.add('open');document.getElementById('histOverlay').classList.add('open');fetchHistory();}
+function closeHistory(){document.getElementById('histDrawer').classList.remove('open');document.getElementById('histOverlay').classList.remove('open');}
+function fetchHistory(){document.getElementById('histBody').innerHTML='<div class="hist-empty">Loading…</div>';fetch(SHEETS_URL+'?action=getHistory&_t='+Date.now(),{cache:'no-store',redirect:'follow'}).then(r=>r.json()).then(d=>{if(d.ok&&d.history){d.history.forEach(e=>{if(!historyLog.some(l=>l.ts===e.ts&&l.uid===e.uid))historyLog.unshift(e);});historyLog=historyLog.slice(0,500);saveHistory();}renderHistory();}).catch(()=>renderHistory());}
+function renderHistory(){const body=document.getElementById('histBody');if(!historyLog.length){body.innerHTML='<div class="hist-empty">No history yet</div>';return;}body.innerHTML=historyLog.map(e=>{const added=String(e.added||'');const isPos=!added.startsWith('-');const src=e.source==='sheet'?'📊 SHEET':e.source==='mobile'?'📱 MOBILE':'🌐 WEB';const srcCls=e.source==='sheet'?'sheet':e.source==='mobile'?'mobile':'web';return`<div class="hist-row"><div class="hist-top"><span class="hist-uid">${xe(e.uid)}</span><span class="hist-ts">${xe(e.ts)}</span></div><div class="hist-desc">${xe(e.desc)}</div><div class="hist-vals"><span class="hist-old">${e.oldVal}</span><span class="hist-arr">→</span><span class="hist-new">${e.newVal}</span><span class="hist-chg ${isPos?'pos':'neg'}">${xe(added)}</span><span class="hist-src ${srcCls}">${src}</span></div>${e.formula?`<div style="margin-top:3px;font-family:monospace;font-size:9px;color:#fbbf24">=<span>${xe(normalizeFormula(e.formula))}</span></div>`:''}</div>`;}).join('');}
+function addLocalHistory(uid,oldVal,newVal,added,formula,source){const item=ITEMS.find(r=>r.id===uid);const ts=new Date().toISOString().replace('T',' ').slice(0,19);const addStr=added>=0?'+'+parseFloat(added.toFixed(4)):String(parseFloat(added.toFixed(4)));historyLog.unshift({ts,uid,desc:item?item.desc:uid,oldVal,newVal,added:addStr,formula:formula||'',source:source||'web'});if(historyLog.length>500)historyLog.pop();saveHistory();if(document.getElementById('histDrawer').classList.contains('open'))renderHistory();}
 const ownWrites={};
 function lockWrite(uid){ownWrites[uid]=Date.now();}
 function isOwnEcho(uid){return ownWrites[uid]&&(Date.now()-ownWrites[uid])<8000;}
 setInterval(()=>{const now=Date.now();Object.keys(ownWrites).forEach(k=>{if(now-ownWrites[k]>10000)delete ownWrites[k];});},30000);
-
-function updateSheetBackground(uid,qty,formula,added){
-  const params=new URLSearchParams({action:'updateRow',uid,qty,formula:normalizeFormula(formula)||'',added:added??0,_t:Date.now()});
-  fetch(SHEETS_URL+'?'+params.toString(),{cache:'no-store',redirect:'follow',keepalive:true}).catch(()=>{});
-}
-
-function fbWrite(uid,qty,formula,added){
-  lockWrite(uid);
-  const k=uid.replace(/[.#$[\]]/g,'_');
-  db.ref('stock/'+k).set({qty,formula:formula||String(qty),ts:Date.now(),added:added??0}).then(()=>{
-    setSync('ok','● LIVE');
-    updateSheetBackground(uid,qty,formula||String(qty),added??0);
-  }).catch(()=>setSync('error','✕ OFFLINE'));
-}
-
-function startFirebaseListener(){
-  if(fbListening)return;
-  fbListening=true;
-  db.ref('stock').on('child_changed',snap=>{
-    const k=snap.key,val=snap.val();
-    if(!val||!ITEMS.length)return;
-    const item=ITEMS.find(r=>r.id.replace(/[.#$[\]]/g,'_')===k);
-    if(!item)return;
-    const uid=item.id;
-    if(isOwnEcho(uid))return;
-    const newQty=parseFloat(val.qty)||0;
-    const newForm=normalizeFormula(val.formula||String(newQty));
-    const locForm=normalizeFormula(formulaData[uid]||'');
-    if(Math.abs(newQty-(stockData[uid]||0))>0.0001||newForm!==locForm){
-      const oldVal=stockData[uid]||0;
-      stockData[uid]=newQty;formulaData[uid]=newForm;
-      updateRowDisplay(uid);
-      addLocalHistory(uid,oldVal,newQty,val.added||(newQty-oldVal),newForm,val.source||'web');
-      saveLocal();setSync('ok','● LIVE');
-    }
-  });
-}
-
-// ── WRITE OPS ─────────────────────────────────────────────────
-function sendAdd(uid,addQty){
-  const oldVal=stockData[uid]||0;
-  const newVal=parseFloat((oldVal+addQty).toFixed(4));
-  const oldForm=normalizeFormula(formulaData[uid]||String(oldVal));
-  const newForm=oldVal===0?String(addQty):oldForm+(addQty>=0?'+':'')+addQty;
-  stockData[uid]=newVal;formulaData[uid]=newForm;
-  saveLocal();updateRowDisplay(uid);
-  addLocalHistory(uid,oldVal,newVal,addQty,newForm,isDesktop()?'website':'mobile');
-  setSync('syncing','⟳ SAVING');
-  fbWrite(uid,newVal,newForm,addQty);
-}
-function sendSet(uid,qty){
-  const oldVal=stockData[uid]||0;
-  const formula=String(qty);
-  stockData[uid]=qty;formulaData[uid]=formula;
-  saveLocal();updateRowDisplay(uid);
-  addLocalHistory(uid,oldVal,qty,qty-oldVal,formula,isDesktop()?'website':'mobile');
-  setSync('syncing','⟳ SAVING');
-  fbWrite(uid,qty,formula,qty-oldVal);
-}
-function sendSetFormula(uid,formula,qty){
-  const oldVal=stockData[uid]||0;
-  const clean=normalizeFormula(formula);
-  stockData[uid]=qty;formulaData[uid]=clean;
-  saveLocal();updateRowDisplay(uid);
-  addLocalHistory(uid,oldVal,qty,qty-oldVal,clean,isDesktop()?'website':'mobile');
-  setSync('syncing','⟳ SAVING');
-  fbWrite(uid,qty,clean,qty-oldVal);
-}
-
-// ── FORMULA BAR ───────────────────────────────────────────────
+function updateSheetBackground(uid,qty,formula,added){const params=new URLSearchParams({action:'updateRow',uid,qty,formula:normalizeFormula(formula)||'',added:added??0,_t:Date.now()});fetch(SHEETS_URL+'?'+params.toString(),{cache:'no-store',redirect:'follow',keepalive:true}).catch(()=>{});}
+function fbWrite(uid,qty,formula,added){lockWrite(uid);const k=uid.replace(/[.#$[\]]/g,'_');db.ref('stock/'+k).set({qty,formula:formula||String(qty),ts:Date.now(),added:added??0}).then(()=>{setSync('ok','● LIVE');updateSheetBackground(uid,qty,formula||String(qty),added??0);}).catch(()=>setSync('error','✕ OFFLINE'));}
+function startFirebaseListener(){if(fbListening)return;fbListening=true;db.ref('stock').on('child_changed',snap=>{const k=snap.key,val=snap.val();if(!val||!ITEMS.length)return;const item=ITEMS.find(r=>r.id.replace(/[.#$[\]]/g,'_')===k);if(!item)return;const uid=item.id;if(isOwnEcho(uid))return;const newQty=parseFloat(val.qty)||0;const newForm=normalizeFormula(val.formula||String(newQty));const locForm=normalizeFormula(formulaData[uid]||'');if(Math.abs(newQty-(stockData[uid]||0))>0.0001||newForm!==locForm){const oldVal=stockData[uid]||0;stockData[uid]=newQty;formulaData[uid]=newForm;updateRowDisplay(uid);addLocalHistory(uid,oldVal,newQty,val.added||(newQty-oldVal),newForm,val.source||'web');saveLocal();setSync('ok','● LIVE');}});}
+function sendAdd(uid,addQty){const oldVal=stockData[uid]||0;const newVal=parseFloat((oldVal+addQty).toFixed(4));const oldForm=normalizeFormula(formulaData[uid]||String(oldVal));const newForm=oldVal===0?String(addQty):oldForm+(addQty>=0?'+':'')+addQty;stockData[uid]=newVal;formulaData[uid]=newForm;saveLocal();updateRowDisplay(uid);addLocalHistory(uid,oldVal,newVal,addQty,newForm,isDesktop()?'website':'mobile');setSync('syncing','⟳ SAVING');fbWrite(uid,newVal,newForm,addQty);}
+function sendSet(uid,qty){const oldVal=stockData[uid]||0;const formula=String(qty);stockData[uid]=qty;formulaData[uid]=formula;saveLocal();updateRowDisplay(uid);addLocalHistory(uid,oldVal,qty,qty-oldVal,formula,isDesktop()?'website':'mobile');setSync('syncing','⟳ SAVING');fbWrite(uid,qty,formula,qty-oldVal);}
+function sendSetFormula(uid,formula,qty){const oldVal=stockData[uid]||0;const clean=normalizeFormula(formula);stockData[uid]=qty;formulaData[uid]=clean;saveLocal();updateRowDisplay(uid);addLocalHistory(uid,oldVal,qty,qty-oldVal,clean,isDesktop()?'website':'mobile');setSync('syncing','⟳ SAVING');fbWrite(uid,qty,clean,qty-oldVal);}
 function onEqIn(id,sid){document.getElementById('eqok-'+sid)?.classList.add('on');}
-function onEqKd(e,id,sid){
-  if(e.key==='Enter'){e.preventDefault();confirmEq(id,sid);}
-  if(e.key==='Escape'){const inp=document.getElementById('eq-'+sid);if(inp)inp.value='='+(formulaData[id]||String(stockData[id]||0));document.getElementById('eqok-'+sid)?.classList.remove('on');inp?.blur();}
-}
-function confirmEq(id,sid){
-  const inp=document.getElementById('eq-'+sid);if(!inp)return;
-  let raw=inp.value.trim();if(raw.startsWith('='))raw=raw.slice(1);
-  const clean=raw.replace(/[^0-9.+\-*\/()]/g,'');
-  if(!clean){inp.value='='+(formulaData[id]||String(stockData[id]||0));return;}
-  let qty;try{qty=Math.max(0,parseFloat(Function('return ('+clean+')')().toFixed(4)));}catch(e){qty=stockData[id]||0;}
-  inp.value='='+clean;
-  document.getElementById('eqok-'+sid)?.classList.remove('on');
-  inp.blur();
-  sendSetFormula(id,clean,qty);
-}
-
-// ── RENDER ────────────────────────────────────────────────────
-function stockCellHtmlMobile(id,um){
-  const qty=stockData[id]||0;
-  const sid=id.replace(/[^a-zA-Z0-9_-]/g,'_');
-  const formula=formulaData[id]||'';
-  if(qty>0){
-    const disp=qty%1===0?qty:qty.toFixed(2);
-    return`<span class="stock-qty" id="sqty-${sid}" onclick="openNp('${id}')">${disp}</span>
-      ${um?`<span class="mob-um">${xe(um)}</span>`:''}
-      <div class="eq-wrap">
-        <input class="eq-input" id="eq-${sid}" type="text"
-          value="${xe('='+(formula||String(qty)))}"
-          inputmode="none"
-          readonly
-          onclick="event.stopPropagation();fkbOpen('${id}','${sid}')"
-          onfocus="this.blur();fkbOpen('${id}','${sid}')">
-        <button class="eq-ok" id="eqok-${sid}" onclick="fkbOpen('${id}','${sid}')">✎</button>
-      </div>`;
-  }
-  return`<div class="stock-empty-btn" onclick="openNp('${id}')">＋ ${um?`<span style="font-size:9px;opacity:.5;margin-left:3px">${xe(um)}</span>`:''}</div>`;
-}
-
-function stockCellHtml(id){
-  const qty=stockData[id]||0;
-  const sid=id.replace(/[^a-zA-Z0-9_-]/g,'_');
-  const formula=formulaData[id]||'';
-  if(qty>0){
-    const disp=qty%1===0?qty:qty.toFixed(2);
-    return`<div class="stock-wrap">
-      <span class="stock-qty" id="sqty-${sid}" onclick="openNp('${id}')">${disp}</span>
-      <div class="eq-wrap">
-        <input class="eq-input" id="eq-${sid}" type="text" value="${xe('='+(formula||String(qty)))}"
-          oninput="onEqIn('${id}','${sid}')"
-          onkeydown="onEqKd(event,'${id}','${sid}')"
-          onclick="event.stopPropagation()"
-          onfocus="event.stopPropagation()">
-        <button class="eq-ok" id="eqok-${sid}" onclick="confirmEq('${id}','${sid}')">✓</button>
-      </div>
-    </div>`;
-  }
-  return`<div class="stock-empty-btn" onclick="openNp('${id}')">＋</div>`;
-}
-
-function buildColHeads(){
-  const desktop=isDesktop();
-  document.getElementById('colHeads').innerHTML=desktop
-    ?`<div class="col-h">UID</div>
-      <div class="col-h">Item Description</div>
-      <div class="col-h">📦 Physical Stock</div>
-      <div class="col-h">U/M</div>
-      <div class="col-h">Pack</div>
-      <div class="col-h">Supplier</div>
-      <div class="col-h">Brand / Origin</div>`
-    :`<div class="col-h">Item Description</div>
-      <div class="col-h">📦 Stock</div>`;
-}
-
-function getFiltered(){
-  let items=ITEMS;
-  if(searchQuery){
-    const terms=searchQuery.split(/\s+/).filter(Boolean);
-    items=items.filter(r=>{
-      const t=(r.id+' '+r.desc+' '+r.pack+' '+r.sup+' '+r.cat+' '+r.brand+' '+r.origin).toLowerCase();
-      return terms.every(w=>t.includes(w));
-    });
-  }
-  return items;
-}
-
-// ── VIRTUAL SCROLL ────────────────────────────────────────────
+function onEqKd(e,id,sid){if(e.key==='Enter'){e.preventDefault();confirmEq(id,sid);}if(e.key==='Escape'){const inp=document.getElementById('eq-'+sid);if(inp)inp.value='='+(formulaData[id]||String(stockData[id]||0));document.getElementById('eqok-'+sid)?.classList.remove('on');inp?.blur();}}
+function confirmEq(id,sid){const inp=document.getElementById('eq-'+sid);if(!inp)return;let raw=inp.value.trim();if(raw.startsWith('='))raw=raw.slice(1);const clean=raw.replace(/[^0-9.+\-*\/()]/g,'');if(!clean){inp.value='='+(formulaData[id]||String(stockData[id]||0));return;}let qty;try{qty=Math.max(0,parseFloat(Function('return ('+clean+')')().toFixed(4)));}catch(e){qty=stockData[id]||0;}inp.value='='+clean;document.getElementById('eqok-'+sid)?.classList.remove('on');inp.blur();sendSetFormula(id,clean,qty);}
+function stockCellHtmlMobile(id,um){const qty=stockData[id]||0;const sid=id.replace(/[^a-zA-Z0-9_-]/g,'_');const formula=formulaData[id]||'';if(qty>0){const disp=qty%1===0?qty:qty.toFixed(2);return`<span class="stock-qty" id="sqty-${sid}" onclick="openNp('${id}')">${disp}</span>${um?`<span class="mob-um">${xe(um)}</span>`:''}<div class="eq-wrap"><input class="eq-input" id="eq-${sid}" type="text" value="${xe('='+(formula||String(qty)))}" inputmode="none" readonly onclick="event.stopPropagation();fkbOpen('${id}','${sid}')" onfocus="this.blur();fkbOpen('${id}','${sid}')"><button class="eq-ok" id="eqok-${sid}" onclick="fkbOpen('${id}','${sid}')">✎</button></div>`;}return`<div class="stock-empty-btn" onclick="openNp('${id}')">＋ ${um?`<span style="font-size:9px;opacity:.5;margin-left:3px">${xe(um)}</span>`:''}</div>`;}
+function stockCellHtml(id){const qty=stockData[id]||0;const sid=id.replace(/[^a-zA-Z0-9_-]/g,'_');const formula=formulaData[id]||'';if(qty>0){const disp=qty%1===0?qty:qty.toFixed(2);return`<div class="stock-wrap"><span class="stock-qty" id="sqty-${sid}" onclick="openNp('${id}')">${disp}</span><div class="eq-wrap"><input class="eq-input" id="eq-${sid}" type="text" value="${xe('='+(formula||String(qty)))}" oninput="onEqIn('${id}','${sid}')" onkeydown="onEqKd(event,'${id}','${sid}')" onclick="event.stopPropagation()" onfocus="event.stopPropagation()"><button class="eq-ok" id="eqok-${sid}" onclick="confirmEq('${id}','${sid}')">✓</button></div></div>`;}return`<div class="stock-empty-btn" onclick="openNp('${id}')">＋</div>`;}
+function buildColHeads(){const desktop=isDesktop();document.getElementById('colHeads').innerHTML=desktop?`<div class="col-h">UID</div><div class="col-h">Item Description</div><div class="col-h">📦 Physical Stock</div><div class="col-h">U/M</div><div class="col-h">Pack</div><div class="col-h">Supplier</div><div class="col-h">Brand / Origin</div>`:`<div class="col-h">Item Description</div><div class="col-h">📦 Stock</div>`;}
+function getFiltered(){let items=ITEMS;if(searchQuery){const terms=searchQuery.split(/\s+/).filter(Boolean);items=items.filter(r=>{const t=(r.id+' '+r.desc+' '+r.pack+' '+r.sup+' '+r.cat+' '+r.brand+' '+r.origin).toLowerCase();return terms.every(w=>t.includes(w));});}return items;}
 let vsItems=[],vsRowH=0,vsStart=0,vsEnd=0;
 const VS_BUF=5;
-
-function vsRowHeight(){
-  if(vsRowH>0)return vsRowH;
-  vsRowH=isDesktop()?68:Math.round((window.innerHeight-132)/7);
-  return vsRowH;
-}
-
-function rowHtml(r){
-  const sid=r.id.replace(/[^a-zA-Z0-9_-]/g,'_');
-  const desktop=isDesktop();
-  if(desktop){
-    const dDesc = cleanDesc(r.desc, r.id);
-    return`<div class="item-row" id="row-${sid}">
-      <div class="cell cell-uid">${xe(r.id)}</div>
-      <div class="cell cell-desc">
-        <div class="desc-name">${xe(dDesc)}</div>
-        ${r.cat?`<div class="desc-meta"><span class="pill pill-cat">${xe(r.cat)}</span></div>`:''}
-      </div>
-      <div class="cell cell-stock">${stockCellHtml(r.id)}</div>
-      <div class="cell cell-um">${xe(r.um)}</div>
-      <div class="cell cell-pack-col">${xe(r.pack)}</div>
-      <div class="cell cell-sup">${xe(r.sup)}</div>
-      <div class="cell cell-brand-col">
-        ${r.brand?`<span class="pill pill-brand">${xe(r.brand)}</span>`:''}
-        ${r.origin?`<span class="pill pill-origin" style="margin-top:2px">${xe(r.origin)}</span>`:''}
-      </div>
-    </div>`;
-  } else {
-    const mDesc = cleanDesc(r.desc, r.id);
-    return`<div class="item-row" id="row-${sid}" style="min-height:${vsRowH}px">
-      <div class="cell">
-        <div class="desc-name">${xe(mDesc)} <span style="color:var(--pack-clr);font-size:10px">(${xe(r.pack)})</span></div>
-        <span class="mob-uid">${xe(r.id)}</span>
-        <span class="mob-sup">(${xe(r.sup)})</span>
-        <div class="desc-meta">
-          ${r.brand?`<span class="pill pill-brand">${xe(r.brand)}</span>`:''}
-          ${r.origin?`<span class="pill pill-origin">${xe(r.origin)}</span>`:''}
-        </div>
-      </div>
-      <div class="cell cell-mob-right" id="cmr-${sid}">${stockCellHtmlMobile(r.id,r.um)}</div>
-    </div>`;
-  }
-}
-
-function vsRender(scrollTop){
-  const tbody=document.getElementById('tbody');
-  const wrap=document.getElementById('tblArea');
-  const rh=vsRowHeight();
-  const total=vsItems.length;
-  if(!total){tbody.innerHTML='<div class="empty-state">No items found</div>';return;}
-  const viewH=wrap.clientHeight;
-  const start=Math.max(0,Math.floor(scrollTop/rh)-VS_BUF);
-  const end=Math.min(total-1,Math.ceil((scrollTop+viewH)/rh)+VS_BUF);
-  if(start===vsStart&&end===vsEnd)return;
-  vsStart=start;vsEnd=end;
-  const topPad=start*rh;
-  const bottomPad=Math.max(0,(total-end-1)*rh);
-  tbody.innerHTML=`<div style="height:${topPad}px"></div>`+vsItems.slice(start,end+1).map(rowHtml).join('')+`<div style="height:${bottomPad}px"></div>`;
-}
-
-function renderTable(){
-  vsRowH=0;
-  vsItems=getFiltered();
-  vsStart=-1;vsEnd=-1;
-  document.getElementById('barCount').textContent=vsItems.length.toLocaleString();
-  const wrap=document.getElementById('tblArea');
-  wrap.scrollTop=0;
-  vsRender(0);
-}
-
+function vsRowHeight(){if(vsRowH>0)return vsRowH;vsRowH=isDesktop()?68:Math.round((window.innerHeight-132)/7);return vsRowH;}
+function rowHtml(r){const sid=r.id.replace(/[^a-zA-Z0-9_-]/g,'_');const desktop=isDesktop();if(desktop){const dDesc=cleanDesc(r.desc,r.id);return`<div class="item-row" id="row-${sid}"><div class="cell cell-uid">${xe(r.id)}</div><div class="cell cell-desc"><div class="desc-name">${xe(dDesc)}</div>${r.cat?`<div class="desc-meta"><span class="pill pill-cat">${xe(r.cat)}</span></div>`:''}</div><div class="cell cell-stock">${stockCellHtml(r.id)}</div><div class="cell cell-um">${xe(r.um)}</div><div class="cell cell-pack-col">${xe(r.pack)}</div><div class="cell cell-sup">${xe(r.sup)}</div><div class="cell cell-brand-col">${r.brand?`<span class="pill pill-brand">${xe(r.brand)}</span>`:''}${r.origin?`<span class="pill pill-origin" style="margin-top:2px">${xe(r.origin)}</span>`:''}</div></div>`;}const mDesc=cleanDesc(r.desc,r.id);return`<div class="item-row" id="row-${sid}" style="min-height:${vsRowH}px"><div class="cell"><div class="desc-name">${xe(mDesc)} <span style="color:var(--pack-clr);font-size:10px">(${xe(r.pack)})</span></div><span class="mob-uid">${xe(r.id)}</span><span class="mob-sup">(${xe(r.sup)})</span><div class="desc-meta">${r.brand?`<span class="pill pill-brand">${xe(r.brand)}</span>`:''}${r.origin?`<span class="pill pill-origin">${xe(r.origin)}</span>`:''}</div></div><div class="cell cell-mob-right" id="cmr-${sid}">${stockCellHtmlMobile(r.id,r.um)}</div></div>`;}
+function vsRender(scrollTop){const tbody=document.getElementById('tbody');const wrap=document.getElementById('tblArea');const rh=vsRowHeight();const total=vsItems.length;if(!total){tbody.innerHTML='<div class="empty-state">No items found</div>';return;}const viewH=wrap.clientHeight;const start=Math.max(0,Math.floor(scrollTop/rh)-VS_BUF);const end=Math.min(total-1,Math.ceil((scrollTop+viewH)/rh)+VS_BUF);if(start===vsStart&&end===vsEnd)return;vsStart=start;vsEnd=end;const topPad=start*rh;const bottomPad=Math.max(0,(total-end-1)*rh);tbody.innerHTML=`<div style="height:${topPad}px"></div>`+vsItems.slice(start,end+1).map(rowHtml).join('')+`<div style="height:${bottomPad}px"></div>`;}
+function renderTable(){vsRowH=0;vsItems=getFiltered();vsStart=-1;vsEnd=-1;document.getElementById('barCount').textContent=vsItems.length.toLocaleString();const wrap=document.getElementById('tblArea');wrap.scrollTop=0;vsRender(0);}
 let vsTicking=false;
-document.getElementById('tblArea').addEventListener('scroll',function(){
-  if(!vsTicking){requestAnimationFrame(()=>{vsRender(this.scrollTop);vsTicking=false;});vsTicking=true;}
-},{passive:true});
-
-function updateRowDisplay(uid){
-  const sid=uid.replace(/[^a-zA-Z0-9_-]/g,'_');
-  const row=document.getElementById('row-'+sid);
-  if(row){
-    const qty=stockData[uid]||0;
-    const formula=formulaData[uid]||'';
-    const qtyEl=document.getElementById('sqty-'+sid);
-    const eqEl=document.getElementById('eq-'+sid);
-    if(qty>0&&qtyEl&&eqEl){
-      qtyEl.textContent=qty%1===0?qty:qty.toFixed(2);
-      if(document.activeElement!==eqEl){
-        eqEl.value='='+(formula||String(qty));
-        document.getElementById('eqok-'+sid)?.classList.remove('on');
-      }
-    } else {
-      if(!isDesktop()){
-        const cmr=document.getElementById('cmr-'+sid);
-        const item=ITEMS.find(r=>r.id===uid);
-        if(cmr)cmr.innerHTML=stockCellHtmlMobile(uid,item?.um||'');
-      } else {
-        const sc=row.querySelector('.cell-stock');
-        if(sc)sc.innerHTML=stockCellHtml(uid);
-      }
-    }
-    row.classList.remove('updated');void row.offsetWidth;row.classList.add('updated');
-  }
-}
-
+document.getElementById('tblArea').addEventListener('scroll',function(){if(!vsTicking){requestAnimationFrame(()=>{vsRender(this.scrollTop);vsTicking=false;});vsTicking=true;}},{passive:true});
+function updateRowDisplay(uid){const sid=uid.replace(/[^a-zA-Z0-9_-]/g,'_');const row=document.getElementById('row-'+sid);if(!row)return;const qty=stockData[uid]||0;const formula=formulaData[uid]||'';const qtyEl=document.getElementById('sqty-'+sid);const eqEl=document.getElementById('eq-'+sid);if(qty>0&&qtyEl&&eqEl){qtyEl.textContent=qty%1===0?qty:qty.toFixed(2);if(document.activeElement!==eqEl){eqEl.value='='+(formula||String(qty));document.getElementById('eqok-'+sid)?.classList.remove('on');}}else{if(!isDesktop()){const cmr=document.getElementById('cmr-'+sid);const item=ITEMS.find(r=>r.id===uid);if(cmr)cmr.innerHTML=stockCellHtmlMobile(uid,item?.um||'');}else{const sc=row.querySelector('.cell-stock');if(sc)sc.innerHTML=stockCellHtml(uid);}}row.classList.remove('updated');void row.offsetWidth;row.classList.add('updated');}
 let resizeTimer;
-window.addEventListener('resize',()=>{
-  clearTimeout(resizeTimer);
-  resizeTimer=setTimeout(()=>{vsRowH=0;buildColHeads();renderTable();},200);
-});
-
-// ── SEARCH ────────────────────────────────────────────────────
+window.addEventListener('resize',()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(()=>{vsRowH=0;buildColHeads();renderTable();},200);});
 let sT;
-const searchInEl = document.getElementById('searchIn');
-
-searchInEl.addEventListener('focus', () => {
-  if (isDesktop()) {
-    searchInEl.removeAttribute('readonly');
-    searchInEl.removeAttribute('inputmode');
-  }
-});
-searchInEl.addEventListener('input', e => {
-  clearTimeout(sT);
-  sT = setTimeout(() => { searchQuery = e.target.value.toLowerCase().trim(); renderTable(); }, 120);
-});
-
-// ── NUMPAD ────────────────────────────────────────────────────
+const searchInEl=document.getElementById('searchIn');
+searchInEl.addEventListener('focus',()=>{if(isDesktop()){searchInEl.removeAttribute('readonly');searchInEl.removeAttribute('inputmode');}});
+searchInEl.addEventListener('input',e=>{clearTimeout(sT);sT=setTimeout(()=>{searchQuery=e.target.value.toLowerCase().trim();renderTable();},120);});
 let np={id:null,val:'0',op:'+'};
 let npPos={x:window.innerWidth-190,y:70};
 let npDrg=false,npOX=0,npOY=0;
-
-function openNp(id){
-  const item=ITEMS.find(r=>r.id===id);if(!item)return;
-  np.id=id;np.val='0';np.op='+';
-  const popup=document.getElementById('npPopup');
-  npPos.x=Math.min(npPos.x,window.innerWidth-186);
-  npPos.y=Math.max(10,Math.min(npPos.y,window.innerHeight-380));
-  popup.style.left=npPos.x+'px';popup.style.top=npPos.y+'px';
-  document.getElementById('npName').textContent=item.desc;
-  const umEl=document.getElementById('npUm');
-  umEl.textContent=item.um||'';umEl.style.display=item.um?'inline-block':'none';
-  const ex=stockData[id]||0;
-  document.getElementById('npExisting').innerHTML=ex>0?`Current: <span>${ex} ${item.um}</span>`:'No stock yet';
-  document.querySelectorAll('.np-op-tab').forEach(t=>t.classList.remove('active'));
-  document.querySelector('.np-op-tab[data-op="+"]').classList.add('active');
-  npDraw();
-  popup.classList.add('open');
-  setTimeout(()=>document.addEventListener('pointerdown',npOutside),50);
-}
+function openNp(id){const item=ITEMS.find(r=>r.id===id);if(!item)return;np.id=id;np.val='0';np.op='+';const popup=document.getElementById('npPopup');npPos.x=Math.min(npPos.x,window.innerWidth-186);npPos.y=Math.max(10,Math.min(npPos.y,window.innerHeight-380));popup.style.left=npPos.x+'px';popup.style.top=npPos.y+'px';document.getElementById('npName').textContent=item.desc;const umEl=document.getElementById('npUm');umEl.textContent=item.um||'';umEl.style.display=item.um?'inline-block':'none';const ex=stockData[id]||0;document.getElementById('npExisting').innerHTML=ex>0?`Current: <span>${ex} ${item.um}</span>`:'No stock yet';document.querySelectorAll('.np-op-tab').forEach(t=>t.classList.remove('active'));document.querySelector('.np-op-tab[data-op="+"]').classList.add('active');npDraw();popup.classList.add('open');setTimeout(()=>document.addEventListener('pointerdown',npOutside),50);}
 function closeNp(){document.getElementById('npPopup').classList.remove('open');document.removeEventListener('pointerdown',npOutside);}
 function npOutside(e){if(!document.getElementById('npPopup').contains(e.target)&&!e.target.closest('.stock-empty-btn')&&!e.target.closest('.stock-qty')&&!e.target.closest('.eq-input'))closeNp();}
 function setOp(el){np.op=el.dataset.op;np.val='0';document.querySelectorAll('.np-op-tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');npDraw();}
-function npKey(k){
-  if(k==='back'){np.val=np.val.length>1?np.val.slice(0,-1):'0';}
-  else if(k==='.'){if(!np.val.includes('.'))np.val+='.'; }
-  else{np.val=np.val==='0'?k:np.val+k;}
-  npDraw();
-}
-function npDraw(){
-  const valEl=document.getElementById('npVal'),prevEl=document.getElementById('npPreview');
-  const ex=stockData[np.id]||0,um=(ITEMS.find(r=>r.id===np.id)||{}).um||'';
-  valEl.textContent=np.val;valEl.className='np-value'+(np.val!=='0'?' active':'');
-  if(np.val==='0'){prevEl.textContent='';return;}
-  try{
-    const ent=parseFloat(Function('return ('+np.val+')')());if(isNaN(ent)){prevEl.textContent='';return;}
-    let nt;
-    if(np.op==='=')nt=ent;else if(np.op==='+')nt=ex+ent;else if(np.op==='-')nt=ex-ent;
-    else if(np.op==='*')nt=ex*ent;else if(np.op==='/')nt=ent!==0?ex/ent:ex;
-    nt=Math.max(0,parseFloat(nt.toFixed(4)));
-    const diff=parseFloat((nt-ex).toFixed(4));
-    prevEl.textContent=ex+' '+(diff>=0?'+':'')+diff+' = '+nt+' '+um;
-  }catch(e){prevEl.textContent='';}
-}
-function npConfirm(){
-  const ex=stockData[np.id]||0;if(np.val==='0'){closeNp();return;}
-  let nt,ent;
-  try{
-    ent=parseFloat(Function('return ('+np.val+')')());
-    if(np.op==='=')nt=ent;else if(np.op==='+')nt=ex+ent;else if(np.op==='-')nt=ex-ent;
-    else if(np.op==='*')nt=ex*ent;else if(np.op==='/')nt=ent!==0?ex/ent:ex;
-    nt=Math.max(0,parseFloat(nt.toFixed(4)));
-  }catch(e){closeNp();return;}
-  if(navigator.vibrate)navigator.vibrate(35);
-  const diff=parseFloat((nt-ex).toFixed(4));
-  if(np.op==='=')sendSet(np.id,nt);else if(diff!==0)sendAdd(np.id,diff);
-  const item=ITEMS.find(r=>r.id===np.id);
-  document.getElementById('npExisting').innerHTML=`Current: <span>${nt} ${item?.um||''}</span>`;
-  np.val='0';npDraw();
-}
-document.addEventListener('keydown',e=>{
-  if(!document.getElementById('npPopup').classList.contains('open'))return;
-  if(e.key==='Enter'){e.preventDefault();npConfirm();}
-  if(e.key==='Escape')closeNp();
-});
-
-// ── DRAG ──────────────────────────────────────────────────────
-document.getElementById('npDrag').addEventListener('mousedown',dS);
-document.getElementById('npDrag').addEventListener('touchstart',dS,{passive:true});
+function npKey(k){if(k==='back'){np.val=np.val.length>1?np.val.slice(0,-1):'0';}else if(k==='.'){if(!np.val.includes('.'))np.val+='.';}else{np.val=np.val==='0'?k:np.val+k;}npDraw();}
+function npDraw(){const valEl=document.getElementById('npVal'),prevEl=document.getElementById('npPreview');const ex=stockData[np.id]||0,um=(ITEMS.find(r=>r.id===np.id)||{}).um||'';valEl.textContent=np.val;valEl.className='np-value'+(np.val!=='0'?' active':'');if(np.val==='0'){prevEl.textContent='';return;}try{const ent=parseFloat(Function('return ('+np.val+')')());if(isNaN(ent)){prevEl.textContent='';return;}let nt;if(np.op==='=')nt=ent;else if(np.op==='+')nt=ex+ent;else if(np.op==='-')nt=ex-ent;else if(np.op==='*')nt=ex*ent;else if(np.op==='/')nt=ent!==0?ex/ent:ex;nt=Math.max(0,parseFloat(nt.toFixed(4)));const diff=parseFloat((nt-ex).toFixed(4));prevEl.textContent=ex+' '+(diff>=0?'+':'')+diff+' = '+nt+' '+um;}catch(e){prevEl.textContent='';}}
+function npConfirm(){const ex=stockData[np.id]||0;if(np.val==='0'){closeNp();return;}let nt,ent;try{ent=parseFloat(Function('return ('+np.val+')')());if(np.op==='=')nt=ent;else if(np.op==='+')nt=ex+ent;else if(np.op==='-')nt=ex-ent;else if(np.op==='*')nt=ex*ent;else if(np.op==='/')nt=ent!==0?ex/ent:ex;nt=Math.max(0,parseFloat(nt.toFixed(4)));}catch(e){closeNp();return;}if(navigator.vibrate)navigator.vibrate(35);const diff=parseFloat((nt-ex).toFixed(4));if(np.op==='=')sendSet(np.id,nt);else if(diff!==0)sendAdd(np.id,diff);const item=ITEMS.find(r=>r.id===np.id);document.getElementById('npExisting').innerHTML=`Current: <span>${nt} ${item?.um||''}</span>`;np.val='0';npDraw();}
+document.addEventListener('keydown',e=>{if(!document.getElementById('npPopup').classList.contains('open'))return;if(e.key==='Enter'){e.preventDefault();npConfirm();}if(e.key==='Escape')closeNp();});
+document.getElementById('npDrag').addEventListener('mousedown',dS);document.getElementById('npDrag').addEventListener('touchstart',dS,{passive:true});
 function dS(e){npDrg=true;const r=document.getElementById('npPopup').getBoundingClientRect();const cx=e.touches?e.touches[0].clientX:e.clientX,cy=e.touches?e.touches[0].clientY:e.clientY;npOX=cx-r.left;npOY=cy-r.top;document.addEventListener('mousemove',dM);document.addEventListener('mouseup',dE);document.addEventListener('touchmove',dM,{passive:true});document.addEventListener('touchend',dE);}
 function dM(e){if(!npDrg)return;const cx=e.touches?e.touches[0].clientX:e.clientX,cy=e.touches?e.touches[0].clientY:e.clientY;const p=document.getElementById('npPopup');const nx=Math.max(0,Math.min(window.innerWidth-p.offsetWidth,cx-npOX)),ny=Math.max(0,Math.min(window.innerHeight-p.offsetHeight,cy-npOY));npPos.x=nx;npPos.y=ny;p.style.left=nx+'px';p.style.top=ny+'px';}
 function dE(){npDrg=false;document.removeEventListener('mousemove',dM);document.removeEventListener('mouseup',dE);document.removeEventListener('touchmove',dM);document.removeEventListener('touchend',dE);}
-
-// ── PWA INSTALL ───────────────────────────────────────────────
 let dip=null;
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();dip=e;if(!localStorage.getItem('c2c_nodismiss'))document.getElementById('installBanner').classList.add('show');});
 document.getElementById('installBtn').addEventListener('click',()=>{if(dip){dip.prompt();dip.userChoice.then(()=>{dip=null;document.getElementById('installBanner').classList.remove('show');});}});
 
-// ══════════════════════════════════════════════════════════════
-// ── CUSTOM MOBILE QWERTY SEARCH KEYBOARD — GLOBAL SCOPE ──────
-// ══════════════════════════════════════════════════════════════
-let qkbQuery = '';
-let qkbCursorPos = 0;       // cursor index within qkbQuery
+// ═══ QWERTY ENGINE — touchstart instant, spaces visible ═══
+let qkbQuery='',qkbCursorPos=0;
+let qkbTrackpad=false,qkbTrackX=0,qkbTrackCursorStart=0;
+const QKB_SENS=10;
 
-// ── iOS-style trackpad state ──
-let qkbTrackpad = false;    // are we in trackpad drag mode?
-let qkbTrackX = 0;          // last touch X when trackpad started
-let qkbTrackCursorStart = 0;// cursor pos when trackpad drag began
-const QKB_TRACK_SENSITIVITY = 10; // px per character step
-
-function qkbOpen() {
-  if (isDesktop()) return;
-  document.activeElement?.blur();
-  qkbQuery = searchQuery;
-  qkbCursorPos = qkbQuery.length;
-  qkbRefresh();
-  document.getElementById('qkb').classList.add('open');
-  // Shrink table to eliminate black gap
-  requestAnimationFrame(() => {
-    const kbh = document.getElementById('qkb').offsetHeight;
-    document.getElementById('tblArea').style.height = (window.innerHeight - 50 - kbh) + 'px';
-  });
-}
-function qkbDone() {
-  document.getElementById('qkb').classList.remove('open');
-  document.getElementById('tblArea').style.height = '';
-  qkbTrackpad = false;
-}
-function qkbClear() {
-  qkbQuery = '';
-  qkbCursorPos = 0;
-  qkbRefresh();
-  searchQuery = '';
-  renderTable();
-}
-function qkbKey(k) {
-  if (k === 'back') {
-    if (qkbCursorPos > 0) {
-      qkbQuery = qkbQuery.slice(0, qkbCursorPos - 1) + qkbQuery.slice(qkbCursorPos);
-      qkbCursorPos--;
-    }
-  } else if (k === ' ') {
-    // regular tap on space = insert space at cursor
-    qkbQuery = qkbQuery.slice(0, qkbCursorPos) + ' ' + qkbQuery.slice(qkbCursorPos);
-    qkbCursorPos++;
-  } else {
-    qkbQuery = qkbQuery.slice(0, qkbCursorPos) + k + qkbQuery.slice(qkbCursorPos);
-    qkbCursorPos++;
+(function(){
+  function wire(el,val){
+    function fire(e){e.preventDefault();el.classList.add('pressed');setTimeout(()=>el.classList.remove('pressed'),100);qkbKey(val);}
+    el.addEventListener('touchstart',fire,{passive:false});
+    el.addEventListener('mousedown',fire);
   }
-  qkbRefresh();
-}
+  const nums=['1','2','3','4','5','6','7','8','9','0'];
+  document.querySelectorAll('#qkbNum .qkb-key').forEach((el,i)=>wire(el,nums[i]));
+  [['qkbQ',['q','w','e','r','t','y','u','i','o','p']],
+   ['qkbA',['a','s','d','f','g','h','j','k','l']],
+   ['qkbZ',['z','x','c','v','b','n','m']]
+  ].forEach(([id,keys])=>document.getElementById(id).querySelectorAll('.qkb-key').forEach((el,i)=>wire(el,keys[i])));
 
-function qkbRefresh() {
-  const disp = document.getElementById('qkbDisplay');
-  const inp  = document.getElementById('searchIn');
-  if (qkbQuery) {
-    // Show text with blinking | cursor at the right position
-    const before = qkbQuery.slice(0, qkbCursorPos);
-    const after  = qkbQuery.slice(qkbCursorPos);
-    // Use a <span> for cursor so CSS animation works without ::after conflict
-    disp.innerHTML = '<span class="qkb-text-before"></span><span class="qkb-cursor"></span><span class="qkb-text-after"></span>';
-    disp.querySelector('.qkb-text-before').textContent = before;
-    disp.querySelector('.qkb-text-after').textContent  = after;
-    disp.classList.remove('empty');
-    inp.value = qkbQuery;
-  } else {
-    disp.textContent = 'Search…';
-    disp.classList.add('empty');
-    inp.value = '';
-  }
-  searchQuery = qkbQuery.toLowerCase().trim();
-  clearTimeout(sT);
-  sT = setTimeout(() => renderTable(), 80);
-}
+  // backspace with repeat
+  let bt=null,bi=null;
+  const bk=document.getElementById('qkbBack');
+  function bfire(e){e.preventDefault();bk.classList.add('pressed');qkbKey('back');bt=setTimeout(()=>{bi=setInterval(()=>qkbKey('back'),60);},380);}
+  function brel(){bk.classList.remove('pressed');clearTimeout(bt);clearInterval(bi);}
+  bk.addEventListener('touchstart',bfire,{passive:false});bk.addEventListener('mousedown',bfire);
+  bk.addEventListener('touchend',brel);bk.addEventListener('mouseup',brel);
 
-// ── SPACE KEY: tap = space, hold+drag = iOS trackpad ──────────
-(function() {
-  let holdTimer = null;
+  // space: tap=space, hold+drag=cursor trackpad
+  const sp=document.getElementById('qkbSpace');
+  let ht=null;
+  sp.addEventListener('touchstart',e=>{
+    e.preventDefault();qkbTrackpad=false;qkbTrackX=e.touches[0].clientX;qkbTrackCursorStart=qkbCursorPos;
+    ht=setTimeout(()=>{qkbTrackpad=true;if(navigator.vibrate)navigator.vibrate(25);sp.style.background='rgba(16,185,129,.35)';},300);
+  },{passive:false});
+  sp.addEventListener('touchmove',e=>{if(!qkbTrackpad)return;e.preventDefault();const steps=Math.round((e.touches[0].clientX-qkbTrackX)/QKB_SENS);qkbCursorPos=Math.max(0,Math.min(qkbQuery.length,qkbTrackCursorStart+steps));qkbRefresh();},{passive:false});
+  sp.addEventListener('touchend',e=>{clearTimeout(ht);if(qkbTrackpad){qkbTrackpad=false;sp.style.background='';}else qkbKey(' ');});
+  sp.addEventListener('mousedown',e=>{e.preventDefault();qkbKey(' ');});
 
-  function spaceEl() { return document.querySelector('.qkb-key-space'); }
-
-  function onSpaceTouchStart(e) {
-    qkbTrackpad = false;
-    qkbTrackX = e.touches[0].clientX;
-    qkbTrackCursorStart = qkbCursorPos;
-    holdTimer = setTimeout(() => {
-      qkbTrackpad = true;
-      if (navigator.vibrate) navigator.vibrate(30);
-      // visual cue
-      spaceEl().style.background = 'rgba(16,185,129,.35)';
-    }, 300);
-  }
-
-  function onSpaceTouchMove(e) {
-    if (!qkbTrackpad) return;
-    e.preventDefault();
-    const dx = e.touches[0].clientX - qkbTrackX;
-    const steps = Math.round(dx / QKB_TRACK_SENSITIVITY);
-    qkbCursorPos = Math.max(0, Math.min(qkbQuery.length, qkbTrackCursorStart + steps));
-    qkbRefresh();
-  }
-
-  function onSpaceTouchEnd(e) {
-    clearTimeout(holdTimer);
-    if (qkbTrackpad) {
-      // just finished dragging — don't insert space
-      qkbTrackpad = false;
-      spaceEl().style.background = '';
-    } else {
-      // short tap — insert space normally
-      qkbKey(' ');
-    }
-  }
-
-  // Attach after DOM ready
-  document.addEventListener('DOMContentLoaded', () => {}, false);
-  // We attach via event delegation since the element exists at parse time
-  document.addEventListener('touchstart', e => {
-    if (e.target.closest('.qkb-key-space')) onSpaceTouchStart(e);
-  }, { passive: true });
-  document.addEventListener('touchmove', e => {
-    if (qkbTrackpad) { onSpaceTouchMove(e); }
-  }, { passive: false });
-  document.addEventListener('touchend', e => {
-    if (e.target.closest('.qkb-key-space') || qkbTrackpad) onSpaceTouchEnd(e);
-  }, { passive: true });
+  // clear + done buttons
+  document.getElementById('qkbClearBtn').addEventListener('touchstart',e=>{e.preventDefault();qkbClear();},{passive:false});
+  document.getElementById('qkbClearBtn').addEventListener('click',qkbClear);
+  document.getElementById('qkbDoneBtn').addEventListener('touchstart',e=>{e.preventDefault();qkbDone();},{passive:false});
+  document.getElementById('qkbDoneBtn').addEventListener('click',qkbDone);
 })();
 
-// ══════════════════════════════════════════════════════════════
-// ── CUSTOM MOBILE FORMULA KEYBOARD — GLOBAL SCOPE ────────────
-// ══════════════════════════════════════════════════════════════
-let fkbTargetId = null, fkbTargetSid = null, fkbVal = '';
+function qkbOpen(){if(isDesktop())return;document.activeElement?.blur();qkbQuery=searchQuery;qkbCursorPos=qkbQuery.length;qkbRefresh();document.getElementById('qkb').classList.add('open');requestAnimationFrame(()=>{const kbh=document.getElementById('qkb').offsetHeight;document.getElementById('tblArea').style.height=(window.innerHeight-50-kbh)+'px';});}
+function qkbDone(){document.getElementById('qkb').classList.remove('open');document.getElementById('tblArea').style.height='';qkbTrackpad=false;}
+function qkbClear(){qkbQuery='';qkbCursorPos=0;qkbRefresh();searchQuery='';renderTable();}
+function qkbKey(k){if(k==='back'){if(qkbCursorPos>0){qkbQuery=qkbQuery.slice(0,qkbCursorPos-1)+qkbQuery.slice(qkbCursorPos);qkbCursorPos--;}}else{qkbQuery=qkbQuery.slice(0,qkbCursorPos)+k+qkbQuery.slice(qkbCursorPos);qkbCursorPos++;}qkbRefresh();}
+function qkbRefresh(){const disp=document.getElementById('qkbDisplay');const inp=document.getElementById('searchIn');if(qkbQuery){const before=qkbQuery.slice(0,qkbCursorPos);const after=qkbQuery.slice(qkbCursorPos);disp.innerHTML='<span class="qkb-text-before"></span><span class="qkb-cursor"></span><span class="qkb-text-after"></span>';disp.querySelector('.qkb-text-before').textContent=before;disp.querySelector('.qkb-text-after').textContent=after;disp.classList.remove('empty');inp.value=qkbQuery;}else{disp.textContent='Search…';disp.classList.add('empty');inp.value='';}searchQuery=qkbQuery.toLowerCase().trim();clearTimeout(sT);sT=setTimeout(()=>renderTable(),80);}
 
-function fkbOpen(id, sid) {
-  if (isDesktop()) return;
-  fkbTargetId = id; fkbTargetSid = sid;
-  const existing = formulaData[id] || String(stockData[id] || 0);
-  fkbVal = existing;
-  document.getElementById('fkbDisplay').textContent = '=' + fkbVal;
-  document.getElementById('fkbOverlay').classList.add('open');
-  document.activeElement?.blur();
-}
-function fkbCancel() {
-  document.getElementById('fkbOverlay').classList.remove('open');
-  fkbTargetId = null; fkbTargetSid = null; fkbVal = '';
-}
-function fkbKey(k) {
-  if (k === 'back') {
-    fkbVal = fkbVal.length > 0 ? fkbVal.slice(0, -1) : '';
-  } else if (k === '()') {
-    const opens = (fkbVal.match(/\(/g) || []).length;
-    const closes = (fkbVal.match(/\)/g) || []).length;
-    fkbVal += opens > closes ? ')' : '(';
-  } else {
-    fkbVal += k;
-  }
-  document.getElementById('fkbDisplay').textContent = '=' + fkbVal;
-}
-function fkbConfirm() {
-  if (!fkbTargetId) return;
-  const id = fkbTargetId, sid = fkbTargetSid;
-  const clean = fkbVal.replace(/[^0-9.+\-*\/()]/g, '');
-  if (!clean) { fkbCancel(); return; }
-  let qty;
-  try { qty = Math.max(0, parseFloat(Function('return (' + clean + ')')().toFixed(4))); }
-  catch (e) { qty = stockData[id] || 0; }
-  const inp = document.getElementById('eq-' + sid);
-  if (inp) inp.value = '=' + clean;
-  document.getElementById('eqok-' + sid)?.classList.remove('on');
-  fkbCancel();
-  sendSetFormula(id, clean, qty);
-}
+// FORMULA KEYBOARD
+let fkbTargetId=null,fkbTargetSid=null,fkbVal='';
+function fkbOpen(id,sid){if(isDesktop())return;fkbTargetId=id;fkbTargetSid=sid;const existing=formulaData[id]||String(stockData[id]||0);fkbVal=existing;document.getElementById('fkbDisplay').textContent='='+fkbVal;document.getElementById('fkbOverlay').classList.add('open');document.activeElement?.blur();}
+function fkbCancel(){document.getElementById('fkbOverlay').classList.remove('open');fkbTargetId=null;fkbTargetSid=null;fkbVal='';}
+function fkbKey(k){if(k==='back'){fkbVal=fkbVal.length>0?fkbVal.slice(0,-1):'';}else if(k==='()'){const o=(fkbVal.match(/\(/g)||[]).length;const c=(fkbVal.match(/\)/g)||[]).length;fkbVal+=o>c?')':'(';}else{fkbVal+=k;}document.getElementById('fkbDisplay').textContent='='+fkbVal;}
+function fkbConfirm(){if(!fkbTargetId)return;const id=fkbTargetId,sid=fkbTargetSid;const clean=fkbVal.replace(/[^0-9.+\-*\/()]/g,'');if(!clean){fkbCancel();return;}let qty;try{qty=Math.max(0,parseFloat(Function('return ('+clean+')')().toFixed(4)));}catch(e){qty=stockData[id]||0;}const inp=document.getElementById('eq-'+sid);if(inp)inp.value='='+clean;document.getElementById('eqok-'+sid)?.classList.remove('on');fkbCancel();sendSetFormula(id,clean,qty);}
 
-// ── BOOT ──────────────────────────────────────────────────────
-window.addEventListener('load', () => {
-  if (localStorage.getItem('c2c_mode') === 'light') { document.body.classList.add('light'); document.getElementById('modeBtn').textContent = '☀️ LIGHT'; }
-  loadLocal(); loadHistory();
-
-  let p = 0, attempt = 0;
-  const bar = document.getElementById('loadBar'), txt = document.getElementById('loadTxt');
-  const iv = setInterval(() => { p = Math.min(p + Math.random() * 12, 88); bar.style.width = p + '%'; }, 60);
-
-  function finishLoad() {
-    clearInterval(iv); bar.style.width = '100%';
-    txt.textContent = ITEMS.length.toLocaleString() + ' items loaded ✓';
-    document.getElementById('barCount').textContent = ITEMS.length.toLocaleString();
-    setSync('ok', '● LIVE');
-    setTimeout(() => { buildColHeads(); renderTable(); document.getElementById('loadScreen').style.display = 'none'; startFirebaseListener(); }, 200);
-  }
-
-  function fetchFromSheet() {
-    attempt++;
-    txt.textContent = attempt > 1 ? 'Retrying (' + attempt + '/3)…' : 'Connecting to sheet…';
-    fetch(SHEETS_URL + '?action=getAll&_t=' + Date.now() + Math.random(), { cache: 'no-store', redirect: 'follow' })
-      .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
-      .then(d => {
-        if (!d.ok || !d.items) throw new Error(d.error || 'No data');
-        ITEMS = d.items;
-        ITEMS.forEach(item => { stockData[item.id] = parseFloat(item.stock) || 0; if (item.formula) formulaData[item.id] = item.formula; });
-        try { localStorage.setItem('c2c_items', JSON.stringify(ITEMS)); localStorage.setItem('c2c_items_ts', String(Date.now())); } catch (e) {}
-        db.ref('stock').once('value').then(snap => {
-          const fb = snap.val();
-          if (fb) Object.entries(fb).forEach(([k, v]) => {
-            const item = ITEMS.find(r => r.id.replace(/[.#$[\]]/g, '_') === k);
-            if (!item) return;
-            stockData[item.id] = parseFloat(v.qty) || 0;
-            formulaData[item.id] = String(v.formula || v.qty || 0);
-          });
-          saveLocal(); finishLoad();
-        }).catch(() => finishLoad());
-      })
-      .catch(() => {
-        if (attempt < 3) { txt.textContent = 'Retrying…'; setTimeout(fetchFromSheet, 2000); }
-        else { clearInterval(iv); bar.style.width = '100%'; txt.textContent = '✕ Failed — tap to retry'; txt.style.cursor = 'pointer'; txt.onclick = () => { attempt = 0; p = 0; bar.style.width = '0%'; txt.style.cursor = ''; fetchFromSheet(); }; setSync('error', '✕ ERROR'); }
-      });
-  }
-
-  const CACHE_KEY = 'c2c_items', CACHE_TS = 'c2c_items_ts', CACHE_TTL = 6 * 60 * 60 * 1000;
-  const cachedTs = parseInt(localStorage.getItem(CACHE_TS) || '0');
-  const cacheValid = (Date.now() - cachedTs) < CACHE_TTL;
-  const cachedItems = localStorage.getItem(CACHE_KEY);
-
-  if (cachedItems && cacheValid) {
-    try {
-      ITEMS = JSON.parse(cachedItems);
-      if (ITEMS && ITEMS.length > 10) {
-        txt.textContent = 'Loaded from cache ⚡';
-        db.ref('stock').once('value').then(snap => {
-          const fb = snap.val();
-          if (fb) Object.entries(fb).forEach(([k, v]) => {
-            const item = ITEMS.find(r => r.id.replace(/[.#$[\]]/g, '_') === k);
-            if (!item) return;
-            stockData[item.id] = parseFloat(v.qty) || 0;
-            formulaData[item.id] = String(v.formula || v.qty || 0);
-          });
-          saveLocal(); finishLoad();
-        }).catch(() => finishLoad());
-        return;
-      }
-    } catch (e) { ITEMS = []; }
-  }
+// BOOT
+window.addEventListener('load',()=>{
+  if(localStorage.getItem('c2c_mode')==='light'){document.body.classList.add('light');document.getElementById('modeBtn').textContent='☀️ LIGHT';}
+  loadLocal();loadHistory();
+  let p=0,attempt=0;
+  const bar=document.getElementById('loadBar'),txt=document.getElementById('loadTxt');
+  const iv=setInterval(()=>{p=Math.min(p+Math.random()*12,88);bar.style.width=p+'%';},60);
+  function finishLoad(){clearInterval(iv);bar.style.width='100%';txt.textContent=ITEMS.length.toLocaleString()+' items loaded ✓';document.getElementById('barCount').textContent=ITEMS.length.toLocaleString();setSync('ok','● LIVE');setTimeout(()=>{buildColHeads();renderTable();document.getElementById('loadScreen').style.display='none';startFirebaseListener();},200);}
+  function fetchFromSheet(){attempt++;txt.textContent=attempt>1?'Retrying ('+attempt+'/3)…':'Connecting to sheet…';fetch(SHEETS_URL+'?action=getAll&_t='+Date.now()+Math.random(),{cache:'no-store',redirect:'follow'}).then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);return r.json();}).then(d=>{if(!d.ok||!d.items)throw new Error(d.error||'No data');ITEMS=d.items;ITEMS.forEach(item=>{stockData[item.id]=parseFloat(item.stock)||0;if(item.formula)formulaData[item.id]=item.formula;});try{localStorage.setItem('c2c_items',JSON.stringify(ITEMS));localStorage.setItem('c2c_items_ts',String(Date.now()));}catch(e){}db.ref('stock').once('value').then(snap=>{const fb=snap.val();if(fb)Object.entries(fb).forEach(([k,v])=>{const item=ITEMS.find(r=>r.id.replace(/[.#$[\]]/g,'_')===k);if(!item)return;stockData[item.id]=parseFloat(v.qty)||0;formulaData[item.id]=String(v.formula||v.qty||0);});saveLocal();finishLoad();}).catch(()=>finishLoad());}).catch(()=>{if(attempt<3){txt.textContent='Retrying…';setTimeout(fetchFromSheet,2000);}else{clearInterval(iv);bar.style.width='100%';txt.textContent='✕ Failed — tap to retry';txt.style.cursor='pointer';txt.onclick=()=>{attempt=0;p=0;bar.style.width='0%';txt.style.cursor='';fetchFromSheet();};setSync('error','✕ ERROR');}});}
+  const CACHE_KEY='c2c_items',CACHE_TS='c2c_items_ts',CACHE_TTL=6*60*60*1000;
+  const cachedTs=parseInt(localStorage.getItem(CACHE_TS)||'0');
+  const cacheValid=(Date.now()-cachedTs)<CACHE_TTL;
+  const cachedItems=localStorage.getItem(CACHE_KEY);
+  if(cachedItems&&cacheValid){try{ITEMS=JSON.parse(cachedItems);if(ITEMS&&ITEMS.length>10){txt.textContent='Loaded from cache ⚡';db.ref('stock').once('value').then(snap=>{const fb=snap.val();if(fb)Object.entries(fb).forEach(([k,v])=>{const item=ITEMS.find(r=>r.id.replace(/[.#$[\]]/g,'_')===k);if(!item)return;stockData[item.id]=parseFloat(v.qty)||0;formulaData[item.id]=String(v.formula||v.qty||0);});saveLocal();finishLoad();}).catch(()=>finishLoad());return;}}catch(e){ITEMS=[];}}
   fetchFromSheet();
 });
 </script>

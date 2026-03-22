@@ -211,9 +211,7 @@ body.light .np-btn-back{color:rgba(0,0,0,.35);}
   position:fixed;bottom:0;left:0;right:0;z-index:5000;
   background:rgba(10,18,35,.98);
   border-top:1px solid rgba(255,255,255,.10);
-  /* keys + bar padding on top/sides, safe-area fills bottom */
   padding:4px 4px 0;
-  padding-bottom:env(safe-area-inset-bottom,0px);
   display:none;flex-direction:column;gap:4px;
   backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
 }
@@ -269,10 +267,11 @@ body.light .qkb-key-space{background:rgba(16,185,129,.12);}
 body.light .qkb-key-back{background:rgba(239,68,68,.10);}
 .qkb-row-bottom{padding:0 2px;}
 
-/* search pill — NO bottom padding here, safe-area is on .qkb */
+/* search pill — padding-bottom absorbs safe area so bar fills the gap */
 .qkb-bar{
   display:flex;align-items:center;gap:6px;
   padding:2px 6px 4px;
+  padding-bottom:calc(4px + env(safe-area-inset-bottom,0px));
 }
 .qkb-input-display{
   flex:1;font-size:14px;font-weight:700;color:var(--text);

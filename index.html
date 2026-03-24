@@ -235,7 +235,6 @@ body.light .np-btn-back{color:rgba(0,0,0,.35);}
 
 /* ══════════════════════════════════════════════
    MOBILE (default — < 768px)
-   2 cols: Description+UID+Supplier | Stock+UM+Formula
 ══════════════════════════════════════════════ */
 .tbl-area{height:calc(100dvh - 50px - 66px - env(safe-area-inset-top, 0px));mask-image:linear-gradient(to bottom,black 88%,transparent 100%);-webkit-mask-image:linear-gradient(to bottom,black 88%,transparent 100%);}
 .col-heads{display:grid;grid-template-columns:1fr 110px;padding:0 12px;}
@@ -247,20 +246,17 @@ body.light .np-btn-back{color:rgba(0,0,0,.35);}
 .cell:first-child{padding-left:12px;}
 .cell:last-child{padding-right:12px;}
 
-/* Mobile left cell */
 .desc-name{font-size:14px;font-weight:700;color:var(--text);line-height:1.35;margin-bottom:4px;}
 .mob-uid{font-family:monospace;font-size:10px;font-weight:800;color:var(--uid-clr);margin-bottom:2px;display:block;}
 .mob-sup{font-size:10px;font-weight:600;color:var(--text3);display:block;}
 .desc-meta{display:flex;flex-wrap:wrap;gap:3px;margin-top:4px;}
 
-/* Mobile right cell */
 .cell-mob-right{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;}
 .stock-qty{font-size:20px;font-weight:800;color:var(--brand);line-height:1;cursor:pointer;}
 .mob-um{font-size:9px;font-weight:800;padding:2px 7px;border-radius:20px;background:var(--brand-dim);border:1px solid var(--brand-border);color:var(--brand);white-space:nowrap;}
 .eq-input{width:90px;font-size:8px;}
 .stock-empty-btn{width:90px;height:32px;}
 
-/* Hide desktop-only columns on mobile */
 .cell-uid{display:none;}
 .cell-um{display:none;}
 .cell-sup{display:none;}
@@ -282,8 +278,6 @@ body.light .np-btn-back{color:rgba(0,0,0,.35);}
 .qkb.open{display:flex;}
 body.light .qkb{background:rgba(230,235,245,.97);border-top-color:rgba(0,0,0,.10);}
 
-
-/* iOS-style pill with blinking cursor */
 .qkb-input-display{
   flex:1;font-size:15px;font-weight:700;color:var(--text);
   background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);
@@ -294,16 +288,9 @@ body.light .qkb{background:rgba(230,235,245,.97);border-top-color:rgba(0,0,0,.10
 }
 .qkb-text-before,.qkb-text-after{color:var(--text);}
 .qkb-cursor{
-  display:inline-block;
-  width:2px;
-  height:1.1em;
-  background:var(--brand);
-  border-radius:1px;
-  vertical-align:middle;
-  margin:0 0px;
-  animation:qkbBlink .9s step-end infinite;
-  user-select:none;
-  flex-shrink:0;
+  display:inline-block;width:2px;height:1.1em;
+  background:var(--brand);border-radius:1px;vertical-align:middle;margin:0 0px;
+  animation:qkbBlink .9s step-end infinite;user-select:none;flex-shrink:0;
 }
 @keyframes qkbBlink{0%,100%{opacity:1;}50%{opacity:0;}}
 body.light .qkb-input-display{background:rgba(0,0,0,.05);border-color:rgba(0,0,0,.12);}
@@ -315,232 +302,135 @@ body.light .qkb-input-display{background:rgba(0,0,0,.05);border-color:rgba(0,0,0
   font-family:'Plus Jakarta Sans',sans-serif;white-space:nowrap;flex-shrink:0;
 }
 .qkb-done{
-  background:var(--brand);border:none;
-  color:#020617;border-radius:20px;padding:6px 14px;
+  background:var(--brand);border:none;color:#020617;border-radius:20px;padding:6px 14px;
   font-size:10px;font-weight:800;cursor:pointer;
   font-family:'Plus Jakarta Sans',sans-serif;white-space:nowrap;flex-shrink:0;
 }
-
 .qkb-row{display:flex;justify-content:center;gap:4px;}
 .qkb-key{
-  flex:1;height:36px;
-  border:1px solid rgba(255,255,255,.09);
-  background:rgba(255,255,255,.09);
-  border-radius:7px;
-  font-size:14px;font-weight:600;
-  color:rgba(255,255,255,.90);
-  cursor:pointer;
+  flex:1;height:36px;border:1px solid rgba(255,255,255,.09);background:rgba(255,255,255,.09);
+  border-radius:7px;font-size:14px;font-weight:600;color:rgba(255,255,255,.90);cursor:pointer;
   display:flex;align-items:center;justify-content:center;
-  transition:background .07s,transform .06s;
-  -webkit-tap-highlight-color:transparent;
-  user-select:none;
+  transition:background .07s,transform .06s;-webkit-tap-highlight-color:transparent;user-select:none;
 }
 .qkb-key:active{background:rgba(255,255,255,.25);transform:scale(.88);}
 body.light .qkb-key{background:rgba(0,0,0,.07);border-color:rgba(0,0,0,.10);color:#0f172a;}
 body.light .qkb-key:active{background:rgba(0,0,0,.18);}
 .qkb-key-space{
-  flex:5;
-  background:rgba(16,185,129,.12);
-  border-color:rgba(16,185,129,.22);
-  color:var(--brand);
-  font-size:12px;font-weight:800;
-  letter-spacing:1px;
+  flex:5;background:rgba(16,185,129,.12);border-color:rgba(16,185,129,.22);
+  color:var(--brand);font-size:12px;font-weight:800;letter-spacing:1px;
 }
-/* Number row */
 .qkb-key-num{font-size:13px;font-weight:700;color:rgba(255,255,255,.75);}
 body.light .qkb-key-num{color:rgba(0,0,0,.5);}
-/* Backspace — small fixed width right */
 .qkb-key-back{
-  flex:0 0 60px;
-  height:44px;
-  font-size:22px;
-  background:rgba(239,68,68,.15);
-  border-color:rgba(239,68,68,.28);
-  color:#ef4444;
-  border-radius:7px;
+  flex:0 0 60px;height:44px;font-size:22px;
+  background:rgba(239,68,68,.15);border-color:rgba(239,68,68,.28);color:#ef4444;border-radius:7px;
 }
 body.light .qkb-key-back{background:rgba(239,68,68,.10);}
 .qkb-row:not(.qkb-row-bottom) .qkb-key{max-width:38px;}
 .qkb-row:nth-child(4) .qkb-key{max-width:46px;}
 .qkb-row-bottom{padding:0 2px;}
 .qkb-row-bottom .qkb-key{height:44px;}
-
-/* Search bar — tight to bottom, only true safe area */
 .qkb-bar{
   display:flex;align-items:center;gap:8px;
-  padding:4px 8px env(safe-area-inset-bottom, 4px);
-  margin-top:0;
+  padding:4px 8px env(safe-area-inset-bottom, 4px);margin-top:0;
 }
 
 /* ── CUSTOM MOBILE FORMULA KEYBOARD ── */
 .fkb-overlay{
   position:fixed;bottom:0;left:0;right:0;z-index:8000;
-  background:rgba(13,24,41,.97);
-  border-top:1px solid rgba(255,255,255,.10);
+  background:rgba(13,24,41,.97);border-top:1px solid rgba(255,255,255,.10);
   padding:8px 8px calc(8px + var(--safe-bottom));
-  display:none;
-  flex-direction:column;
-  gap:6px;
-  backdrop-filter:blur(20px);
-  -webkit-backdrop-filter:blur(20px);
+  display:none;flex-direction:column;gap:6px;
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
 }
 .fkb-overlay.open{display:flex;}
 body.light .fkb-overlay{background:rgba(235,240,250,.97);border-top-color:rgba(0,0,0,.10);}
-
 .fkb-top{display:flex;align-items:center;gap:8px;padding:0 4px 2px;}
 .fkb-label{font-size:10px;font-weight:800;color:var(--text3);flex:1;}
 .fkb-display{
-  flex:1;font-family:monospace;font-size:15px;font-weight:700;
-  color:var(--text);background:rgba(255,255,255,.06);
-  border:1px solid rgba(255,255,255,.12);border-radius:8px;
-  padding:6px 10px;min-height:34px;
+  flex:1;font-family:monospace;font-size:15px;font-weight:700;color:var(--text);
+  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);
+  border-radius:8px;padding:6px 10px;min-height:34px;
   overflow:hidden;white-space:nowrap;text-overflow:ellipsis;
 }
 body.light .fkb-display{background:rgba(0,0,0,.05);border-color:rgba(0,0,0,.12);color:var(--text);}
 .fkb-close{
   background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);
-  color:#ef4444;border-radius:8px;padding:6px 12px;
-  font-size:10px;font-weight:800;cursor:pointer;
-  font-family:'Plus Jakarta Sans',sans-serif;white-space:nowrap;
+  color:#ef4444;border-radius:8px;padding:6px 12px;font-size:10px;font-weight:800;
+  cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;white-space:nowrap;
 }
-
 .fkb-row{display:grid;gap:5px;}
 .fkb-row-1{grid-template-columns:repeat(6,1fr);}
 .fkb-row-2{grid-template-columns:repeat(6,1fr);}
 .fkb-row-3{grid-template-columns:repeat(6,1fr);}
-
 .fkb-btn{
-  border:1px solid rgba(255,255,255,.09);
-  background:rgba(255,255,255,.08);
-  border-radius:9px;height:44px;
-  font-size:16px;font-weight:600;
-  color:rgba(255,255,255,.90);
-  cursor:pointer;
-  font-family:'Plus Jakarta Sans',sans-serif;
+  border:1px solid rgba(255,255,255,.09);background:rgba(255,255,255,.08);
+  border-radius:9px;height:44px;font-size:16px;font-weight:600;color:rgba(255,255,255,.90);
+  cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;
   display:flex;align-items:center;justify-content:center;
-  transition:background .08s,transform .07s;
-  -webkit-tap-highlight-color:transparent;
+  transition:background .08s,transform .07s;-webkit-tap-highlight-color:transparent;
 }
 .fkb-btn:active{background:rgba(255,255,255,.22);transform:scale(.88);}
 body.light .fkb-btn{background:rgba(0,0,0,.07);border-color:rgba(0,0,0,.10);color:#0f172a;}
 body.light .fkb-btn:active{background:rgba(0,0,0,.15);}
-
-.fkb-btn-op{
-  background:rgba(99,102,241,.15);
-  border-color:rgba(99,102,241,.25);
-  color:#818cf8;font-size:15px;
-}
+.fkb-btn-op{background:rgba(99,102,241,.15);border-color:rgba(99,102,241,.25);color:#818cf8;font-size:15px;}
 body.light .fkb-btn-op{background:rgba(99,102,241,.10);color:#6366f1;}
-
 .fkb-btn-back{background:rgba(239,68,68,.12);border-color:rgba(239,68,68,.22);color:#ef4444;font-size:14px;}
 .fkb-btn-ok{
-  background:var(--brand);border-color:var(--brand);
-  color:#020617;font-weight:800;font-size:13px;
+  background:var(--brand);border-color:var(--brand);color:#020617;font-weight:800;font-size:13px;
   box-shadow:0 2px 10px rgba(16,185,129,.3);
 }
 .fkb-btn-ok:active{background:#0ea572;}
 
 /* ══════════════════════════════════════════════
    DESKTOP (≥ 768px)
-   7 cols: UID | Description | Stock | U/M | Pack | Supplier | Brand/Origin
 ══════════════════════════════════════════════ */
 @media(min-width:768px){
   :root{--row-h:auto;}
   html,body{overflow:hidden;}
-
   .nav{height:54px;padding:0 28px;}
   .nav-logo{font-size:16px;}
   .nav-label{display:inline;font-size:10px;}
   .hist-btn{display:inline-flex;}
-
   .tbl-area{
     height:calc(100dvh - 54px - 68px);
     mask-image:linear-gradient(to bottom,black 85%,transparent 100%);
     -webkit-mask-image:linear-gradient(to bottom,black 85%,transparent 100%);
     padding:0 24px 20px;
   }
-
   .col-heads{
-    display:grid;
-    grid-template-columns:90px 1fr 150px 52px 80px 180px 130px;
-    padding:0;
-    border-radius:12px;
-    border:1px solid var(--border);
-    margin-bottom:4px;
+    display:grid;grid-template-columns:90px 1fr 150px 52px 80px 180px 130px;
+    padding:0;border-radius:12px;border:1px solid var(--border);margin-bottom:4px;
   }
   .col-h{padding:10px 12px;font-size:8.5px;}
   .col-h:first-child{border-radius:12px 0 0 12px;padding-left:16px;}
   .col-h:last-child{border-radius:0 12px 12px 0;padding-right:16px;}
-
   .item-row{
-    display:grid;
-    grid-template-columns:90px 1fr 150px 52px 80px 180px 130px;
-    padding:0;
-    min-height:68px;
-    border-radius:8px;
-    margin-bottom:2px;
-    border:1px solid var(--border2);
-    border-bottom:1px solid var(--border2);
+    display:grid;grid-template-columns:90px 1fr 150px 52px 80px 180px 130px;
+    padding:0;min-height:68px;border-radius:8px;margin-bottom:2px;
+    border:1px solid var(--border2);border-bottom:1px solid var(--border2);
   }
   .item-row:hover{border-color:rgba(255,255,255,.06);}
-
   .cell{padding:10px 12px;display:flex;align-items:center;}
   .cell:first-child{padding-left:16px;border-radius:8px 0 0 8px;}
   .cell:last-child{padding-right:16px;border-radius:0 8px 8px 0;}
-
-  .cell-uid{
-    display:flex;
-    font-family:monospace;
-    font-size:10px;
-    font-weight:700;
-    color:var(--uid-clr);
-    line-height:1.4;
-    word-break:break-all;
-  }
-  .cell-um{
-    display:flex;
-    font-size:11px;
-    font-weight:700;
-    color:var(--text2);
-    justify-content:center;
-    text-align:center;
-  }
-  .cell-sup{
-    display:flex;
-    font-size:11px;
-    font-weight:600;
-    color:var(--text2);
-    align-items:center;
-    line-height:1.4;
-  }
-  .cell-pack-col{
-    display:flex;
-    font-size:11px;
-    font-weight:700;
-    color:var(--pack-clr);
-    align-items:center;
-  }
-  .cell-brand-col{
-    display:flex;
-    flex-direction:column;
-    justify-content:center;
-    gap:3px;
-  }
+  .cell-uid{display:flex;font-family:monospace;font-size:10px;font-weight:700;color:var(--uid-clr);line-height:1.4;word-break:break-all;}
+  .cell-um{display:flex;font-size:11px;font-weight:700;color:var(--text2);justify-content:center;text-align:center;}
+  .cell-sup{display:flex;font-size:11px;font-weight:600;color:var(--text2);align-items:center;line-height:1.4;}
+  .cell-pack-col{display:flex;font-size:11px;font-weight:700;color:var(--pack-clr);align-items:center;}
+  .cell-brand-col{display:flex;flex-direction:column;justify-content:center;gap:3px;}
   .cell-cost{display:none;}
-
   .cell-desc{display:flex;flex-direction:column;justify-content:center;}
   .desc-name{font-size:13px;font-weight:700;color:var(--text);line-height:1.35;margin-bottom:2px;}
   .desc-meta{display:flex;flex-wrap:wrap;gap:3px;margin-top:2px;}
-
   .cell-stock{justify-content:flex-start;padding-left:12px;}
   .stock-wrap{align-items:flex-start;}
   .stock-qty{font-size:18px;}
   .eq-input{width:118px;font-size:9px;}
   .stock-empty-btn{width:80px;height:30px;}
-
   .mob-uid{display:none;}
   .mob-sup{display:none;}
-
   .portal-bar{width:80%;max-width:1100px;}
 }
 </style>
@@ -647,7 +537,6 @@ body.light .fkb-btn-op{background:rgba(99,102,241,.10);color:#6366f1;}
 
 <!-- CUSTOM MOBILE QWERTY SEARCH KEYBOARD -->
 <div class="qkb" id="qkb">
-  <!-- Numbers row -->
   <div class="qkb-row">
     <div class="qkb-key qkb-key-num" onclick="qkbKey('1')">1</div>
     <div class="qkb-key qkb-key-num" onclick="qkbKey('2')">2</div>
@@ -692,12 +581,10 @@ body.light .fkb-btn-op{background:rgba(99,102,241,.10);color:#6366f1;}
     <div class="qkb-key" onclick="qkbKey('n')">N</div>
     <div class="qkb-key" onclick="qkbKey('m')">M</div>
   </div>
-  <!-- Row 4: SPACE wide LEFT + ⌫ small RIGHT -->
   <div class="qkb-row qkb-row-bottom">
     <div class="qkb-key qkb-key-space" onclick="qkbKey(' ')">SPACE</div>
     <div class="qkb-key qkb-key-back" onclick="qkbKey('back')">⌫</div>
   </div>
-  <!-- Search bar tight below keys -->
   <div class="qkb-bar">
     <div class="qkb-input-display empty" id="qkbDisplay">Search…</div>
     <button class="qkb-clear" onclick="qkbClear()">✕</button>
@@ -742,7 +629,7 @@ body.light .fkb-btn-op{background:rgba(99,102,241,.10);color:#6366f1;}
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
 <script>
-// ── CONFIG ────────────────────────────────────────────────────
+// ── CONFIG ──────────────────────────────────────────────────
 const firebaseConfig={apiKey:"AIzaSyBRZ-tXbefzOdFHPgsDUmumZtVOq-6DLdU",authDomain:"chef2chef-stock.firebaseapp.com",databaseURL:"https://chef2chef-stock-default-rtdb.firebaseio.com",projectId:"chef2chef-stock",storageBucket:"chef2chef-stock.firebasestorage.app",messagingSenderId:"510949862594",appId:"1:510949862594:web:2bae9e49826221e5a69f5b"};
 firebase.initializeApp(firebaseConfig);
 firebase.auth().signInAnonymously().catch(()=>{});
@@ -754,7 +641,7 @@ function normalizeFormula(f){
 }
 const SHEETS_URL='https://script.google.com/macros/s/AKfycbyHiiuDy1HQzz_D9O1f1hZyL__81DyFW4bT2bieNlmIWj86NRtSQ9lfH-O5AHEtR3fp/exec';
 
-// ── STATE ─────────────────────────────────────────────────────
+// ── STATE ────────────────────────────────────────────────────
 let ITEMS=[],historyLog=[];
 const stockData={},formulaData={};
 let fbListening=false,searchQuery='';
@@ -762,13 +649,13 @@ const isDesktop=()=>window.innerWidth>=768;
 
 function xe(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 
-function cleanDesc(desc, id){
-  let d = String(desc||'').trim();
-  if(id && d.startsWith(id)){
-    d = d.slice(id.length).trim();
-    d = d.replace(/^[\s\(\-\:\|]+/, '').replace(/\)\s*$/, '').trim();
+function cleanDesc(desc,id){
+  let d=String(desc||'').trim();
+  if(id&&d.startsWith(id)){
+    d=d.slice(id.length).trim();
+    d=d.replace(/^[\s\(\-\:\|]+/,'').replace(/\)\s*$/,'').trim();
   }
-  return d || desc;
+  return d||desc;
 }
 
 function setSync(state,msg){
@@ -847,7 +734,7 @@ function addLocalHistory(uid,oldVal,newVal,added,formula,source){
   if(document.getElementById('histDrawer').classList.contains('open'))renderHistory();
 }
 
-// ── FIREBASE ──────────────────────────────────────────────────
+// ── FIREBASE ────────────────────────────────────────────────
 const ownWrites={};
 function lockWrite(uid){ownWrites[uid]=Date.now();}
 function isOwnEcho(uid){return ownWrites[uid]&&(Date.now()-ownWrites[uid])<8000;}
@@ -890,7 +777,7 @@ function startFirebaseListener(){
   });
 }
 
-// ── WRITE OPS ─────────────────────────────────────────────────
+// ── WRITE OPS ────────────────────────────────────────────────
 function sendAdd(uid,addQty){
   const oldVal=stockData[uid]||0;
   const newVal=parseFloat((oldVal+addQty).toFixed(4));
@@ -921,7 +808,7 @@ function sendSetFormula(uid,formula,qty){
   fbWrite(uid,qty,clean,qty-oldVal);
 }
 
-// ── FORMULA BAR ───────────────────────────────────────────────
+// ── FORMULA BAR ──────────────────────────────────────────────
 function onEqIn(id,sid){document.getElementById('eqok-'+sid)?.classList.add('on');}
 function onEqKd(e,id,sid){
   if(e.key==='Enter'){e.preventDefault();confirmEq(id,sid);}
@@ -939,7 +826,7 @@ function confirmEq(id,sid){
   sendSetFormula(id,clean,qty);
 }
 
-// ── RENDER ────────────────────────────────────────────────────
+// ── RENDER ──────────────────────────────────────────────────
 function stockCellHtmlMobile(id,um){
   const qty=stockData[id]||0;
   const sid=id.replace(/[^a-zA-Z0-9_-]/g,'_');
@@ -951,8 +838,7 @@ function stockCellHtmlMobile(id,um){
       <div class="eq-wrap">
         <input class="eq-input" id="eq-${sid}" type="text"
           value="${xe('='+(formula||String(qty)))}"
-          inputmode="none"
-          readonly
+          inputmode="none" readonly
           onclick="event.stopPropagation();fkbOpen('${id}','${sid}')"
           onfocus="this.blur();fkbOpen('${id}','${sid}')">
         <button class="eq-ok" id="eqok-${sid}" onclick="fkbOpen('${id}','${sid}')">✎</button>
@@ -1008,7 +894,7 @@ function getFiltered(){
   return items;
 }
 
-// ── VIRTUAL SCROLL ────────────────────────────────────────────
+// ── VIRTUAL SCROLL ──────────────────────────────────────────
 let vsItems=[],vsRowH=0,vsStart=0,vsEnd=0;
 const VS_BUF=5;
 
@@ -1022,7 +908,7 @@ function rowHtml(r){
   const sid=r.id.replace(/[^a-zA-Z0-9_-]/g,'_');
   const desktop=isDesktop();
   if(desktop){
-    const dDesc = cleanDesc(r.desc, r.id);
+    const dDesc=cleanDesc(r.desc,r.id);
     return`<div class="item-row" id="row-${sid}">
       <div class="cell cell-uid">${xe(r.id)}</div>
       <div class="cell cell-desc">
@@ -1039,7 +925,7 @@ function rowHtml(r){
       </div>
     </div>`;
   } else {
-    const mDesc = cleanDesc(r.desc, r.id);
+    const mDesc=cleanDesc(r.desc,r.id);
     return`<div class="item-row" id="row-${sid}" style="min-height:${vsRowH}px">
       <div class="cell">
         <div class="desc-name">${xe(mDesc)} <span style="color:var(--pack-clr);font-size:10px">(${xe(r.pack)})</span></div>
@@ -1120,22 +1006,18 @@ window.addEventListener('resize',()=>{
   resizeTimer=setTimeout(()=>{vsRowH=0;buildColHeads();renderTable();},200);
 });
 
-// ── SEARCH ────────────────────────────────────────────────────
+// ── SEARCH ──────────────────────────────────────────────────
 let sT;
-const searchInEl = document.getElementById('searchIn');
-
-searchInEl.addEventListener('focus', () => {
-  if (isDesktop()) {
-    searchInEl.removeAttribute('readonly');
-    searchInEl.removeAttribute('inputmode');
-  }
+const searchInEl=document.getElementById('searchIn');
+searchInEl.addEventListener('focus',()=>{
+  if(isDesktop()){searchInEl.removeAttribute('readonly');searchInEl.removeAttribute('inputmode');}
 });
-searchInEl.addEventListener('input', e => {
+searchInEl.addEventListener('input',e=>{
   clearTimeout(sT);
-  sT = setTimeout(() => { searchQuery = e.target.value.toLowerCase().trim(); renderTable(); }, 120);
+  sT=setTimeout(()=>{searchQuery=e.target.value.toLowerCase().trim();renderTable();},120);
 });
 
-// ── NUMPAD ────────────────────────────────────────────────────
+// ── NUMPAD ──────────────────────────────────────────────────
 let np={id:null,val:'0',op:'+'};
 let npPos={x:window.innerWidth-190,y:70};
 let npDrg=false,npOX=0,npOY=0;
@@ -1163,7 +1045,7 @@ function npOutside(e){if(!document.getElementById('npPopup').contains(e.target)&
 function setOp(el){np.op=el.dataset.op;np.val='0';document.querySelectorAll('.np-op-tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');npDraw();}
 function npKey(k){
   if(k==='back'){np.val=np.val.length>1?np.val.slice(0,-1):'0';}
-  else if(k==='.'){if(!np.val.includes('.'))np.val+='.'; }
+  else if(k==='.'){if(!np.val.includes('.'))np.val+='.';}
   else{np.val=np.val==='0'?k:np.val+k;}
   npDraw();
 }
@@ -1204,328 +1086,268 @@ document.addEventListener('keydown',e=>{
   if(e.key==='Escape')closeNp();
 });
 
-// ── DRAG ──────────────────────────────────────────────────────
+// ── DRAG ────────────────────────────────────────────────────
 document.getElementById('npDrag').addEventListener('mousedown',dS);
 document.getElementById('npDrag').addEventListener('touchstart',dS,{passive:true});
 function dS(e){npDrg=true;const r=document.getElementById('npPopup').getBoundingClientRect();const cx=e.touches?e.touches[0].clientX:e.clientX,cy=e.touches?e.touches[0].clientY:e.clientY;npOX=cx-r.left;npOY=cy-r.top;document.addEventListener('mousemove',dM);document.addEventListener('mouseup',dE);document.addEventListener('touchmove',dM,{passive:true});document.addEventListener('touchend',dE);}
 function dM(e){if(!npDrg)return;const cx=e.touches?e.touches[0].clientX:e.clientX,cy=e.touches?e.touches[0].clientY:e.clientY;const p=document.getElementById('npPopup');const nx=Math.max(0,Math.min(window.innerWidth-p.offsetWidth,cx-npOX)),ny=Math.max(0,Math.min(window.innerHeight-p.offsetHeight,cy-npOY));npPos.x=nx;npPos.y=ny;p.style.left=nx+'px';p.style.top=ny+'px';}
 function dE(){npDrg=false;document.removeEventListener('mousemove',dM);document.removeEventListener('mouseup',dE);document.removeEventListener('touchmove',dM);document.removeEventListener('touchend',dE);}
 
-// ── PWA INSTALL ───────────────────────────────────────────────
+// ── PWA INSTALL ──────────────────────────────────────────────
 let dip=null;
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();dip=e;if(!localStorage.getItem('c2c_nodismiss'))document.getElementById('installBanner').classList.add('show');});
 document.getElementById('installBtn').addEventListener('click',()=>{if(dip){dip.prompt();dip.userChoice.then(()=>{dip=null;document.getElementById('installBanner').classList.remove('show');});}});
 
-// ══════════════════════════════════════════════════════════════
-// ── CUSTOM MOBILE QWERTY SEARCH KEYBOARD — GLOBAL SCOPE ──────
-// ══════════════════════════════════════════════════════════════
-let qkbQuery = '';
-let qkbCursorPos = 0;       // cursor index within qkbQuery
+// ── CUSTOM MOBILE QWERTY SEARCH KEYBOARD ────────────────────
+let qkbQuery='';
+let qkbCursorPos=0;
+let qkbTrackpad=false,qkbTrackX=0,qkbTrackCursorStart=0;
+const QKB_TRACK_SENSITIVITY=10;
 
-// ── iOS-style trackpad state ──
-let qkbTrackpad = false;    // are we in trackpad drag mode?
-let qkbTrackX = 0;          // last touch X when trackpad started
-let qkbTrackCursorStart = 0;// cursor pos when trackpad drag began
-const QKB_TRACK_SENSITIVITY = 10; // px per character step
-
-function qkbOpen() {
-  if (isDesktop()) return;
+function qkbOpen(){
+  if(isDesktop())return;
   document.activeElement?.blur();
-  qkbQuery = searchQuery;
-  qkbCursorPos = qkbQuery.length;
+  qkbQuery=searchQuery;
+  qkbCursorPos=qkbQuery.length;
   qkbRefresh();
   document.getElementById('qkb').classList.add('open');
-  // Shrink table to eliminate black gap
-  requestAnimationFrame(() => {
-    const kbh = document.getElementById('qkb').offsetHeight;
-    document.getElementById('tblArea').style.height = (window.innerHeight - 50 - kbh) + 'px';
+  requestAnimationFrame(()=>{
+    const kbh=document.getElementById('qkb').offsetHeight;
+    document.getElementById('tblArea').style.height=(window.innerHeight-50-kbh)+'px';
   });
 }
-function qkbDone() {
+function qkbDone(){
   document.getElementById('qkb').classList.remove('open');
-  document.getElementById('tblArea').style.height = '';
-  qkbTrackpad = false;
+  document.getElementById('tblArea').style.height='';
+  qkbTrackpad=false;
 }
-function qkbClear() {
-  qkbQuery = '';
-  qkbCursorPos = 0;
-  qkbRefresh();
-  searchQuery = '';
-  renderTable();
+function qkbClear(){
+  qkbQuery='';qkbCursorPos=0;qkbRefresh();searchQuery='';renderTable();
 }
-function qkbKey(k) {
-  if (k === 'back') {
-    if (qkbCursorPos > 0) {
-      qkbQuery = qkbQuery.slice(0, qkbCursorPos - 1) + qkbQuery.slice(qkbCursorPos);
-      qkbCursorPos--;
-    }
-  } else if (k === ' ') {
-    // regular tap on space = insert space at cursor
-    qkbQuery = qkbQuery.slice(0, qkbCursorPos) + ' ' + qkbQuery.slice(qkbCursorPos);
-    qkbCursorPos++;
+function qkbKey(k){
+  if(k==='back'){
+    if(qkbCursorPos>0){qkbQuery=qkbQuery.slice(0,qkbCursorPos-1)+qkbQuery.slice(qkbCursorPos);qkbCursorPos--;}
+  } else if(k===' '){
+    qkbQuery=qkbQuery.slice(0,qkbCursorPos)+' '+qkbQuery.slice(qkbCursorPos);qkbCursorPos++;
   } else {
-    qkbQuery = qkbQuery.slice(0, qkbCursorPos) + k + qkbQuery.slice(qkbCursorPos);
-    qkbCursorPos++;
+    qkbQuery=qkbQuery.slice(0,qkbCursorPos)+k+qkbQuery.slice(qkbCursorPos);qkbCursorPos++;
   }
   qkbRefresh();
 }
-
-function qkbRefresh() {
-  const disp = document.getElementById('qkbDisplay');
-  const inp  = document.getElementById('searchIn');
-  if (qkbQuery) {
-    // Show text with blinking | cursor at the right position
-    const before = qkbQuery.slice(0, qkbCursorPos);
-    const after  = qkbQuery.slice(qkbCursorPos);
-    // Use a <span> for cursor so CSS animation works without ::after conflict
-    disp.innerHTML = '<span class="qkb-text-before"></span><span class="qkb-cursor"></span><span class="qkb-text-after"></span>';
-    disp.querySelector('.qkb-text-before').textContent = before;
-    disp.querySelector('.qkb-text-after').textContent  = after;
+function qkbRefresh(){
+  const disp=document.getElementById('qkbDisplay');
+  const inp=document.getElementById('searchIn');
+  if(qkbQuery){
+    const before=qkbQuery.slice(0,qkbCursorPos);
+    const after=qkbQuery.slice(qkbCursorPos);
+    disp.innerHTML='<span class="qkb-text-before"></span><span class="qkb-cursor"></span><span class="qkb-text-after"></span>';
+    disp.querySelector('.qkb-text-before').textContent=before;
+    disp.querySelector('.qkb-text-after').textContent=after;
     disp.classList.remove('empty');
-    inp.value = qkbQuery;
+    inp.value=qkbQuery;
   } else {
-    disp.textContent = 'Search…';
-    disp.classList.add('empty');
-    inp.value = '';
+    disp.textContent='Search…';disp.classList.add('empty');inp.value='';
   }
-  searchQuery = qkbQuery.toLowerCase().trim();
+  searchQuery=qkbQuery.toLowerCase().trim();
   clearTimeout(sT);
-  sT = setTimeout(() => renderTable(), 80);
+  sT=setTimeout(()=>renderTable(),80);
 }
 
-// ── SPACE KEY: tap = space, hold+drag = iOS trackpad ──────────
-(function() {
-  let holdTimer = null;
-
-  function spaceEl() { return document.querySelector('.qkb-key-space'); }
-
-  function onSpaceTouchStart(e) {
-    qkbTrackpad = false;
-    qkbTrackX = e.touches[0].clientX;
-    qkbTrackCursorStart = qkbCursorPos;
-    holdTimer = setTimeout(() => {
-      qkbTrackpad = true;
-      if (navigator.vibrate) navigator.vibrate(30);
-      // visual cue
-      spaceEl().style.background = 'rgba(16,185,129,.35)';
-    }, 300);
+(function(){
+  let holdTimer=null;
+  function spaceEl(){return document.querySelector('.qkb-key-space');}
+  function onSpaceTouchStart(e){
+    qkbTrackpad=false;qkbTrackX=e.touches[0].clientX;qkbTrackCursorStart=qkbCursorPos;
+    holdTimer=setTimeout(()=>{
+      qkbTrackpad=true;if(navigator.vibrate)navigator.vibrate(30);
+      spaceEl().style.background='rgba(16,185,129,.35)';
+    },300);
   }
-
-  function onSpaceTouchMove(e) {
-    if (!qkbTrackpad) return;
-    e.preventDefault();
-    const dx = e.touches[0].clientX - qkbTrackX;
-    const steps = Math.round(dx / QKB_TRACK_SENSITIVITY);
-    qkbCursorPos = Math.max(0, Math.min(qkbQuery.length, qkbTrackCursorStart + steps));
+  function onSpaceTouchMove(e){
+    if(!qkbTrackpad)return;e.preventDefault();
+    const dx=e.touches[0].clientX-qkbTrackX;
+    const steps=Math.round(dx/QKB_TRACK_SENSITIVITY);
+    qkbCursorPos=Math.max(0,Math.min(qkbQuery.length,qkbTrackCursorStart+steps));
     qkbRefresh();
   }
-
-  function onSpaceTouchEnd(e) {
+  function onSpaceTouchEnd(e){
     clearTimeout(holdTimer);
-    if (qkbTrackpad) {
-      // just finished dragging — don't insert space
-      qkbTrackpad = false;
-      spaceEl().style.background = '';
-    } else {
-      // short tap — insert space normally
-      qkbKey(' ');
-    }
+    if(qkbTrackpad){qkbTrackpad=false;spaceEl().style.background='';}
+    else{qkbKey(' ');}
   }
-
-  // Attach after DOM ready
-  document.addEventListener('DOMContentLoaded', () => {}, false);
-  // We attach via event delegation since the element exists at parse time
-  document.addEventListener('touchstart', e => {
-    if (e.target.closest('.qkb-key-space')) onSpaceTouchStart(e);
-  }, { passive: true });
-  document.addEventListener('touchmove', e => {
-    if (qkbTrackpad) { onSpaceTouchMove(e); }
-  }, { passive: false });
-  document.addEventListener('touchend', e => {
-    if (e.target.closest('.qkb-key-space') || qkbTrackpad) onSpaceTouchEnd(e);
-  }, { passive: true });
+  document.addEventListener('touchstart',e=>{if(e.target.closest('.qkb-key-space'))onSpaceTouchStart(e);},{passive:true});
+  document.addEventListener('touchmove',e=>{if(qkbTrackpad){onSpaceTouchMove(e);}},{passive:false});
+  document.addEventListener('touchend',e=>{if(e.target.closest('.qkb-key-space')||qkbTrackpad)onSpaceTouchEnd(e);},{passive:true});
 })();
 
-// ══════════════════════════════════════════════════════════════
-// ── CUSTOM MOBILE FORMULA KEYBOARD — GLOBAL SCOPE ────────────
-// ══════════════════════════════════════════════════════════════
-let fkbTargetId = null, fkbTargetSid = null, fkbVal = '';
+// ── CUSTOM MOBILE FORMULA KEYBOARD ──────────────────────────
+let fkbTargetId=null,fkbTargetSid=null,fkbVal='';
 
-function fkbOpen(id, sid) {
-  if (isDesktop()) return;
-  fkbTargetId = id; fkbTargetSid = sid;
-  const existing = formulaData[id] || String(stockData[id] || 0);
-  fkbVal = existing;
-  document.getElementById('fkbDisplay').textContent = '=' + fkbVal;
+function fkbOpen(id,sid){
+  if(isDesktop())return;
+  fkbTargetId=id;fkbTargetSid=sid;
+  const existing=formulaData[id]||String(stockData[id]||0);
+  fkbVal=existing;
+  document.getElementById('fkbDisplay').textContent='='+fkbVal;
   document.getElementById('fkbOverlay').classList.add('open');
   document.activeElement?.blur();
 }
-function fkbCancel() {
+function fkbCancel(){
   document.getElementById('fkbOverlay').classList.remove('open');
-  fkbTargetId = null; fkbTargetSid = null; fkbVal = '';
+  fkbTargetId=null;fkbTargetSid=null;fkbVal='';
 }
-function fkbKey(k) {
-  if (k === 'back') {
-    fkbVal = fkbVal.length > 0 ? fkbVal.slice(0, -1) : '';
-  } else if (k === '()') {
-    const opens = (fkbVal.match(/\(/g) || []).length;
-    const closes = (fkbVal.match(/\)/g) || []).length;
-    fkbVal += opens > closes ? ')' : '(';
-  } else {
-    fkbVal += k;
-  }
-  document.getElementById('fkbDisplay').textContent = '=' + fkbVal;
+function fkbKey(k){
+  if(k==='back'){fkbVal=fkbVal.length>0?fkbVal.slice(0,-1):'';}
+  else if(k==='()'){
+    const opens=(fkbVal.match(/\(/g)||[]).length;
+    const closes=(fkbVal.match(/\)/g)||[]).length;
+    fkbVal+=opens>closes?')':'(';
+  } else {fkbVal+=k;}
+  document.getElementById('fkbDisplay').textContent='='+fkbVal;
 }
-function fkbConfirm() {
-  if (!fkbTargetId) return;
-  const id = fkbTargetId, sid = fkbTargetSid;
-  const clean = fkbVal.replace(/[^0-9.+\-*\/()]/g, '');
-  if (!clean) { fkbCancel(); return; }
+function fkbConfirm(){
+  if(!fkbTargetId)return;
+  const id=fkbTargetId,sid=fkbTargetSid;
+  const clean=fkbVal.replace(/[^0-9.+\-*\/()]/g,'');
+  if(!clean){fkbCancel();return;}
   let qty;
-  try { qty = Math.max(0, parseFloat(Function('return (' + clean + ')')().toFixed(4))); }
-  catch (e) { qty = stockData[id] || 0; }
-  const inp = document.getElementById('eq-' + sid);
-  if (inp) inp.value = '=' + clean;
-  document.getElementById('eqok-' + sid)?.classList.remove('on');
+  try{qty=Math.max(0,parseFloat(Function('return ('+clean+')')().toFixed(4)));}
+  catch(e){qty=stockData[id]||0;}
+  const inp=document.getElementById('eq-'+sid);
+  if(inp)inp.value='='+clean;
+  document.getElementById('eqok-'+sid)?.classList.remove('on');
   fkbCancel();
-  sendSetFormula(id, clean, qty);
+  sendSetFormula(id,clean,qty);
 }
 
 // ══════════════════════════════════════════════
 // SIMPLE LOGIN — USERNAME + PASSWORD
 // ══════════════════════════════════════════════
-const USERS = {
-  'steve':   { password: '1964', name: 'Steve',   color: '#10b981' },
-  'aswanth': { password: '2026', name: 'Aswanth', color: '#818cf8' },
-  'fatima':  { password: '2026', name: 'Fatima',  color: '#f472b6' },
+const USERS={
+  'steve':   {password:'1964',name:'Steve',  color:'#10b981'},
+  'aswanth': {password:'2026',name:'Aswanth',color:'#818cf8'},
+  'fatima':  {password:'2026',name:'Fatima', color:'#f472b6'},
 };
 
-let currentUser = null;
+let currentUser=null;
 
-function showLoginScreen() {
-  document.getElementById('loginScreen').classList.remove('hidden');
-}
-function hideLoginScreen() {
-  document.getElementById('loginScreen').classList.add('hidden');
-}
+function showLoginScreen(){document.getElementById('loginScreen').classList.remove('hidden');}
+function hideLoginScreen(){document.getElementById('loginScreen').classList.add('hidden');}
 
-function doLogin() {
-  const username = document.getElementById('loginUser').value.trim().toLowerCase();
-  const password = document.getElementById('loginPassword').value;
-  const errEl = document.getElementById('loginErr');
-
-  if (!username || !password) { errEl.textContent = 'Please enter username and password'; return; }
-
-  const user = USERS[username];
-  if (!user || user.password !== password) {
-    errEl.textContent = '✕ Wrong username or password';
-    document.getElementById('loginPassword').value = '';
+function doLogin(){
+  const username=document.getElementById('loginUser').value.trim().toLowerCase();
+  const password=document.getElementById('loginPassword').value;
+  const errEl=document.getElementById('loginErr');
+  if(!username||!password){errEl.textContent='Please enter username and password';return;}
+  const user=USERS[username];
+  if(!user||user.password!==password){
+    errEl.textContent='✕ Wrong username or password';
+    document.getElementById('loginPassword').value='';
     return;
   }
-
-  currentUser = { id: username, ...user };
-  localStorage.setItem('c2c_user', username);
+  currentUser={id:username,...user};
+  localStorage.setItem('c2c_user',username);
   updateNavUser();
   hideLoginScreen();
-  if (navigator.vibrate) navigator.vibrate(35);
+  if(navigator.vibrate)navigator.vibrate(35);
 }
 
-document.addEventListener('keydown', e => {
-  if (e.key === 'Enter' && !document.getElementById('loginScreen').classList.contains('hidden')) doLogin();
+document.addEventListener('keydown',e=>{
+  if(e.key==='Enter'&&!document.getElementById('loginScreen').classList.contains('hidden'))doLogin();
 });
 
-function updateNavUser() {
-  const el = document.getElementById('navUser');
-  if (currentUser) { el.textContent = '👤 ' + currentUser.name.toUpperCase(); el.style.color = currentUser.color; }
+function updateNavUser(){
+  const el=document.getElementById('navUser');
+  if(currentUser){el.textContent='👤 '+currentUser.name.toUpperCase();el.style.color=currentUser.color;}
 }
 
-function lockApp() {
-  if (!confirm('Sign out ' + (currentUser?.name || '') + '?')) return;
+function lockApp(){
+  if(!confirm('Sign out '+(currentUser?.name||'')+'?'))return;
   localStorage.removeItem('c2c_user');
-  currentUser = null;
-  document.getElementById('navUser').textContent = '👤 —';
-  document.getElementById('loginUser').value = '';
-  document.getElementById('loginPassword').value = '';
-  document.getElementById('loginErr').textContent = '';
+  currentUser=null;
+  document.getElementById('navUser').textContent='👤 —';
+  document.getElementById('loginUser').value='';
+  document.getElementById('loginPassword').value='';
+  document.getElementById('loginErr').textContent='';
   showLoginScreen();
 }
 
-// ── BOOT ──────────────────────────────────────────────────────
-window.addEventListener('load', () => {
-  if (localStorage.getItem('c2c_mode') === 'light') { document.body.classList.add('light'); document.getElementById('modeBtn').textContent = '☀️ LIGHT'; }
-  loadLocal(); loadHistory();
+// ── BOOT ────────────────────────────────────────────────────
+window.addEventListener('load',()=>{
+  if(localStorage.getItem('c2c_mode')==='light'){document.body.classList.add('light');document.getElementById('modeBtn').textContent='☀️ LIGHT';}
+  loadLocal();loadHistory();
 
-  const savedUser = localStorage.getItem('c2c_user');
-  if (savedUser && USERS[savedUser]) {
-    currentUser = { id: savedUser, ...USERS[savedUser] };
+  const savedUser=localStorage.getItem('c2c_user');
+  if(savedUser&&USERS[savedUser]){
+    currentUser={id:savedUser,...USERS[savedUser]};
     updateNavUser();
     hideLoginScreen();
   } else {
     showLoginScreen();
   }
 
-  let p = 0, attempt = 0;
-  const bar = document.getElementById('loadBar'), txt = document.getElementById('loadTxt');
-  const iv = setInterval(() => { p = Math.min(p + Math.random() * 12, 88); bar.style.width = p + '%'; }, 60);
+  let p=0,attempt=0;
+  const bar=document.getElementById('loadBar'),txt=document.getElementById('loadTxt');
+  const iv=setInterval(()=>{p=Math.min(p+Math.random()*12,88);bar.style.width=p+'%';},60);
 
-  function finishLoad() {  function finishLoad() {
-    clearInterval(iv); bar.style.width = '100%';
-    txt.textContent = ITEMS.length.toLocaleString() + ' items loaded ✓';
-    document.getElementById('barCount').textContent = ITEMS.length.toLocaleString();
-    setSync('ok', '● LIVE');
-    setTimeout(() => { buildColHeads(); renderTable(); document.getElementById('loadScreen').style.display = 'none'; startFirebaseListener(); }, 200);
+  function finishLoad(){
+    clearInterval(iv);bar.style.width='100%';
+    txt.textContent=ITEMS.length.toLocaleString()+' items loaded ✓';
+    document.getElementById('barCount').textContent=ITEMS.length.toLocaleString();
+    setSync('ok','● LIVE');
+    setTimeout(()=>{buildColHeads();renderTable();document.getElementById('loadScreen').style.display='none';startFirebaseListener();},200);
   }
 
-  function fetchFromSheet() {
+  function fetchFromSheet(){
     attempt++;
-    txt.textContent = attempt > 1 ? 'Retrying (' + attempt + '/3)…' : 'Connecting to sheet…';
-    fetch(SHEETS_URL + '?action=getAll&_t=' + Date.now() + Math.random(), { cache: 'no-store', redirect: 'follow' })
-      .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
-      .then(d => {
-        if (!d.ok || !d.items) throw new Error(d.error || 'No data');
-        ITEMS = d.items;
-        ITEMS.forEach(item => { stockData[item.id] = parseFloat(item.stock) || 0; if (item.formula) formulaData[item.id] = item.formula; });
-        try { localStorage.setItem('c2c_items', JSON.stringify(ITEMS)); localStorage.setItem('c2c_items_ts', String(Date.now())); } catch (e) {}
-        db.ref('stock').once('value').then(snap => {
-          const fb = snap.val();
-          if (fb) Object.entries(fb).forEach(([k, v]) => {
-            const item = ITEMS.find(r => r.id.replace(/[.#$[\]]/g, '_') === k);
-            if (!item) return;
-            stockData[item.id] = parseFloat(v.qty) || 0;
-            formulaData[item.id] = String(v.formula || v.qty || 0);
+    txt.textContent=attempt>1?'Retrying ('+attempt+'/3)…':'Connecting to sheet…';
+    fetch(SHEETS_URL+'?action=getAll&_t='+Date.now()+Math.random(),{cache:'no-store',redirect:'follow'})
+      .then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
+      .then(d=>{
+        if(!d.ok||!d.items)throw new Error(d.error||'No data');
+        ITEMS=d.items;
+        ITEMS.forEach(item=>{stockData[item.id]=parseFloat(item.stock)||0;if(item.formula)formulaData[item.id]=item.formula;});
+        try{localStorage.setItem('c2c_items',JSON.stringify(ITEMS));localStorage.setItem('c2c_items_ts',String(Date.now()));}catch(e){}
+        db.ref('stock').once('value').then(snap=>{
+          const fb=snap.val();
+          if(fb)Object.entries(fb).forEach(([k,v])=>{
+            const item=ITEMS.find(r=>r.id.replace(/[.#$[\]]/g,'_')===k);
+            if(!item)return;
+            stockData[item.id]=parseFloat(v.qty)||0;
+            formulaData[item.id]=String(v.formula||v.qty||0);
           });
-          saveLocal(); finishLoad();
-        }).catch(() => finishLoad());
+          saveLocal();finishLoad();
+        }).catch(()=>finishLoad());
       })
-      .catch(() => {
-        if (attempt < 3) { txt.textContent = 'Retrying…'; setTimeout(fetchFromSheet, 2000); }
-        else { clearInterval(iv); bar.style.width = '100%'; txt.textContent = '✕ Failed — tap to retry'; txt.style.cursor = 'pointer'; txt.onclick = () => { attempt = 0; p = 0; bar.style.width = '0%'; txt.style.cursor = ''; fetchFromSheet(); }; setSync('error', '✕ ERROR'); }
+      .catch(()=>{
+        if(attempt<3){txt.textContent='Retrying…';setTimeout(fetchFromSheet,2000);}
+        else{clearInterval(iv);bar.style.width='100%';txt.textContent='✕ Failed — tap to retry';txt.style.cursor='pointer';txt.onclick=()=>{attempt=0;p=0;bar.style.width='0%';txt.style.cursor='';fetchFromSheet();};setSync('error','✕ ERROR');}
       });
   }
 
-  const CACHE_KEY = 'c2c_items', CACHE_TS = 'c2c_items_ts', CACHE_TTL = 6 * 60 * 60 * 1000;
-  const cachedTs = parseInt(localStorage.getItem(CACHE_TS) || '0');
-  const cacheValid = (Date.now() - cachedTs) < CACHE_TTL;
-  const cachedItems = localStorage.getItem(CACHE_KEY);
+  const CACHE_KEY='c2c_items',CACHE_TS='c2c_items_ts',CACHE_TTL=6*60*60*1000;
+  const cachedTs=parseInt(localStorage.getItem(CACHE_TS)||'0');
+  const cacheValid=(Date.now()-cachedTs)<CACHE_TTL;
+  const cachedItems=localStorage.getItem(CACHE_KEY);
 
-  if (cachedItems && cacheValid) {
-    try {
-      ITEMS = JSON.parse(cachedItems);
-      if (ITEMS && ITEMS.length > 10) {
-        txt.textContent = 'Loaded from cache ⚡';
-        db.ref('stock').once('value').then(snap => {
-          const fb = snap.val();
-          if (fb) Object.entries(fb).forEach(([k, v]) => {
-            const item = ITEMS.find(r => r.id.replace(/[.#$[\]]/g, '_') === k);
-            if (!item) return;
-            stockData[item.id] = parseFloat(v.qty) || 0;
-            formulaData[item.id] = String(v.formula || v.qty || 0);
+  if(cachedItems&&cacheValid){
+    try{
+      ITEMS=JSON.parse(cachedItems);
+      if(ITEMS&&ITEMS.length>10){
+        txt.textContent='Loaded from cache ⚡';
+        db.ref('stock').once('value').then(snap=>{
+          const fb=snap.val();
+          if(fb)Object.entries(fb).forEach(([k,v])=>{
+            const item=ITEMS.find(r=>r.id.replace(/[.#$[\]]/g,'_')===k);
+            if(!item)return;
+            stockData[item.id]=parseFloat(v.qty)||0;
+            formulaData[item.id]=String(v.formula||v.qty||0);
           });
-          saveLocal(); finishLoad();
-        }).catch(() => finishLoad());
+          saveLocal();finishLoad();
+        }).catch(()=>finishLoad());
         return;
       }
-    } catch (e) { ITEMS = []; }
+    }catch(e){ITEMS=[];}
   }
   fetchFromSheet();
 });

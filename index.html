@@ -49,6 +49,27 @@ body.light .load-bar-wrap{background:rgba(0,0,0,.08);}
 .load-bar{height:100%;background:var(--brand);border-radius:3px;width:0%;transition:width .2s;}
 .load-txt{font-size:11px;font-weight:700;color:var(--text3);}
 
+/* ── LOGIN SCREEN ── */
+#loginScreen{position:fixed;inset:0;background:var(--bg);z-index:9998;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;padding:30px;}
+#loginScreen.hidden{display:none;}
+.login-logo{font-weight:800;font-size:20px;display:flex;align-items:center;gap:10px;}
+.login-logo span{color:var(--brand);}
+.login-subtitle{font-size:12px;font-weight:700;color:var(--text3);letter-spacing:.5px;}
+.login-card{width:100%;max-width:320px;display:flex;flex-direction:column;gap:12px;}
+.login-input{width:100%;padding:14px 16px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:12px;color:var(--text);font-size:15px;font-weight:600;font-family:'Plus Jakarta Sans',sans-serif;outline:none;transition:border-color .2s;}
+.login-input:focus{border-color:var(--brand);}
+.login-input::placeholder{color:var(--text3);}
+body.light .login-input{background:rgba(0,0,0,.04);border-color:rgba(0,0,0,.10);color:#0f172a;}
+body.light .login-input::placeholder{color:#94a3b8;}
+.login-btn{width:100%;padding:15px;background:var(--brand);border:none;border-radius:12px;color:#020617;font-size:15px;font-weight:800;font-family:'Plus Jakarta Sans',sans-serif;cursor:pointer;transition:opacity .2s;}
+.login-btn:active{opacity:.8;}
+.login-err{font-size:11px;font-weight:700;color:var(--danger);text-align:center;min-height:16px;}
+/* user badge in nav */
+.nav-user{font-size:9px;font-weight:800;padding:3px 10px;border-radius:20px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);color:var(--text2);cursor:pointer;white-space:nowrap;}
+.nav-user:active{opacity:.7;}
+body.light .nav-user{background:rgba(0,0,0,.05);border-color:rgba(0,0,0,.10);}
+
+
 /* ── NAV ── */
 .nav{
   min-height:50px;
@@ -532,6 +553,18 @@ body.light .fkb-btn-op{background:rgba(99,102,241,.10);color:#6366f1;}
   <div class="load-txt" id="loadTxt">Connecting…</div>
 </div>
 
+<!-- LOGIN SCREEN -->
+<div id="loginScreen" class="hidden">
+  <div class="login-logo"><span style="font-size:24px">🥩</span> CHEF2CHEF <span>STOCK</span></div>
+  <div class="login-subtitle">SIGN IN TO CONTINUE</div>
+  <div class="login-card">
+    <input class="login-input" id="loginUser" type="text" placeholder="Username" autocomplete="off" autocapitalize="none">
+    <input class="login-input" id="loginPassword" type="password" placeholder="Password" autocomplete="off">
+    <div class="login-err" id="loginErr"></div>
+    <button class="login-btn" onclick="doLogin()">Sign In →</button>
+  </div>
+</div>
+
 <div id="installBanner">
   <span class="install-txt">📱 Add Chef2Chef Stock to your Home Screen</span>
   <button class="install-btn" id="installBtn">Install App</button>
@@ -542,6 +575,7 @@ body.light .fkb-btn-op{background:rgba(99,102,241,.10);color:#6366f1;}
   <a class="nav-logo" href="#"><span style="font-size:22px">🥩</span> CHEF2CHEF <span>STOCK</span></a>
   <div class="nav-right">
     <span class="sync-badge" id="syncBadge">● LIVE</span>
+    <span class="nav-user" id="navUser" onclick="lockApp()" title="Tap to lock">👤 —</span>
     <button class="hist-btn" onclick="openHistory()">📋 HISTORY</button>
     <button class="mode-btn" id="modeBtn" onclick="toggleMode()">🌙 DARK</button>
     <button class="mode-btn" onclick="forceRefresh()" title="Force refresh">↺</button>
@@ -806,7 +840,8 @@ function addLocalHistory(uid,oldVal,newVal,added,formula,source){
   const item=ITEMS.find(r=>r.id===uid);
   const ts=new Date().toISOString().replace('T',' ').slice(0,19);
   const addStr=added>=0?'+'+parseFloat(added.toFixed(4)):String(parseFloat(added.toFixed(4)));
-  historyLog.unshift({ts,uid,desc:item?item.desc:uid,oldVal,newVal,added:addStr,formula:formula||'',source:source||'web'});
+  const who=currentUser?currentUser.name:(source||'web');
+  historyLog.unshift({ts,uid,desc:item?item.desc:uid,oldVal,newVal,added:addStr,formula:formula||'',source:who});
   if(historyLog.length>500)historyLog.pop();
   saveHistory();
   if(document.getElementById('histDrawer').classList.contains('open'))renderHistory();
@@ -1356,16 +1391,84 @@ function fkbConfirm() {
   sendSetFormula(id, clean, qty);
 }
 
+// ══════════════════════════════════════════════
+// SIMPLE LOGIN — USERNAME + PASSWORD
+// ══════════════════════════════════════════════
+const USERS = {
+  'steve':   { password: '1964', name: 'Steve',   color: '#10b981' },
+  'aswanth': { password: '2026', name: 'Aswanth', color: '#818cf8' },
+  'fatima':  { password: '2026', name: 'Fatima',  color: '#f472b6' },
+};
+
+let currentUser = null;
+
+function showLoginScreen() {
+  document.getElementById('loginScreen').classList.remove('hidden');
+}
+function hideLoginScreen() {
+  document.getElementById('loginScreen').classList.add('hidden');
+}
+
+function doLogin() {
+  const username = document.getElementById('loginUser').value.trim().toLowerCase();
+  const password = document.getElementById('loginPassword').value;
+  const errEl = document.getElementById('loginErr');
+
+  if (!username || !password) { errEl.textContent = 'Please enter username and password'; return; }
+
+  const user = USERS[username];
+  if (!user || user.password !== password) {
+    errEl.textContent = '✕ Wrong username or password';
+    document.getElementById('loginPassword').value = '';
+    return;
+  }
+
+  currentUser = { id: username, ...user };
+  localStorage.setItem('c2c_user', username);
+  updateNavUser();
+  hideLoginScreen();
+  if (navigator.vibrate) navigator.vibrate(35);
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !document.getElementById('loginScreen').classList.contains('hidden')) doLogin();
+});
+
+function updateNavUser() {
+  const el = document.getElementById('navUser');
+  if (currentUser) { el.textContent = '👤 ' + currentUser.name.toUpperCase(); el.style.color = currentUser.color; }
+}
+
+function lockApp() {
+  if (!confirm('Sign out ' + (currentUser?.name || '') + '?')) return;
+  localStorage.removeItem('c2c_user');
+  currentUser = null;
+  document.getElementById('navUser').textContent = '👤 —';
+  document.getElementById('loginUser').value = '';
+  document.getElementById('loginPassword').value = '';
+  document.getElementById('loginErr').textContent = '';
+  showLoginScreen();
+}
+
 // ── BOOT ──────────────────────────────────────────────────────
 window.addEventListener('load', () => {
   if (localStorage.getItem('c2c_mode') === 'light') { document.body.classList.add('light'); document.getElementById('modeBtn').textContent = '☀️ LIGHT'; }
   loadLocal(); loadHistory();
 
+  const savedUser = localStorage.getItem('c2c_user');
+  if (savedUser && USERS[savedUser]) {
+    currentUser = { id: savedUser, ...USERS[savedUser] };
+    updateNavUser();
+    hideLoginScreen();
+  } else {
+    showLoginScreen();
+  }
+
   let p = 0, attempt = 0;
   const bar = document.getElementById('loadBar'), txt = document.getElementById('loadTxt');
   const iv = setInterval(() => { p = Math.min(p + Math.random() * 12, 88); bar.style.width = p + '%'; }, 60);
 
-  function finishLoad() {
+  function finishLoad() {  function finishLoad() {
     clearInterval(iv); bar.style.width = '100%';
     txt.textContent = ITEMS.length.toLocaleString() + ' items loaded ✓';
     document.getElementById('barCount').textContent = ITEMS.length.toLocaleString();

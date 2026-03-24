@@ -156,8 +156,24 @@ body.light .portal-bar::before{background:linear-gradient(90deg,transparent,rgba
 .portal-bar:focus-within{border-color:rgba(16,185,129,.5);}
 .bar-inner{flex:1;display:flex;align-items:center;gap:8px;padding:0 18px;}
 .bar-icon{font-size:13px;opacity:.35;flex-shrink:0;}
-#searchIn{background:transparent;border:none;color:var(--text);font-size:14px;font-weight:700;outline:none;flex:1;padding:14px 0;font-family:'Plus Jakarta Sans',sans-serif;}
+
+/* ── FIX: Desktop search input — fully interactive, cursor visible ── */
+#searchIn{
+  background:transparent;
+  border:none;
+  color:var(--text);
+  font-size:14px;
+  font-weight:700;
+  outline:none;
+  flex:1;
+  padding:14px 0;
+  font-family:'Plus Jakarta Sans',sans-serif;
+  /* NO pointer-events:none — desktop must be fully clickable */
+}
 #searchIn::placeholder{color:var(--text);opacity:.3;font-weight:600;}
+/* On mobile, the bar-inner click handles opening QKB — input is made readonly via JS */
+#searchIn.mobile-readonly{cursor:pointer;}
+
 .bar-count{font-size:10px;font-weight:800;color:var(--brand);background:var(--brand-dim);border:1px solid var(--brand-border);border-radius:50px;padding:3px 11px;white-space:nowrap;flex-shrink:0;}
 .bar-exit{background:var(--danger);border:none;color:white;padding:0 22px;height:46px;font-weight:800;font-size:12px;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;border-radius:0 100px 100px 0;flex-shrink:0;}
 .bar-exit:active{background:#dc2626;}
@@ -432,6 +448,9 @@ body.light .fkb-btn-op{background:rgba(99,102,241,.10);color:#6366f1;}
   .mob-uid{display:none;}
   .mob-sup{display:none;}
   .portal-bar{width:80%;max-width:1100px;}
+
+  /* Desktop: search input gets a visible focus ring via portal-bar:focus-within */
+  #searchIn{cursor:text;}
 }
 </style>
 </head>
@@ -478,10 +497,16 @@ body.light .fkb-btn-op{background:rgba(99,102,241,.10);color:#6366f1;}
   <div id="tbody"></div>
 </div>
 
+<!-- ── FIX: portal bar — bar-inner click only opens QKB on mobile,
+     input is directly clickable/typeable on desktop ── -->
 <div class="portal-bar">
-  <div class="bar-inner" onclick="if(!isDesktop())qkbOpen()">
+  <div class="bar-inner" id="barInner">
     <span class="bar-icon">🔍</span>
-    <input id="searchIn" type="search" placeholder="Search UID, description, supplier, category…" autocomplete="off" spellcheck="false" readonly inputmode="none" style="pointer-events:none;">
+    <input id="searchIn"
+      type="search"
+      placeholder="Search UID, description, supplier, category…"
+      autocomplete="off"
+      spellcheck="false">
     <span class="bar-count" id="barCount">—</span>
   </div>
   <button class="bar-exit" onclick="location.reload()">EXIT</button>
@@ -1007,14 +1032,51 @@ window.addEventListener('resize',()=>{
 });
 
 // ── SEARCH ──────────────────────────────────────────────────
-let sT;
+// FIX: Separate desktop (direct input) vs mobile (custom QKB) behaviour
 const searchInEl=document.getElementById('searchIn');
-searchInEl.addEventListener('focus',()=>{
-  if(isDesktop()){searchInEl.removeAttribute('readonly');searchInEl.removeAttribute('inputmode');}
-});
+const barInnerEl=document.getElementById('barInner');
+
+// On mobile: make search input non-interactive (QKB handles it).
+// On desktop: input is fully interactive with cursor + typing.
+function initSearchMode(){
+  if(isDesktop()){
+    // Desktop — input is directly editable, no restrictions
+    searchInEl.removeAttribute('readonly');
+    searchInEl.removeAttribute('inputmode');
+    searchInEl.style.pointerEvents='';
+    searchInEl.style.cursor='text';
+    barInnerEl.onclick=null;
+  } else {
+    // Mobile — input is decorative, QKB opens on bar tap
+    searchInEl.setAttribute('readonly','');
+    searchInEl.setAttribute('inputmode','none');
+    searchInEl.style.pointerEvents='none';
+    searchInEl.style.cursor='pointer';
+    barInnerEl.onclick=()=>qkbOpen();
+  }
+}
+
+// Desktop: real-time filtering as user types
+let sT;
 searchInEl.addEventListener('input',e=>{
+  if(!isDesktop())return; // mobile uses qkbRefresh instead
   clearTimeout(sT);
   sT=setTimeout(()=>{searchQuery=e.target.value.toLowerCase().trim();renderTable();},120);
+});
+
+// Desktop: pressing Escape clears the search
+searchInEl.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){
+    searchInEl.value='';
+    searchQuery='';
+    renderTable();
+  }
+});
+
+// Re-init on resize (desktop <-> mobile breakpoint crossing)
+window.addEventListener('resize',()=>{
+  clearTimeout(resizeTimer);
+  resizeTimer=setTimeout(()=>{initSearchMode();vsRowH=0;buildColHeads();renderTable();},200);
 });
 
 // ── NUMPAD ──────────────────────────────────────────────────
@@ -1123,6 +1185,8 @@ function qkbDone(){
 }
 function qkbClear(){
   qkbQuery='';qkbCursorPos=0;qkbRefresh();searchQuery='';renderTable();
+  // Also clear the visible input
+  searchInEl.value='';
 }
 function qkbKey(k){
   if(k==='back'){
@@ -1276,6 +1340,9 @@ function lockApp(){
 window.addEventListener('load',()=>{
   if(localStorage.getItem('c2c_mode')==='light'){document.body.classList.add('light');document.getElementById('modeBtn').textContent='☀️ LIGHT';}
   loadLocal();loadHistory();
+
+  // FIX: init search mode immediately on load based on device
+  initSearchMode();
 
   const savedUser=localStorage.getItem('c2c_user');
   if(savedUser&&USERS[savedUser]){

@@ -761,19 +761,38 @@ function applyLockState(locked){
   }
 }
 
+function showToast(msg,type){
+  let t=document.getElementById('sysToast');
+  if(!t){t=document.createElement('div');t.id='sysToast';
+    t.style.cssText='position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(12px);z-index:99999;padding:8px 18px;border-radius:30px;font-size:11px;font-weight:800;font-family:"Plus Jakarta Sans",sans-serif;opacity:0;transition:all .3s;pointer-events:none;white-space:nowrap;';
+    document.body.appendChild(t);}
+  const isErr=type==='error';
+  t.style.background=isErr?'rgba(239,68,68,.18)':'rgba(16,185,129,.18)';
+  t.style.border='1px solid '+(isErr?'rgba(239,68,68,.4)':'rgba(16,185,129,.4)');
+  t.style.color=isErr?'#ef4444':'#10b981';
+  t.textContent=msg;
+  t.style.opacity='1';t.style.transform='translateX(-50%) translateY(0)';
+  clearTimeout(t._tid);t._tid=setTimeout(()=>{t.style.opacity='0';t.style.transform='translateX(-50%) translateY(12px)';},2400);
+}
+
 function toggleSystemLock(){
-  if(!isAdmin()){alert('Only Steve (admin) can lock/unlock the system.');return;}
+  if(!isAdmin()){showToast('Only Steve (admin) can lock/unlock.','error');return;}
   const newLocked=!isLocked;
-  db.ref('appState/locked').set(newLocked).then(()=>{
+  // Use stock/__SYSLOCK__ — same Firebase path rules as stock entries
+  db.ref('stock/__SYSLOCK__').set({locked:newLocked,ts:Date.now()}).then(()=>{
     applyLockState(newLocked);
+    showToast(newLocked?'🔒 System locked — only Steve can write':'🔓 System unlocked',newLocked?'error':'ok');
     if(navigator.vibrate)navigator.vibrate(newLocked?[30,20,30]:35);
-  }).catch(()=>alert('Could not update lock state. Check connection.'));
+  }).catch(e=>{
+    console.error('Lock write failed:',e);
+    showToast('Could not update lock — check connection','error');
+  });
 }
 
 function startLockListener(){
-  db.ref('appState/locked').on('value',snap=>{
+  db.ref('stock/__SYSLOCK__').on('value',snap=>{
     const val=snap.val();
-    applyLockState(val===true);
+    applyLockState(val&&val.locked===true);
   });
 }
 

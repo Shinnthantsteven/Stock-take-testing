@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Chef2Chef | Stock Engine</title>
-<!-- PWA META -->
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="C2C Stock">
@@ -64,11 +63,39 @@ body.light .login-input::placeholder{color:#94a3b8;}
 .login-btn{width:100%;padding:15px;background:var(--brand);border:none;border-radius:12px;color:#020617;font-size:15px;font-weight:800;font-family:'Plus Jakarta Sans',sans-serif;cursor:pointer;transition:opacity .2s;}
 .login-btn:active{opacity:.8;}
 .login-err{font-size:11px;font-weight:700;color:var(--danger);text-align:center;min-height:16px;}
-/* user badge in nav */
 .nav-user{font-size:9px;font-weight:800;padding:3px 10px;border-radius:20px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);color:var(--text2);cursor:pointer;white-space:nowrap;}
 .nav-user:active{opacity:.7;}
 body.light .nav-user{background:rgba(0,0,0,.05);border-color:rgba(0,0,0,.10);}
 
+/* ── LOCK BANNER ── */
+#lockBanner{
+  display:none;align-items:center;justify-content:center;gap:8px;
+  padding:7px 16px;
+  background:linear-gradient(90deg,rgba(239,68,68,.12),rgba(239,68,68,.08));
+  border-bottom:1px solid rgba(239,68,68,.25);
+  flex-shrink:0;
+}
+#lockBanner.show{display:flex;}
+.lock-banner-icon{font-size:13px;}
+.lock-banner-txt{font-size:10px;font-weight:800;color:#ef4444;letter-spacing:.3px;}
+.lock-banner-sub{font-size:9px;font-weight:700;color:rgba(239,68,68,.6);}
+
+/* ── LOCK OVERLAY on table (when locked + not admin) ── */
+#lockOverlay{
+  position:fixed;inset:0;z-index:4500;
+  display:none;
+  pointer-events:none;
+}
+#lockOverlay.show{display:block;}
+/* subtle grid hatching */
+#lockOverlay::after{
+  content:'🔒 SYSTEM LOCKED — Contact Steve to unlock';
+  position:fixed;bottom:80px;left:50%;transform:translateX(-50%);
+  background:rgba(239,68,68,.13);border:1px solid rgba(239,68,68,.3);
+  color:#ef4444;font-size:10px;font-weight:800;letter-spacing:.4px;
+  padding:6px 16px;border-radius:30px;white-space:nowrap;
+  pointer-events:none;font-family:'Plus Jakarta Sans',sans-serif;
+}
 
 /* ── NAV ── */
 .nav{
@@ -81,9 +108,12 @@ body.light .nav-user{background:rgba(0,0,0,.05);border-color:rgba(0,0,0,.10);}
   border-bottom:1px solid var(--border);
   background:var(--bg);
   flex-shrink:0;
+  gap:8px;
 }
-.nav-logo{font-weight:800;font-size:15px;display:flex;align-items:center;gap:8px;color:inherit;text-decoration:none;}
+.nav-logo{font-weight:800;font-size:15px;display:flex;align-items:center;gap:8px;color:inherit;text-decoration:none;flex-shrink:0;}
 .nav-logo span{color:var(--brand);}
+
+/* ── DESKTOP nav-right (unchanged) ── */
 .nav-right{display:flex;align-items:center;gap:7px;}
 .sync-badge{font-size:9px;font-weight:800;padding:3px 10px;border-radius:20px;background:var(--brand-dim);border:1px solid var(--brand-border);color:var(--brand);white-space:nowrap;transition:all .3s;}
 .sync-badge.syncing{background:rgba(251,191,36,.10);border-color:rgba(251,191,36,.28);color:var(--warn);}
@@ -94,6 +124,48 @@ body.light .mode-btn{background:rgba(0,0,0,.05);border-color:rgba(0,0,0,.10);}
 .hist-btn{background:rgba(99,102,241,.12);border:1px solid rgba(99,102,241,.3);color:#818cf8;border-radius:20px;padding:3px 10px;font-size:10px;font-weight:800;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;white-space:nowrap;}
 .hist-btn:hover{background:rgba(99,102,241,.22);}
 .nav-label{font-size:9px;font-weight:800;color:var(--text3);letter-spacing:.5px;display:none;}
+
+/* Lock toggle button */
+.lock-btn{
+  border-radius:20px;padding:3px 10px;font-size:11px;font-weight:800;
+  cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;white-space:nowrap;
+  border:1px solid rgba(16,185,129,.3);background:rgba(16,185,129,.1);color:var(--brand);
+  transition:all .2s;display:none;
+}
+.lock-btn.locked{border-color:rgba(239,68,68,.35);background:rgba(239,68,68,.12);color:#ef4444;}
+.lock-btn:active{opacity:.7;}
+
+/* ── MOBILE NAV SWIPE ── */
+/* Only active on mobile — hidden behind media query on desktop */
+.nav-swipe-outer{
+  position:relative;
+  overflow:hidden;
+  /* width will be auto-set by JS */
+  display:none; /* hidden on desktop */
+}
+.nav-swipe-track{
+  display:flex;
+  align-items:center;
+  transition:transform .32s cubic-bezier(.16,1,.3,1);
+  will-change:transform;
+}
+.nav-swipe-page{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  flex-shrink:0;
+}
+/* Swipe dots */
+.nav-dots{
+  display:flex;gap:4px;align-items:center;margin-left:4px;
+}
+.nav-dot{
+  width:4px;height:4px;border-radius:50%;background:rgba(255,255,255,.15);
+  transition:background .2s,transform .2s;flex-shrink:0;
+}
+.nav-dot.active{background:var(--brand);transform:scale(1.35);}
+body.light .nav-dot{background:rgba(0,0,0,.12);}
+body.light .nav-dot.active{background:var(--brand);}
 
 /* ── INSTALL BANNER ── */
 #installBanner{display:none;align-items:center;justify-content:space-between;padding:6px 16px;background:rgba(16,185,129,.08);border-bottom:1px solid var(--brand-border);flex-shrink:0;}
@@ -120,7 +192,6 @@ body.light .item-row:hover{background:rgba(0,0,0,.02);}
 .cell:first-child{padding-left:18px;}
 .cell:last-child{padding-right:18px;}
 
-/* Shared type styles */
 .cell-uid{font-family:monospace;font-size:10px;font-weight:700;color:var(--uid-clr);line-height:1.5;}
 .desc-name{font-weight:700;font-size:14px;color:var(--text);line-height:1.4;margin-bottom:3px;}
 .desc-meta{display:flex;flex-wrap:wrap;gap:3px;margin-top:2px;}
@@ -144,7 +215,6 @@ body.light .stock-empty-btn{border-color:rgba(0,0,0,.13);color:rgba(0,0,0,.15);}
 .cell-um{font-size:11px;font-weight:700;color:var(--text2);}
 .cell-sup{font-size:13px;font-weight:700;color:var(--text);line-height:1.4;}
 .cell-pack-col{font-size:13px;font-weight:700;color:var(--pack-clr);}
-.cell-brand-col{}
 .cell-cost{font-size:14px;font-weight:800;color:var(--cost-clr);}
 .empty-state{text-align:center;padding:60px 20px;color:var(--text3);font-size:12px;font-weight:700;}
 
@@ -156,24 +226,9 @@ body.light .portal-bar::before{background:linear-gradient(90deg,transparent,rgba
 .portal-bar:focus-within{border-color:rgba(16,185,129,.5);}
 .bar-inner{flex:1;display:flex;align-items:center;gap:8px;padding:0 18px;}
 .bar-icon{font-size:13px;opacity:.35;flex-shrink:0;}
-
-/* ── FIX: Desktop search input — fully interactive, cursor visible ── */
-#searchIn{
-  background:transparent;
-  border:none;
-  color:var(--text);
-  font-size:14px;
-  font-weight:700;
-  outline:none;
-  flex:1;
-  padding:14px 0;
-  font-family:'Plus Jakarta Sans',sans-serif;
-  /* NO pointer-events:none — desktop must be fully clickable */
-}
+#searchIn{background:transparent;border:none;color:var(--text);font-size:14px;font-weight:700;outline:none;flex:1;padding:14px 0;font-family:'Plus Jakarta Sans',sans-serif;}
 #searchIn::placeholder{color:var(--text);opacity:.3;font-weight:600;}
-/* On mobile, the bar-inner click handles opening QKB — input is made readonly via JS */
 #searchIn.mobile-readonly{cursor:pointer;}
-
 .bar-count{font-size:10px;font-weight:800;color:var(--brand);background:var(--brand-dim);border:1px solid var(--brand-border);border-radius:50px;padding:3px 11px;white-space:nowrap;flex-shrink:0;}
 .bar-exit{background:var(--danger);border:none;color:white;padding:0 22px;height:46px;font-weight:800;font-size:12px;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;border-radius:0 100px 100px 0;flex-shrink:0;}
 .bar-exit:active{background:#dc2626;}
@@ -250,7 +305,7 @@ body.light .np-btn-back{color:rgba(0,0,0,.35);}
 .hist-empty{text-align:center;padding:50px 20px;color:var(--text3);font-size:12px;font-weight:700;}
 
 /* ══════════════════════════════════════════════
-   MOBILE (default — < 768px)
+   MOBILE (< 768px)
 ══════════════════════════════════════════════ */
 .tbl-area{height:calc(100dvh - 50px - 66px - env(safe-area-inset-top, 0px));mask-image:linear-gradient(to bottom,black 88%,transparent 100%);-webkit-mask-image:linear-gradient(to bottom,black 88%,transparent 100%);}
 .col-heads{display:grid;grid-template-columns:1fr 110px;padding:0 12px;}
@@ -261,142 +316,76 @@ body.light .np-btn-back{color:rgba(0,0,0,.35);}
 .cell{padding:10px 8px;}
 .cell:first-child{padding-left:12px;}
 .cell:last-child{padding-right:12px;}
-
 .desc-name{font-size:14px;font-weight:700;color:var(--text);line-height:1.35;margin-bottom:4px;}
 .mob-uid{font-family:monospace;font-size:10px;font-weight:800;color:var(--uid-clr);margin-bottom:2px;display:block;}
 .mob-sup{font-size:10px;font-weight:600;color:var(--text3);display:block;}
 .desc-meta{display:flex;flex-wrap:wrap;gap:3px;margin-top:4px;}
-
 .cell-mob-right{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;}
 .stock-qty{font-size:20px;font-weight:800;color:var(--brand);line-height:1;cursor:pointer;}
 .mob-um{font-size:9px;font-weight:800;padding:2px 7px;border-radius:20px;background:var(--brand-dim);border:1px solid var(--brand-border);color:var(--brand);white-space:nowrap;}
 .eq-input{width:90px;font-size:8px;}
 .stock-empty-btn{width:90px;height:32px;}
-
 .cell-uid{display:none;}
 .cell-um{display:none;}
 .cell-sup{display:none;}
 .cell-pack-col{display:none;}
 .cell-brand-col{display:none;}
 .cell-cost{display:none;}
-
 .portal-bar{width:calc(100% - 20px);max-width:600px;}
 
-/* ── CUSTOM MOBILE QWERTY SEARCH KEYBOARD ── */
-.qkb{
-  position:fixed;bottom:0;left:0;right:0;z-index:5000;
-  background:rgba(13,24,41,.97);
-  border-top:1px solid rgba(255,255,255,.10);
-  padding:4px 4px 0;
-  display:none;flex-direction:column;gap:3px;
-  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
-}
+/* Mobile nav: hide desktop nav-right, show swipe nav */
+.nav-right{display:none;}
+.nav-swipe-outer{display:flex;align-items:center;gap:4px;overflow:hidden;max-width:calc(100vw - 160px);}
+
+/* ── MOBILE QWERTY SEARCH KEYBOARD ── */
+.qkb{position:fixed;bottom:0;left:0;right:0;z-index:5000;background:rgba(13,24,41,.97);border-top:1px solid rgba(255,255,255,.10);padding:4px 4px 0;display:none;flex-direction:column;gap:3px;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);}
 .qkb.open{display:flex;}
 body.light .qkb{background:rgba(230,235,245,.97);border-top-color:rgba(0,0,0,.10);}
-
-.qkb-input-display{
-  flex:1;font-size:15px;font-weight:700;color:var(--text);
-  background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);
-  border-radius:22px;padding:7px 14px;min-height:36px;
-  white-space:nowrap;overflow:hidden;
-  letter-spacing:.2px;
-  display:flex;align-items:center;
-}
+.qkb-input-display{flex:1;font-size:15px;font-weight:700;color:var(--text);background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:22px;padding:7px 14px;min-height:36px;white-space:nowrap;overflow:hidden;letter-spacing:.2px;display:flex;align-items:center;}
 .qkb-text-before,.qkb-text-after{color:var(--text);}
-.qkb-cursor{
-  display:inline-block;width:2px;height:1.1em;
-  background:var(--brand);border-radius:1px;vertical-align:middle;margin:0 0px;
-  animation:qkbBlink .9s step-end infinite;user-select:none;flex-shrink:0;
-}
+.qkb-cursor{display:inline-block;width:2px;height:1.1em;background:var(--brand);border-radius:1px;vertical-align:middle;margin:0 0px;animation:qkbBlink .9s step-end infinite;user-select:none;flex-shrink:0;}
 @keyframes qkbBlink{0%,100%{opacity:1;}50%{opacity:0;}}
 body.light .qkb-input-display{background:rgba(0,0,0,.05);border-color:rgba(0,0,0,.12);}
 .qkb-input-display.empty{color:var(--text3);display:block;}
-.qkb-clear{
-  background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.28);
-  color:#ef4444;border-radius:20px;padding:6px 12px;
-  font-size:10px;font-weight:800;cursor:pointer;
-  font-family:'Plus Jakarta Sans',sans-serif;white-space:nowrap;flex-shrink:0;
-}
-.qkb-done{
-  background:var(--brand);border:none;color:#020617;border-radius:20px;padding:6px 14px;
-  font-size:10px;font-weight:800;cursor:pointer;
-  font-family:'Plus Jakarta Sans',sans-serif;white-space:nowrap;flex-shrink:0;
-}
+.qkb-clear{background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.28);color:#ef4444;border-radius:20px;padding:6px 12px;font-size:10px;font-weight:800;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;white-space:nowrap;flex-shrink:0;}
+.qkb-done{background:var(--brand);border:none;color:#020617;border-radius:20px;padding:6px 14px;font-size:10px;font-weight:800;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;white-space:nowrap;flex-shrink:0;}
 .qkb-row{display:flex;justify-content:center;gap:4px;}
-.qkb-key{
-  flex:1;height:36px;border:1px solid rgba(255,255,255,.09);background:rgba(255,255,255,.09);
-  border-radius:7px;font-size:14px;font-weight:600;color:rgba(255,255,255,.90);cursor:pointer;
-  display:flex;align-items:center;justify-content:center;
-  transition:background .07s,transform .06s;-webkit-tap-highlight-color:transparent;user-select:none;
-}
+.qkb-key{flex:1;height:36px;border:1px solid rgba(255,255,255,.09);background:rgba(255,255,255,.09);border-radius:7px;font-size:14px;font-weight:600;color:rgba(255,255,255,.90);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .07s,transform .06s;-webkit-tap-highlight-color:transparent;user-select:none;}
 .qkb-key:active{background:rgba(255,255,255,.25);transform:scale(.88);}
 body.light .qkb-key{background:rgba(0,0,0,.07);border-color:rgba(0,0,0,.10);color:#0f172a;}
 body.light .qkb-key:active{background:rgba(0,0,0,.18);}
-.qkb-key-space{
-  flex:5;background:rgba(16,185,129,.12);border-color:rgba(16,185,129,.22);
-  color:var(--brand);font-size:12px;font-weight:800;letter-spacing:1px;
-}
+.qkb-key-space{flex:5;background:rgba(16,185,129,.12);border-color:rgba(16,185,129,.22);color:var(--brand);font-size:12px;font-weight:800;letter-spacing:1px;}
 .qkb-key-num{font-size:13px;font-weight:700;color:rgba(255,255,255,.75);}
 body.light .qkb-key-num{color:rgba(0,0,0,.5);}
-.qkb-key-back{
-  flex:0 0 60px;height:44px;font-size:22px;
-  background:rgba(239,68,68,.15);border-color:rgba(239,68,68,.28);color:#ef4444;border-radius:7px;
-}
+.qkb-key-back{flex:0 0 60px;height:44px;font-size:22px;background:rgba(239,68,68,.15);border-color:rgba(239,68,68,.28);color:#ef4444;border-radius:7px;}
 body.light .qkb-key-back{background:rgba(239,68,68,.10);}
 .qkb-row:not(.qkb-row-bottom) .qkb-key{max-width:38px;}
 .qkb-row:nth-child(4) .qkb-key{max-width:46px;}
 .qkb-row-bottom{padding:0 2px;}
 .qkb-row-bottom .qkb-key{height:44px;}
-.qkb-bar{
-  display:flex;align-items:center;gap:8px;
-  padding:4px 8px env(safe-area-inset-bottom, 4px);margin-top:0;
-}
+.qkb-bar{display:flex;align-items:center;gap:8px;padding:4px 8px env(safe-area-inset-bottom, 4px);margin-top:0;}
 
-/* ── CUSTOM MOBILE FORMULA KEYBOARD ── */
-.fkb-overlay{
-  position:fixed;bottom:0;left:0;right:0;z-index:8000;
-  background:rgba(13,24,41,.97);border-top:1px solid rgba(255,255,255,.10);
-  padding:8px 8px calc(8px + var(--safe-bottom));
-  display:none;flex-direction:column;gap:6px;
-  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
-}
+/* ── MOBILE FORMULA KEYBOARD ── */
+.fkb-overlay{position:fixed;bottom:0;left:0;right:0;z-index:8000;background:rgba(13,24,41,.97);border-top:1px solid rgba(255,255,255,.10);padding:8px 8px calc(8px + var(--safe-bottom));display:none;flex-direction:column;gap:6px;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);}
 .fkb-overlay.open{display:flex;}
 body.light .fkb-overlay{background:rgba(235,240,250,.97);border-top-color:rgba(0,0,0,.10);}
 .fkb-top{display:flex;align-items:center;gap:8px;padding:0 4px 2px;}
 .fkb-label{font-size:10px;font-weight:800;color:var(--text3);flex:1;}
-.fkb-display{
-  flex:1;font-family:monospace;font-size:15px;font-weight:700;color:var(--text);
-  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);
-  border-radius:8px;padding:6px 10px;min-height:34px;
-  overflow:hidden;white-space:nowrap;text-overflow:ellipsis;
-}
+.fkb-display{flex:1;font-family:monospace;font-size:15px;font-weight:700;color:var(--text);background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:6px 10px;min-height:34px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
 body.light .fkb-display{background:rgba(0,0,0,.05);border-color:rgba(0,0,0,.12);color:var(--text);}
-.fkb-close{
-  background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);
-  color:#ef4444;border-radius:8px;padding:6px 12px;font-size:10px;font-weight:800;
-  cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;white-space:nowrap;
-}
+.fkb-close{background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);color:#ef4444;border-radius:8px;padding:6px 12px;font-size:10px;font-weight:800;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;white-space:nowrap;}
 .fkb-row{display:grid;gap:5px;}
 .fkb-row-1{grid-template-columns:repeat(6,1fr);}
 .fkb-row-2{grid-template-columns:repeat(6,1fr);}
 .fkb-row-3{grid-template-columns:repeat(6,1fr);}
-.fkb-btn{
-  border:1px solid rgba(255,255,255,.09);background:rgba(255,255,255,.08);
-  border-radius:9px;height:44px;font-size:16px;font-weight:600;color:rgba(255,255,255,.90);
-  cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;
-  display:flex;align-items:center;justify-content:center;
-  transition:background .08s,transform .07s;-webkit-tap-highlight-color:transparent;
-}
+.fkb-btn{border:1px solid rgba(255,255,255,.09);background:rgba(255,255,255,.08);border-radius:9px;height:44px;font-size:16px;font-weight:600;color:rgba(255,255,255,.90);cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;display:flex;align-items:center;justify-content:center;transition:background .08s,transform .07s;-webkit-tap-highlight-color:transparent;}
 .fkb-btn:active{background:rgba(255,255,255,.22);transform:scale(.88);}
 body.light .fkb-btn{background:rgba(0,0,0,.07);border-color:rgba(0,0,0,.10);color:#0f172a;}
 body.light .fkb-btn:active{background:rgba(0,0,0,.15);}
 .fkb-btn-op{background:rgba(99,102,241,.15);border-color:rgba(99,102,241,.25);color:#818cf8;font-size:15px;}
 body.light .fkb-btn-op{background:rgba(99,102,241,.10);color:#6366f1;}
 .fkb-btn-back{background:rgba(239,68,68,.12);border-color:rgba(239,68,68,.22);color:#ef4444;font-size:14px;}
-.fkb-btn-ok{
-  background:var(--brand);border-color:var(--brand);color:#020617;font-weight:800;font-size:13px;
-  box-shadow:0 2px 10px rgba(16,185,129,.3);
-}
+.fkb-btn-ok{background:var(--brand);border-color:var(--brand);color:#020617;font-weight:800;font-size:13px;box-shadow:0 2px 10px rgba(16,185,129,.3);}
 .fkb-btn-ok:active{background:#0ea572;}
 
 /* ══════════════════════════════════════════════
@@ -405,52 +394,62 @@ body.light .fkb-btn-op{background:rgba(99,102,241,.10);color:#6366f1;}
 @media(min-width:768px){
   :root{--row-h:auto;}
   html,body{overflow:hidden;}
-  .nav{height:54px;padding:0 28px;}
-  .nav-logo{font-size:16px;}
+  .nav{height:56px;padding:0 28px;}
+  .nav-logo{font-size:17px;}
   .nav-label{display:inline;font-size:10px;}
   .hist-btn{display:inline-flex;}
   .tbl-area{
-    height:calc(100dvh - 54px - 68px);
+    height:calc(100dvh - 56px - 68px);
     mask-image:linear-gradient(to bottom,black 85%,transparent 100%);
     -webkit-mask-image:linear-gradient(to bottom,black 85%,transparent 100%);
     padding:0 24px 20px;
   }
   .col-heads{
-    display:grid;grid-template-columns:90px 1fr 150px 52px 80px 180px 130px;
+    display:grid;grid-template-columns:100px 1fr 160px 60px 90px 195px 140px;
     padding:0;border-radius:12px;border:1px solid var(--border);margin-bottom:4px;
   }
-  .col-h{padding:10px 12px;font-size:8.5px;}
-  .col-h:first-child{border-radius:12px 0 0 12px;padding-left:16px;}
-  .col-h:last-child{border-radius:0 12px 12px 0;padding-right:16px;}
+  .col-h{padding:11px 14px;font-size:9.5px;letter-spacing:.7px;}
+  .col-h:first-child{border-radius:12px 0 0 12px;padding-left:18px;}
+  .col-h:last-child{border-radius:0 12px 12px 0;padding-right:18px;}
   .item-row{
-    display:grid;grid-template-columns:90px 1fr 150px 52px 80px 180px 130px;
-    padding:0;min-height:68px;border-radius:8px;margin-bottom:2px;
-    border:1px solid var(--border2);border-bottom:1px solid var(--border2);
+    display:grid;grid-template-columns:100px 1fr 160px 60px 90px 195px 140px;
+    padding:0;min-height:76px;border-radius:8px;margin-bottom:2px;
+    border:1px solid var(--border2);
   }
   .item-row:hover{border-color:rgba(255,255,255,.06);}
-  .cell{padding:10px 12px;display:flex;align-items:center;}
-  .cell:first-child{padding-left:16px;border-radius:8px 0 0 8px;}
-  .cell:last-child{padding-right:16px;border-radius:0 8px 8px 0;}
-  .cell-uid{display:flex;font-family:monospace;font-size:10px;font-weight:700;color:var(--uid-clr);line-height:1.4;word-break:break-all;}
-  .cell-um{display:flex;font-size:11px;font-weight:700;color:var(--text2);justify-content:center;text-align:center;}
-  .cell-sup{display:flex;font-size:11px;font-weight:600;color:var(--text2);align-items:center;line-height:1.4;}
-  .cell-pack-col{display:flex;font-size:11px;font-weight:700;color:var(--pack-clr);align-items:center;}
+  .cell{padding:12px 14px;display:flex;align-items:center;}
+  .cell:first-child{padding-left:18px;border-radius:8px 0 0 8px;}
+  .cell:last-child{padding-right:18px;border-radius:0 8px 8px 0;}
+
+  /* ── DESKTOP BIGGER TEXT ── */
+  .cell-uid{display:flex;font-family:monospace;font-size:11.5px;font-weight:700;color:var(--uid-clr);line-height:1.4;word-break:break-all;}
+  .cell-um{display:flex;font-size:14px;font-weight:700;color:var(--text2);justify-content:center;text-align:center;}
+  .cell-sup{display:flex;font-size:14px;font-weight:600;color:var(--text2);align-items:center;line-height:1.4;}
+  .cell-pack-col{display:flex;font-size:14px;font-weight:700;color:var(--pack-clr);align-items:center;}
   .cell-brand-col{display:flex;flex-direction:column;justify-content:center;gap:3px;}
   .cell-cost{display:none;}
   .cell-desc{display:flex;flex-direction:column;justify-content:center;}
-  .desc-name{font-size:13px;font-weight:700;color:var(--text);line-height:1.35;margin-bottom:2px;}
-  .desc-meta{display:flex;flex-wrap:wrap;gap:3px;margin-top:2px;}
-  .cell-stock{justify-content:flex-start;padding-left:12px;}
+  .desc-name{font-size:15.5px;font-weight:700;color:var(--text);line-height:1.35;margin-bottom:2px;}
+  .desc-meta{display:flex;flex-wrap:wrap;gap:3px;margin-top:3px;}
+  .pill{font-size:8.5px;padding:2px 8px;}
+  .cell-stock{justify-content:flex-start;padding-left:14px;}
   .stock-wrap{align-items:flex-start;}
-  .stock-qty{font-size:18px;}
-  .eq-input{width:118px;font-size:9px;}
-  .stock-empty-btn{width:80px;height:30px;}
+  .stock-qty{font-size:22px;font-weight:800;}
+  .eq-input{width:122px;font-size:9.5px;}
+  .stock-empty-btn{width:84px;height:32px;font-size:13px;}
   .mob-uid{display:none;}
   .mob-sup{display:none;}
   .portal-bar{width:80%;max-width:1100px;}
 
-  /* Desktop: search input gets a visible focus ring via portal-bar:focus-within */
+  /* Desktop: restore nav-right, hide swipe nav */
+  .nav-right{display:flex;}
+  .nav-swipe-outer{display:none;}
+
   #searchIn{cursor:text;}
+
+  /* Admin lock btn visible on desktop for Steve */
+  .lock-btn{display:none;}
+  .lock-btn.admin-visible{display:inline-flex;align-items:center;gap:4px;}
 }
 </style>
 </head>
@@ -462,7 +461,7 @@ body.light .fkb-btn-op{background:rgba(99,102,241,.10);color:#6366f1;}
   <div class="load-txt" id="loadTxt">Connecting…</div>
 </div>
 
-<!-- LOGIN SCREEN -->
+<!-- LOGIN -->
 <div id="loginScreen" class="hidden">
   <div class="login-logo"><span style="font-size:24px">🥩</span> CHEF2CHEF <span>STOCK</span></div>
   <div class="login-subtitle">SIGN IN TO CONTINUE</div>
@@ -474,21 +473,59 @@ body.light .fkb-btn-op{background:rgba(99,102,241,.10);color:#6366f1;}
   </div>
 </div>
 
+<!-- LOCK BANNER (shown to non-admins when locked) -->
+<div id="lockBanner">
+  <span class="lock-banner-icon">🔒</span>
+  <span class="lock-banner-txt">SYSTEM LOCKED</span>
+  <span class="lock-banner-sub"> — Stock entries disabled by Admin</span>
+</div>
+
 <div id="installBanner">
   <span class="install-txt">📱 Add Chef2Chef Stock to your Home Screen</span>
   <button class="install-btn" id="installBtn">Install App</button>
   <button class="install-x" onclick="document.getElementById('installBanner').classList.remove('show');localStorage.setItem('c2c_nodismiss','1')">✕</button>
 </div>
 
+<!-- LOCK OVERLAY (blocks taps on table for non-admins) -->
+<div id="lockOverlay"></div>
+
 <nav class="nav">
   <a class="nav-logo" href="#"><span style="font-size:22px">🥩</span> CHEF2CHEF <span>STOCK</span></a>
+
+  <!-- DESKTOP nav-right -->
   <div class="nav-right">
     <span class="sync-badge" id="syncBadge">● LIVE</span>
-    <span class="nav-user" id="navUser" onclick="lockApp()" title="Tap to lock">👤 —</span>
+    <span class="nav-user" id="navUser" onclick="lockApp()" title="Tap to sign out">👤 —</span>
+    <button class="lock-btn" id="lockBtn" onclick="toggleSystemLock()">🔓 UNLOCKED</button>
     <button class="hist-btn" onclick="openHistory()">📋 HISTORY</button>
     <button class="mode-btn" id="modeBtn" onclick="toggleMode()">🌙 DARK</button>
     <button class="mode-btn" onclick="forceRefresh()" title="Force refresh">↺</button>
     <span class="nav-label">PHYSICAL STOCK MODULE</span>
+  </div>
+
+  <!-- MOBILE nav swipe -->
+  <div class="nav-swipe-outer" id="navSwipeOuter">
+    <div class="nav-swipe-track" id="navSwipeTrack">
+      <!-- Page 1: LIVE + USER + HISTORY -->
+      <div class="nav-swipe-page" id="navPage1">
+        <span class="sync-badge" id="syncBadgeMob">● LIVE</span>
+        <span class="nav-user" id="navUserMob" onclick="lockApp()" title="Sign out">👤 —</span>
+        <button class="hist-btn" onclick="openHistory()">📋</button>
+      </div>
+      <!-- Spacer between pages -->
+      <div style="width:10px;flex-shrink:0;"></div>
+      <!-- Page 2: MODE + RESET + LOCK (admin) -->
+      <div class="nav-swipe-page" id="navPage2">
+        <button class="mode-btn" id="modeBtnMob" onclick="toggleMode()">🌙</button>
+        <button class="mode-btn" onclick="forceRefresh()">↺</button>
+        <button class="lock-btn" id="lockBtnMob" onclick="toggleSystemLock()">🔓</button>
+      </div>
+    </div>
+    <!-- Swipe indicator dots -->
+    <div class="nav-dots" id="navDots">
+      <div class="nav-dot active" id="navDot0"></div>
+      <div class="nav-dot" id="navDot1"></div>
+    </div>
   </div>
 </nav>
 
@@ -497,16 +534,10 @@ body.light .fkb-btn-op{background:rgba(99,102,241,.10);color:#6366f1;}
   <div id="tbody"></div>
 </div>
 
-<!-- ── FIX: portal bar — bar-inner click only opens QKB on mobile,
-     input is directly clickable/typeable on desktop ── -->
 <div class="portal-bar">
   <div class="bar-inner" id="barInner">
     <span class="bar-icon">🔍</span>
-    <input id="searchIn"
-      type="search"
-      placeholder="Search UID, description, supplier, category…"
-      autocomplete="off"
-      spellcheck="false">
+    <input id="searchIn" type="search" placeholder="Search UID, description, supplier, category…" autocomplete="off" spellcheck="false">
     <span class="bar-count" id="barCount">—</span>
   </div>
   <button class="bar-exit" onclick="location.reload()">EXIT</button>
@@ -560,7 +591,7 @@ body.light .fkb-btn-op{background:rgba(99,102,241,.10);color:#6366f1;}
   <div class="hist-body" id="histBody"><div class="hist-empty">Loading…</div></div>
 </div>
 
-<!-- CUSTOM MOBILE QWERTY SEARCH KEYBOARD -->
+<!-- MOBILE QWERTY SEARCH -->
 <div class="qkb" id="qkb">
   <div class="qkb-row">
     <div class="qkb-key qkb-key-num" onclick="qkbKey('1')">1</div>
@@ -575,35 +606,23 @@ body.light .fkb-btn-op{background:rgba(99,102,241,.10);color:#6366f1;}
     <div class="qkb-key qkb-key-num" onclick="qkbKey('0')">0</div>
   </div>
   <div class="qkb-row">
-    <div class="qkb-key" onclick="qkbKey('q')">Q</div>
-    <div class="qkb-key" onclick="qkbKey('w')">W</div>
-    <div class="qkb-key" onclick="qkbKey('e')">E</div>
-    <div class="qkb-key" onclick="qkbKey('r')">R</div>
-    <div class="qkb-key" onclick="qkbKey('t')">T</div>
-    <div class="qkb-key" onclick="qkbKey('y')">Y</div>
-    <div class="qkb-key" onclick="qkbKey('u')">U</div>
-    <div class="qkb-key" onclick="qkbKey('i')">I</div>
-    <div class="qkb-key" onclick="qkbKey('o')">O</div>
-    <div class="qkb-key" onclick="qkbKey('p')">P</div>
+    <div class="qkb-key" onclick="qkbKey('q')">Q</div><div class="qkb-key" onclick="qkbKey('w')">W</div>
+    <div class="qkb-key" onclick="qkbKey('e')">E</div><div class="qkb-key" onclick="qkbKey('r')">R</div>
+    <div class="qkb-key" onclick="qkbKey('t')">T</div><div class="qkb-key" onclick="qkbKey('y')">Y</div>
+    <div class="qkb-key" onclick="qkbKey('u')">U</div><div class="qkb-key" onclick="qkbKey('i')">I</div>
+    <div class="qkb-key" onclick="qkbKey('o')">O</div><div class="qkb-key" onclick="qkbKey('p')">P</div>
   </div>
   <div class="qkb-row">
-    <div class="qkb-key" onclick="qkbKey('a')">A</div>
-    <div class="qkb-key" onclick="qkbKey('s')">S</div>
-    <div class="qkb-key" onclick="qkbKey('d')">D</div>
-    <div class="qkb-key" onclick="qkbKey('f')">F</div>
-    <div class="qkb-key" onclick="qkbKey('g')">G</div>
-    <div class="qkb-key" onclick="qkbKey('h')">H</div>
-    <div class="qkb-key" onclick="qkbKey('j')">J</div>
-    <div class="qkb-key" onclick="qkbKey('k')">K</div>
+    <div class="qkb-key" onclick="qkbKey('a')">A</div><div class="qkb-key" onclick="qkbKey('s')">S</div>
+    <div class="qkb-key" onclick="qkbKey('d')">D</div><div class="qkb-key" onclick="qkbKey('f')">F</div>
+    <div class="qkb-key" onclick="qkbKey('g')">G</div><div class="qkb-key" onclick="qkbKey('h')">H</div>
+    <div class="qkb-key" onclick="qkbKey('j')">J</div><div class="qkb-key" onclick="qkbKey('k')">K</div>
     <div class="qkb-key" onclick="qkbKey('l')">L</div>
   </div>
   <div class="qkb-row">
-    <div class="qkb-key" onclick="qkbKey('z')">Z</div>
-    <div class="qkb-key" onclick="qkbKey('x')">X</div>
-    <div class="qkb-key" onclick="qkbKey('c')">C</div>
-    <div class="qkb-key" onclick="qkbKey('v')">V</div>
-    <div class="qkb-key" onclick="qkbKey('b')">B</div>
-    <div class="qkb-key" onclick="qkbKey('n')">N</div>
+    <div class="qkb-key" onclick="qkbKey('z')">Z</div><div class="qkb-key" onclick="qkbKey('x')">X</div>
+    <div class="qkb-key" onclick="qkbKey('c')">C</div><div class="qkb-key" onclick="qkbKey('v')">V</div>
+    <div class="qkb-key" onclick="qkbKey('b')">B</div><div class="qkb-key" onclick="qkbKey('n')">N</div>
     <div class="qkb-key" onclick="qkbKey('m')">M</div>
   </div>
   <div class="qkb-row qkb-row-bottom">
@@ -617,7 +636,7 @@ body.light .fkb-btn-op{background:rgba(99,102,241,.10);color:#6366f1;}
   </div>
 </div>
 
-<!-- CUSTOM MOBILE FORMULA KEYBOARD -->
+<!-- MOBILE FORMULA KEYBOARD -->
 <div class="fkb-overlay" id="fkbOverlay">
   <div class="fkb-top">
     <span class="fkb-label">FORMULA</span>
@@ -660,92 +679,49 @@ firebase.initializeApp(firebaseConfig);
 firebase.auth().signInAnonymously().catch(()=>{});
 const db=firebase.database();
 
-function normalizeFormula(f){
-  if(!f) return '';
-  return String(f).replace(/\s/g,'').replace(/^=/,'');
-}
+function normalizeFormula(f){if(!f)return '';return String(f).replace(/\s/g,'').replace(/^=/,'');}
 const SHEETS_URL='https://script.google.com/macros/s/AKfycbyHiiuDy1HQzz_D9O1f1hZyL__81DyFW4bT2bieNlmIWj86NRtSQ9lfH-O5AHEtR3fp/exec';
 
 // ── STATE ────────────────────────────────────────────────────
 let ITEMS=[],historyLog=[];
 const stockData={},formulaData={};
 let fbListening=false,searchQuery='';
+let isLocked=false; // system lock state
 const isDesktop=()=>window.innerWidth>=768;
+const isAdmin=()=>currentUser&&currentUser.id==='steve';
 
 function xe(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
-
-function cleanDesc(desc,id){
-  let d=String(desc||'').trim();
-  if(id&&d.startsWith(id)){
-    d=d.slice(id.length).trim();
-    d=d.replace(/^[\s\(\-\:\|]+/,'').replace(/\)\s*$/,'').trim();
-  }
-  return d||desc;
-}
-
-function setSync(state,msg){
-  const el=document.getElementById('syncBadge');
-  el.className='sync-badge'+(state==='ok'?'':' '+state);
-  el.textContent=msg;
-}
+function cleanDesc(desc,id){let d=String(desc||'').trim();if(id&&d.startsWith(id)){d=d.slice(id.length).trim();d=d.replace(/^[\s\(\-\:\|]+/,'').replace(/\)\s*$/,'').trim();}return d||desc;}
+function setSync(state,msg){const el=document.getElementById('syncBadge');el.className='sync-badge'+(state==='ok'?'':' '+state);el.textContent=msg;const el2=document.getElementById('syncBadgeMob');if(el2){el2.className='sync-badge'+(state==='ok'?'':' '+state);el2.textContent=msg;}}
 
 function toggleMode(){
   const light=document.body.classList.toggle('light');
   document.getElementById('modeBtn').textContent=light?'☀️ LIGHT':'🌙 DARK';
+  document.getElementById('modeBtnMob').textContent=light?'☀️':'🌙';
   localStorage.setItem('c2c_mode',light?'light':'dark');
 }
-function forceRefresh(){
-  localStorage.removeItem('c2c_items');
-  localStorage.removeItem('c2c_items_ts');
-  setSync('syncing','⟳ REFRESHING');
-  location.reload();
-}
+function forceRefresh(){localStorage.removeItem('c2c_items');localStorage.removeItem('c2c_items_ts');setSync('syncing','⟳ REFRESHING');location.reload();}
 
 function saveLocal(){try{localStorage.setItem('c2c_stock',JSON.stringify({s:stockData,f:formulaData}));}catch(e){}}
 function loadLocal(){try{const d=JSON.parse(localStorage.getItem('c2c_stock')||'{}');if(d.s)Object.assign(stockData,d.s);if(d.f)Object.assign(formulaData,d.f);}catch(e){}}
 function saveHistory(){try{localStorage.setItem('c2c_history',JSON.stringify(historyLog.slice(0,500)));}catch(e){}}
 function loadHistory(){try{historyLog=JSON.parse(localStorage.getItem('c2c_history')||'[]');}catch(e){}}
 
-function openHistory(){
-  document.getElementById('histDrawer').classList.add('open');
-  document.getElementById('histOverlay').classList.add('open');
-  fetchHistory();
-}
-function closeHistory(){
-  document.getElementById('histDrawer').classList.remove('open');
-  document.getElementById('histOverlay').classList.remove('open');
-}
+function openHistory(){document.getElementById('histDrawer').classList.add('open');document.getElementById('histOverlay').classList.add('open');fetchHistory();}
+function closeHistory(){document.getElementById('histDrawer').classList.remove('open');document.getElementById('histOverlay').classList.remove('open');}
 function fetchHistory(){
   document.getElementById('histBody').innerHTML='<div class="hist-empty">Loading…</div>';
   fetch(SHEETS_URL+'?action=getHistory&_t='+Date.now(),{cache:'no-store',redirect:'follow'})
-    .then(r=>r.json()).then(d=>{
-      if(d.ok&&d.history){
-        d.history.forEach(e=>{if(!historyLog.some(l=>l.ts===e.ts&&l.uid===e.uid))historyLog.unshift(e);});
-        historyLog=historyLog.slice(0,500);
-        saveHistory();
-      }
-      renderHistory();
-    }).catch(()=>renderHistory());
+    .then(r=>r.json()).then(d=>{if(d.ok&&d.history){d.history.forEach(e=>{if(!historyLog.some(l=>l.ts===e.ts&&l.uid===e.uid))historyLog.unshift(e);});historyLog=historyLog.slice(0,500);saveHistory();}renderHistory();}).catch(()=>renderHistory());
 }
 function renderHistory(){
   const body=document.getElementById('histBody');
   if(!historyLog.length){body.innerHTML='<div class="hist-empty">No history yet</div>';return;}
   body.innerHTML=historyLog.map(e=>{
-    const added=String(e.added||'');
-    const isPos=!added.startsWith('-');
+    const added=String(e.added||'');const isPos=!added.startsWith('-');
     const src=e.source==='sheet'?'📊 SHEET':e.source==='mobile'?'📱 MOBILE':'🌐 WEB';
     const srcCls=e.source==='sheet'?'sheet':e.source==='mobile'?'mobile':'web';
-    return`<div class="hist-row">
-      <div class="hist-top"><span class="hist-uid">${xe(e.uid)}</span><span class="hist-ts">${xe(e.ts)}</span></div>
-      <div class="hist-desc">${xe(e.desc)}</div>
-      <div class="hist-vals">
-        <span class="hist-old">${e.oldVal}</span><span class="hist-arr">→</span>
-        <span class="hist-new">${e.newVal}</span>
-        <span class="hist-chg ${isPos?'pos':'neg'}">${xe(added)}</span>
-        <span class="hist-src ${srcCls}">${src}</span>
-      </div>
-      ${e.formula?`<div style="margin-top:3px;font-family:monospace;font-size:9px;color:#fbbf24">=<span>${xe(normalizeFormula(e.formula))}</span></div>`:''}
-    </div>`;
+    return`<div class="hist-row"><div class="hist-top"><span class="hist-uid">${xe(e.uid)}</span><span class="hist-ts">${xe(e.ts)}</span></div><div class="hist-desc">${xe(e.desc)}</div><div class="hist-vals"><span class="hist-old">${e.oldVal}</span><span class="hist-arr">→</span><span class="hist-new">${e.newVal}</span><span class="hist-chg ${isPos?'pos':'neg'}">${xe(added)}</span><span class="hist-src ${srcCls}">${src}</span></div>${e.formula?`<div style="margin-top:3px;font-family:monospace;font-size:9px;color:#fbbf24">=<span>${xe(normalizeFormula(e.formula))}</span></div>`:''}</div>`;
   }).join('');
 }
 function addLocalHistory(uid,oldVal,newVal,added,formula,source){
@@ -759,6 +735,60 @@ function addLocalHistory(uid,oldVal,newVal,added,formula,source){
   if(document.getElementById('histDrawer').classList.contains('open'))renderHistory();
 }
 
+// ── SYSTEM LOCK ──────────────────────────────────────────────
+function applyLockState(locked){
+  isLocked=locked;
+  const banner=document.getElementById('lockBanner');
+  const overlay=document.getElementById('lockOverlay');
+  const lockBtn=document.getElementById('lockBtn');
+  const lockBtnMob=document.getElementById('lockBtnMob');
+
+  if(locked){
+    if(!isAdmin()){
+      banner.classList.add('show');
+      overlay.classList.add('show');
+    } else {
+      banner.classList.remove('show');
+      overlay.classList.remove('show');
+    }
+    if(lockBtn){lockBtn.textContent='🔒 LOCKED';lockBtn.classList.add('locked');}
+    if(lockBtnMob){lockBtnMob.textContent='🔒';lockBtnMob.classList.add('locked');}
+  } else {
+    banner.classList.remove('show');
+    overlay.classList.remove('show');
+    if(lockBtn){lockBtn.textContent='🔓 UNLOCKED';lockBtn.classList.remove('locked');}
+    if(lockBtnMob){lockBtnMob.textContent='🔓';lockBtnMob.classList.remove('locked');}
+  }
+}
+
+function toggleSystemLock(){
+  if(!isAdmin()){alert('Only Steve (admin) can lock/unlock the system.');return;}
+  const newLocked=!isLocked;
+  db.ref('appState/locked').set(newLocked).then(()=>{
+    applyLockState(newLocked);
+    if(navigator.vibrate)navigator.vibrate(newLocked?[30,20,30]:35);
+  }).catch(()=>alert('Could not update lock state. Check connection.'));
+}
+
+function startLockListener(){
+  db.ref('appState/locked').on('value',snap=>{
+    const val=snap.val();
+    applyLockState(val===true);
+  });
+}
+
+function canWrite(){
+  if(isLocked&&!isAdmin()){
+    // Flash the banner
+    const banner=document.getElementById('lockBanner');
+    banner.style.background='rgba(239,68,68,.22)';
+    setTimeout(()=>{banner.style.background='';},400);
+    if(navigator.vibrate)navigator.vibrate([10,10,10]);
+    return false;
+  }
+  return true;
+}
+
 // ── FIREBASE ────────────────────────────────────────────────
 const ownWrites={};
 function lockWrite(uid){ownWrites[uid]=Date.now();}
@@ -769,68 +799,50 @@ function updateSheetBackground(uid,qty,formula,added){
   const params=new URLSearchParams({action:'updateRow',uid,qty,formula:normalizeFormula(formula)||'',added:added??0,_t:Date.now()});
   fetch(SHEETS_URL+'?'+params.toString(),{cache:'no-store',redirect:'follow',keepalive:true}).catch(()=>{});
 }
-
 function fbWrite(uid,qty,formula,added){
   lockWrite(uid);
   const k=uid.replace(/[.#$[\]]/g,'_');
-  db.ref('stock/'+k).set({qty,formula:formula||String(qty),ts:Date.now(),added:added??0}).then(()=>{
-    setSync('ok','● LIVE');
-    updateSheetBackground(uid,qty,formula||String(qty),added??0);
-  }).catch(()=>setSync('error','✕ OFFLINE'));
+  db.ref('stock/'+k).set({qty,formula:formula||String(qty),ts:Date.now(),added:added??0}).then(()=>{setSync('ok','● LIVE');updateSheetBackground(uid,qty,formula||String(qty),added??0);}).catch(()=>setSync('error','✕ OFFLINE'));
 }
-
 function startFirebaseListener(){
-  if(fbListening)return;
-  fbListening=true;
+  if(fbListening)return;fbListening=true;
   db.ref('stock').on('child_changed',snap=>{
-    const k=snap.key,val=snap.val();
-    if(!val||!ITEMS.length)return;
-    const item=ITEMS.find(r=>r.id.replace(/[.#$[\]]/g,'_')===k);
-    if(!item)return;
-    const uid=item.id;
-    if(isOwnEcho(uid))return;
-    const newQty=parseFloat(val.qty)||0;
-    const newForm=normalizeFormula(val.formula||String(newQty));
+    const k=snap.key,val=snap.val();if(!val||!ITEMS.length)return;
+    const item=ITEMS.find(r=>r.id.replace(/[.#$[\]]/g,'_')===k);if(!item)return;
+    const uid=item.id;if(isOwnEcho(uid))return;
+    const newQty=parseFloat(val.qty)||0;const newForm=normalizeFormula(val.formula||String(newQty));
     const locForm=normalizeFormula(formulaData[uid]||'');
     if(Math.abs(newQty-(stockData[uid]||0))>0.0001||newForm!==locForm){
-      const oldVal=stockData[uid]||0;
-      stockData[uid]=newQty;formulaData[uid]=newForm;
-      updateRowDisplay(uid);
-      addLocalHistory(uid,oldVal,newQty,val.added||(newQty-oldVal),newForm,val.source||'web');
+      const oldVal=stockData[uid]||0;stockData[uid]=newQty;formulaData[uid]=newForm;
+      updateRowDisplay(uid);addLocalHistory(uid,oldVal,newQty,val.added||(newQty-oldVal),newForm,val.source||'web');
       saveLocal();setSync('ok','● LIVE');
     }
   });
 }
 
-// ── WRITE OPS ────────────────────────────────────────────────
+// ── WRITE OPS (all guarded by canWrite) ─────────────────────
 function sendAdd(uid,addQty){
-  const oldVal=stockData[uid]||0;
-  const newVal=parseFloat((oldVal+addQty).toFixed(4));
+  if(!canWrite())return;
+  const oldVal=stockData[uid]||0;const newVal=parseFloat((oldVal+addQty).toFixed(4));
   const oldForm=normalizeFormula(formulaData[uid]||String(oldVal));
   const newForm=oldVal===0?String(addQty):oldForm+(addQty>=0?'+':'')+addQty;
-  stockData[uid]=newVal;formulaData[uid]=newForm;
-  saveLocal();updateRowDisplay(uid);
+  stockData[uid]=newVal;formulaData[uid]=newForm;saveLocal();updateRowDisplay(uid);
   addLocalHistory(uid,oldVal,newVal,addQty,newForm,isDesktop()?'website':'mobile');
-  setSync('syncing','⟳ SAVING');
-  fbWrite(uid,newVal,newForm,addQty);
+  setSync('syncing','⟳ SAVING');fbWrite(uid,newVal,newForm,addQty);
 }
 function sendSet(uid,qty){
-  const oldVal=stockData[uid]||0;
-  const formula=String(qty);
-  stockData[uid]=qty;formulaData[uid]=formula;
-  saveLocal();updateRowDisplay(uid);
+  if(!canWrite())return;
+  const oldVal=stockData[uid]||0;const formula=String(qty);
+  stockData[uid]=qty;formulaData[uid]=formula;saveLocal();updateRowDisplay(uid);
   addLocalHistory(uid,oldVal,qty,qty-oldVal,formula,isDesktop()?'website':'mobile');
-  setSync('syncing','⟳ SAVING');
-  fbWrite(uid,qty,formula,qty-oldVal);
+  setSync('syncing','⟳ SAVING');fbWrite(uid,qty,formula,qty-oldVal);
 }
 function sendSetFormula(uid,formula,qty){
-  const oldVal=stockData[uid]||0;
-  const clean=normalizeFormula(formula);
-  stockData[uid]=qty;formulaData[uid]=clean;
-  saveLocal();updateRowDisplay(uid);
+  if(!canWrite())return;
+  const oldVal=stockData[uid]||0;const clean=normalizeFormula(formula);
+  stockData[uid]=qty;formulaData[uid]=clean;saveLocal();updateRowDisplay(uid);
   addLocalHistory(uid,oldVal,qty,qty-oldVal,clean,isDesktop()?'website':'mobile');
-  setSync('syncing','⟳ SAVING');
-  fbWrite(uid,qty,clean,qty-oldVal);
+  setSync('syncing','⟳ SAVING');fbWrite(uid,qty,clean,qty-oldVal);
 }
 
 // ── FORMULA BAR ──────────────────────────────────────────────
@@ -840,30 +852,25 @@ function onEqKd(e,id,sid){
   if(e.key==='Escape'){const inp=document.getElementById('eq-'+sid);if(inp)inp.value='='+(formulaData[id]||String(stockData[id]||0));document.getElementById('eqok-'+sid)?.classList.remove('on');inp?.blur();}
 }
 function confirmEq(id,sid){
+  if(!canWrite())return;
   const inp=document.getElementById('eq-'+sid);if(!inp)return;
   let raw=inp.value.trim();if(raw.startsWith('='))raw=raw.slice(1);
   const clean=raw.replace(/[^0-9.+\-*\/()]/g,'');
   if(!clean){inp.value='='+(formulaData[id]||String(stockData[id]||0));return;}
   let qty;try{qty=Math.max(0,parseFloat(Function('return ('+clean+')')().toFixed(4)));}catch(e){qty=stockData[id]||0;}
-  inp.value='='+clean;
-  document.getElementById('eqok-'+sid)?.classList.remove('on');
-  inp.blur();
+  inp.value='='+clean;document.getElementById('eqok-'+sid)?.classList.remove('on');inp.blur();
   sendSetFormula(id,clean,qty);
 }
 
 // ── RENDER ──────────────────────────────────────────────────
 function stockCellHtmlMobile(id,um){
-  const qty=stockData[id]||0;
-  const sid=id.replace(/[^a-zA-Z0-9_-]/g,'_');
-  const formula=formulaData[id]||'';
+  const qty=stockData[id]||0;const sid=id.replace(/[^a-zA-Z0-9_-]/g,'_');const formula=formulaData[id]||'';
   if(qty>0){
     const disp=qty%1===0?qty:qty.toFixed(2);
     return`<span class="stock-qty" id="sqty-${sid}" onclick="openNp('${id}')">${disp}</span>
       ${um?`<span class="mob-um">${xe(um)}</span>`:''}
       <div class="eq-wrap">
-        <input class="eq-input" id="eq-${sid}" type="text"
-          value="${xe('='+(formula||String(qty)))}"
-          inputmode="none" readonly
+        <input class="eq-input" id="eq-${sid}" type="text" value="${xe('='+(formula||String(qty)))}" inputmode="none" readonly
           onclick="event.stopPropagation();fkbOpen('${id}','${sid}')"
           onfocus="this.blur();fkbOpen('${id}','${sid}')">
         <button class="eq-ok" id="eqok-${sid}" onclick="fkbOpen('${id}','${sid}')">✎</button>
@@ -871,235 +878,136 @@ function stockCellHtmlMobile(id,um){
   }
   return`<div class="stock-empty-btn" onclick="openNp('${id}')">＋ ${um?`<span style="font-size:9px;opacity:.5;margin-left:3px">${xe(um)}</span>`:''}</div>`;
 }
-
 function stockCellHtml(id){
-  const qty=stockData[id]||0;
-  const sid=id.replace(/[^a-zA-Z0-9_-]/g,'_');
-  const formula=formulaData[id]||'';
+  const qty=stockData[id]||0;const sid=id.replace(/[^a-zA-Z0-9_-]/g,'_');const formula=formulaData[id]||'';
   if(qty>0){
     const disp=qty%1===0?qty:qty.toFixed(2);
     return`<div class="stock-wrap">
       <span class="stock-qty" id="sqty-${sid}" onclick="openNp('${id}')">${disp}</span>
       <div class="eq-wrap">
         <input class="eq-input" id="eq-${sid}" type="text" value="${xe('='+(formula||String(qty)))}"
-          oninput="onEqIn('${id}','${sid}')"
-          onkeydown="onEqKd(event,'${id}','${sid}')"
-          onclick="event.stopPropagation()"
-          onfocus="event.stopPropagation()">
+          oninput="onEqIn('${id}','${sid}')" onkeydown="onEqKd(event,'${id}','${sid}')"
+          onclick="event.stopPropagation()" onfocus="event.stopPropagation()">
         <button class="eq-ok" id="eqok-${sid}" onclick="confirmEq('${id}','${sid}')">✓</button>
-      </div>
-    </div>`;
+      </div></div>`;
   }
   return`<div class="stock-empty-btn" onclick="openNp('${id}')">＋</div>`;
 }
-
 function buildColHeads(){
   const desktop=isDesktop();
   document.getElementById('colHeads').innerHTML=desktop
-    ?`<div class="col-h">UID</div>
-      <div class="col-h">Item Description</div>
-      <div class="col-h">📦 Physical Stock</div>
-      <div class="col-h">U/M</div>
-      <div class="col-h">Pack</div>
-      <div class="col-h">Supplier</div>
-      <div class="col-h">Brand / Origin</div>`
-    :`<div class="col-h">Item Description</div>
-      <div class="col-h">📦 Stock</div>`;
+    ?`<div class="col-h">UID</div><div class="col-h">Item Description</div><div class="col-h">📦 Physical Stock</div><div class="col-h">U/M</div><div class="col-h">Pack</div><div class="col-h">Supplier</div><div class="col-h">Brand / Origin</div>`
+    :`<div class="col-h">Item Description</div><div class="col-h">📦 Stock</div>`;
 }
-
 function getFiltered(){
   let items=ITEMS;
-  if(searchQuery){
-    const terms=searchQuery.split(/\s+/).filter(Boolean);
-    items=items.filter(r=>{
-      const t=(r.id+' '+r.desc+' '+r.pack+' '+r.sup+' '+r.cat+' '+r.brand+' '+r.origin).toLowerCase();
-      return terms.every(w=>t.includes(w));
-    });
-  }
+  if(searchQuery){const terms=searchQuery.split(/\s+/).filter(Boolean);items=items.filter(r=>{const t=(r.id+' '+r.desc+' '+r.pack+' '+r.sup+' '+r.cat+' '+r.brand+' '+r.origin).toLowerCase();return terms.every(w=>t.includes(w));});}
   return items;
 }
 
 // ── VIRTUAL SCROLL ──────────────────────────────────────────
 let vsItems=[],vsRowH=0,vsStart=0,vsEnd=0;
 const VS_BUF=5;
-
-function vsRowHeight(){
-  if(vsRowH>0)return vsRowH;
-  vsRowH=isDesktop()?68:Math.round((window.innerHeight-132)/7);
-  return vsRowH;
-}
-
+function vsRowHeight(){if(vsRowH>0)return vsRowH;vsRowH=isDesktop()?76:Math.round((window.innerHeight-132)/7);return vsRowH;}
 function rowHtml(r){
-  const sid=r.id.replace(/[^a-zA-Z0-9_-]/g,'_');
-  const desktop=isDesktop();
+  const sid=r.id.replace(/[^a-zA-Z0-9_-]/g,'_');const desktop=isDesktop();
   if(desktop){
     const dDesc=cleanDesc(r.desc,r.id);
     return`<div class="item-row" id="row-${sid}">
       <div class="cell cell-uid">${xe(r.id)}</div>
-      <div class="cell cell-desc">
-        <div class="desc-name">${xe(dDesc)}</div>
-        ${r.cat?`<div class="desc-meta"><span class="pill pill-cat">${xe(r.cat)}</span></div>`:''}
-      </div>
+      <div class="cell cell-desc"><div class="desc-name">${xe(dDesc)}</div>${r.cat?`<div class="desc-meta"><span class="pill pill-cat">${xe(r.cat)}</span></div>`:''}</div>
       <div class="cell cell-stock">${stockCellHtml(r.id)}</div>
       <div class="cell cell-um">${xe(r.um)}</div>
       <div class="cell cell-pack-col">${xe(r.pack)}</div>
       <div class="cell cell-sup">${xe(r.sup)}</div>
-      <div class="cell cell-brand-col">
-        ${r.brand?`<span class="pill pill-brand">${xe(r.brand)}</span>`:''}
-        ${r.origin?`<span class="pill pill-origin" style="margin-top:2px">${xe(r.origin)}</span>`:''}
-      </div>
+      <div class="cell cell-brand-col">${r.brand?`<span class="pill pill-brand">${xe(r.brand)}</span>`:''}${r.origin?`<span class="pill pill-origin" style="margin-top:2px">${xe(r.origin)}</span>`:''}</div>
     </div>`;
   } else {
     const mDesc=cleanDesc(r.desc,r.id);
     return`<div class="item-row" id="row-${sid}" style="min-height:${vsRowH}px">
       <div class="cell">
         <div class="desc-name">${xe(mDesc)} <span style="color:var(--pack-clr);font-size:10px">(${xe(r.pack)})</span></div>
-        <span class="mob-uid">${xe(r.id)}</span>
-        <span class="mob-sup">(${xe(r.sup)})</span>
-        <div class="desc-meta">
-          ${r.brand?`<span class="pill pill-brand">${xe(r.brand)}</span>`:''}
-          ${r.origin?`<span class="pill pill-origin">${xe(r.origin)}</span>`:''}
-        </div>
+        <span class="mob-uid">${xe(r.id)}</span><span class="mob-sup">(${xe(r.sup)})</span>
+        <div class="desc-meta">${r.brand?`<span class="pill pill-brand">${xe(r.brand)}</span>`:''}${r.origin?`<span class="pill pill-origin">${xe(r.origin)}</span>`:''}</div>
       </div>
       <div class="cell cell-mob-right" id="cmr-${sid}">${stockCellHtmlMobile(r.id,r.um)}</div>
     </div>`;
   }
 }
-
 function vsRender(scrollTop){
-  const tbody=document.getElementById('tbody');
-  const wrap=document.getElementById('tblArea');
-  const rh=vsRowHeight();
-  const total=vsItems.length;
+  const tbody=document.getElementById('tbody'),wrap=document.getElementById('tblArea');
+  const rh=vsRowHeight(),total=vsItems.length;
   if(!total){tbody.innerHTML='<div class="empty-state">No items found</div>';return;}
   const viewH=wrap.clientHeight;
   const start=Math.max(0,Math.floor(scrollTop/rh)-VS_BUF);
   const end=Math.min(total-1,Math.ceil((scrollTop+viewH)/rh)+VS_BUF);
   if(start===vsStart&&end===vsEnd)return;
   vsStart=start;vsEnd=end;
-  const topPad=start*rh;
-  const bottomPad=Math.max(0,(total-end-1)*rh);
+  const topPad=start*rh,bottomPad=Math.max(0,(total-end-1)*rh);
   tbody.innerHTML=`<div style="height:${topPad}px"></div>`+vsItems.slice(start,end+1).map(rowHtml).join('')+`<div style="height:${bottomPad}px"></div>`;
 }
-
 function renderTable(){
-  vsRowH=0;
-  vsItems=getFiltered();
-  vsStart=-1;vsEnd=-1;
+  vsRowH=0;vsItems=getFiltered();vsStart=-1;vsEnd=-1;
   document.getElementById('barCount').textContent=vsItems.length.toLocaleString();
-  const wrap=document.getElementById('tblArea');
-  wrap.scrollTop=0;
-  vsRender(0);
+  const wrap=document.getElementById('tblArea');wrap.scrollTop=0;vsRender(0);
 }
-
 let vsTicking=false;
 document.getElementById('tblArea').addEventListener('scroll',function(){
   if(!vsTicking){requestAnimationFrame(()=>{vsRender(this.scrollTop);vsTicking=false;});vsTicking=true;}
 },{passive:true});
-
 function updateRowDisplay(uid){
-  const sid=uid.replace(/[^a-zA-Z0-9_-]/g,'_');
-  const row=document.getElementById('row-'+sid);
+  const sid=uid.replace(/[^a-zA-Z0-9_-]/g,'_');const row=document.getElementById('row-'+sid);
   if(row){
-    const qty=stockData[uid]||0;
-    const formula=formulaData[uid]||'';
-    const qtyEl=document.getElementById('sqty-'+sid);
-    const eqEl=document.getElementById('eq-'+sid);
+    const qty=stockData[uid]||0,formula=formulaData[uid]||'';
+    const qtyEl=document.getElementById('sqty-'+sid),eqEl=document.getElementById('eq-'+sid);
     if(qty>0&&qtyEl&&eqEl){
       qtyEl.textContent=qty%1===0?qty:qty.toFixed(2);
-      if(document.activeElement!==eqEl){
-        eqEl.value='='+(formula||String(qty));
-        document.getElementById('eqok-'+sid)?.classList.remove('on');
-      }
+      if(document.activeElement!==eqEl){eqEl.value='='+(formula||String(qty));document.getElementById('eqok-'+sid)?.classList.remove('on');}
     } else {
-      if(!isDesktop()){
-        const cmr=document.getElementById('cmr-'+sid);
-        const item=ITEMS.find(r=>r.id===uid);
-        if(cmr)cmr.innerHTML=stockCellHtmlMobile(uid,item?.um||'');
-      } else {
-        const sc=row.querySelector('.cell-stock');
-        if(sc)sc.innerHTML=stockCellHtml(uid);
-      }
+      if(!isDesktop()){const cmr=document.getElementById('cmr-'+sid);const item=ITEMS.find(r=>r.id===uid);if(cmr)cmr.innerHTML=stockCellHtmlMobile(uid,item?.um||'');}
+      else{const sc=row.querySelector('.cell-stock');if(sc)sc.innerHTML=stockCellHtml(uid);}
     }
     row.classList.remove('updated');void row.offsetWidth;row.classList.add('updated');
   }
 }
-
 let resizeTimer;
-window.addEventListener('resize',()=>{
-  clearTimeout(resizeTimer);
-  resizeTimer=setTimeout(()=>{vsRowH=0;buildColHeads();renderTable();},200);
-});
+window.addEventListener('resize',()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(()=>{vsRowH=0;buildColHeads();renderTable();initSearchMode();},200);});
 
 // ── SEARCH ──────────────────────────────────────────────────
-// FIX: Separate desktop (direct input) vs mobile (custom QKB) behaviour
 const searchInEl=document.getElementById('searchIn');
 const barInnerEl=document.getElementById('barInner');
-
-// On mobile: make search input non-interactive (QKB handles it).
-// On desktop: input is fully interactive with cursor + typing.
 function initSearchMode(){
   if(isDesktop()){
-    // Desktop — input is directly editable, no restrictions
-    searchInEl.removeAttribute('readonly');
-    searchInEl.removeAttribute('inputmode');
-    searchInEl.style.pointerEvents='';
-    searchInEl.style.cursor='text';
-    barInnerEl.onclick=null;
+    searchInEl.removeAttribute('readonly');searchInEl.removeAttribute('inputmode');
+    searchInEl.style.pointerEvents='';searchInEl.style.cursor='text';barInnerEl.onclick=null;
   } else {
-    // Mobile — input is decorative, QKB opens on bar tap
-    searchInEl.setAttribute('readonly','');
-    searchInEl.setAttribute('inputmode','none');
-    searchInEl.style.pointerEvents='none';
-    searchInEl.style.cursor='pointer';
-    barInnerEl.onclick=()=>qkbOpen();
+    searchInEl.setAttribute('readonly','');searchInEl.setAttribute('inputmode','none');
+    searchInEl.style.pointerEvents='none';searchInEl.style.cursor='pointer';barInnerEl.onclick=()=>qkbOpen();
   }
 }
-
-// Desktop: real-time filtering as user types
 let sT;
 searchInEl.addEventListener('input',e=>{
-  if(!isDesktop())return; // mobile uses qkbRefresh instead
-  clearTimeout(sT);
+  if(!isDesktop())return;clearTimeout(sT);
   sT=setTimeout(()=>{searchQuery=e.target.value.toLowerCase().trim();renderTable();},120);
 });
-
-// Desktop: pressing Escape clears the search
-searchInEl.addEventListener('keydown',e=>{
-  if(e.key==='Escape'){
-    searchInEl.value='';
-    searchQuery='';
-    renderTable();
-  }
-});
-
-// Re-init on resize (desktop <-> mobile breakpoint crossing)
-window.addEventListener('resize',()=>{
-  clearTimeout(resizeTimer);
-  resizeTimer=setTimeout(()=>{initSearchMode();vsRowH=0;buildColHeads();renderTable();},200);
-});
+searchInEl.addEventListener('keydown',e=>{if(e.key==='Escape'){searchInEl.value='';searchQuery='';renderTable();}});
 
 // ── NUMPAD ──────────────────────────────────────────────────
 let np={id:null,val:'0',op:'+'};
 let npPos={x:window.innerWidth-190,y:70};
 let npDrg=false,npOX=0,npOY=0;
-
 function openNp(id){
+  if(!canWrite())return;
   const item=ITEMS.find(r=>r.id===id);if(!item)return;
   np.id=id;np.val='0';np.op='+';
   const popup=document.getElementById('npPopup');
-  npPos.x=Math.min(npPos.x,window.innerWidth-186);
-  npPos.y=Math.max(10,Math.min(npPos.y,window.innerHeight-380));
+  npPos.x=Math.min(npPos.x,window.innerWidth-186);npPos.y=Math.max(10,Math.min(npPos.y,window.innerHeight-380));
   popup.style.left=npPos.x+'px';popup.style.top=npPos.y+'px';
   document.getElementById('npName').textContent=item.desc;
-  const umEl=document.getElementById('npUm');
-  umEl.textContent=item.um||'';umEl.style.display=item.um?'inline-block':'none';
-  const ex=stockData[id]||0;
-  document.getElementById('npExisting').innerHTML=ex>0?`Current: <span>${ex} ${item.um}</span>`:'No stock yet';
-  document.querySelectorAll('.np-op-tab').forEach(t=>t.classList.remove('active'));
-  document.querySelector('.np-op-tab[data-op="+"]').classList.add('active');
-  npDraw();
-  popup.classList.add('open');
+  const umEl=document.getElementById('npUm');umEl.textContent=item.um||'';umEl.style.display=item.um?'inline-block':'none';
+  const ex=stockData[id]||0;document.getElementById('npExisting').innerHTML=ex>0?`Current: <span>${ex} ${item.um}</span>`:'No stock yet';
+  document.querySelectorAll('.np-op-tab').forEach(t=>t.classList.remove('active'));document.querySelector('.np-op-tab[data-op="+"]').classList.add('active');
+  npDraw();popup.classList.add('open');
   setTimeout(()=>document.addEventListener('pointerdown',npOutside),50);
 }
 function closeNp(){document.getElementById('npPopup').classList.remove('open');document.removeEventListener('pointerdown',npOutside);}
@@ -1121,8 +1029,7 @@ function npDraw(){
     let nt;
     if(np.op==='=')nt=ent;else if(np.op==='+')nt=ex+ent;else if(np.op==='-')nt=ex-ent;
     else if(np.op==='*')nt=ex*ent;else if(np.op==='/')nt=ent!==0?ex/ent:ex;
-    nt=Math.max(0,parseFloat(nt.toFixed(4)));
-    const diff=parseFloat((nt-ex).toFixed(4));
+    nt=Math.max(0,parseFloat(nt.toFixed(4)));const diff=parseFloat((nt-ex).toFixed(4));
     prevEl.textContent=ex+' '+(diff>=0?'+':'')+diff+' = '+nt+' '+um;
   }catch(e){prevEl.textContent='';}
 }
@@ -1160,229 +1067,224 @@ let dip=null;
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();dip=e;if(!localStorage.getItem('c2c_nodismiss'))document.getElementById('installBanner').classList.add('show');});
 document.getElementById('installBtn').addEventListener('click',()=>{if(dip){dip.prompt();dip.userChoice.then(()=>{dip=null;document.getElementById('installBanner').classList.remove('show');});}});
 
-// ── CUSTOM MOBILE QWERTY SEARCH KEYBOARD ────────────────────
-let qkbQuery='';
-let qkbCursorPos=0;
-let qkbTrackpad=false,qkbTrackX=0,qkbTrackCursorStart=0;
-const QKB_TRACK_SENSITIVITY=10;
+// ── MOBILE NAV SWIPE ────────────────────────────────────────
+(function(){
+  let navPage=0; // 0 = page1 (LIVE/STEVE/HISTORY), 1 = page2 (MODE/RESET/LOCK)
+  let swipeStartX=0,swipeStartY=0,swipeDragging=false,swipeDx=0;
+  const track=document.getElementById('navSwipeTrack');
+  const outer=document.getElementById('navSwipeOuter');
+  const dot0=document.getElementById('navDot0');
+  const dot1=document.getElementById('navDot1');
 
-function qkbOpen(){
-  if(isDesktop())return;
-  document.activeElement?.blur();
-  qkbQuery=searchQuery;
-  qkbCursorPos=qkbQuery.length;
-  qkbRefresh();
-  document.getElementById('qkb').classList.add('open');
-  requestAnimationFrame(()=>{
-    const kbh=document.getElementById('qkb').offsetHeight;
-    document.getElementById('tblArea').style.height=(window.innerHeight-50-kbh)+'px';
-  });
-}
-function qkbDone(){
-  document.getElementById('qkb').classList.remove('open');
-  document.getElementById('tblArea').style.height='';
-  qkbTrackpad=false;
-}
-function qkbClear(){
-  qkbQuery='';qkbCursorPos=0;qkbRefresh();searchQuery='';renderTable();
-  // Also clear the visible input
-  searchInEl.value='';
-}
-function qkbKey(k){
-  if(k==='back'){
-    if(qkbCursorPos>0){qkbQuery=qkbQuery.slice(0,qkbCursorPos-1)+qkbQuery.slice(qkbCursorPos);qkbCursorPos--;}
-  } else if(k===' '){
-    qkbQuery=qkbQuery.slice(0,qkbCursorPos)+' '+qkbQuery.slice(qkbCursorPos);qkbCursorPos++;
-  } else {
-    qkbQuery=qkbQuery.slice(0,qkbCursorPos)+k+qkbQuery.slice(qkbCursorPos);qkbCursorPos++;
+  function getPage1W(){return document.getElementById('navPage1').offsetWidth;}
+  function getPage2W(){return document.getElementById('navPage2').offsetWidth;}
+
+  function setNavPage(page,animated){
+    navPage=page;
+    const page1W=getPage1W();
+    const offset=page===0?0:-(page1W+10);
+    track.style.transition=animated?'transform .32s cubic-bezier(.16,1,.3,1)':'none';
+    track.style.transform=`translateX(${offset}px)`;
+    // Update dots
+    dot0.classList.toggle('active',page===0);
+    dot1.classList.toggle('active',page===1);
   }
+
+  // Touch swipe on the nav-swipe-outer
+  outer.addEventListener('touchstart',e=>{
+    if(e.touches.length!==1)return;
+    swipeStartX=e.touches[0].clientX;swipeStartY=e.touches[0].clientY;
+    swipeDragging=true;swipeDx=0;
+    track.style.transition='none';
+  },{passive:true});
+
+  outer.addEventListener('touchmove',e=>{
+    if(!swipeDragging)return;
+    const dx=e.touches[0].clientX-swipeStartX;
+    const dy=e.touches[0].clientY-swipeStartY;
+    if(Math.abs(dy)>Math.abs(dx)&&Math.abs(swipeDx)<5){swipeDragging=false;return;}
+    swipeDx=dx;
+    const page1W=getPage1W();
+    const baseOffset=navPage===0?0:-(page1W+10);
+    const newOffset=baseOffset+dx*0.6;
+    track.style.transform=`translateX(${newOffset}px)`;
+  },{passive:true});
+
+  outer.addEventListener('touchend',e=>{
+    if(!swipeDragging)return;swipeDragging=false;
+    if(Math.abs(swipeDx)>30){
+      if(swipeDx<0&&navPage===0)setNavPage(1,true);
+      else if(swipeDx>0&&navPage===1)setNavPage(0,true);
+      else setNavPage(navPage,true);
+    } else {setNavPage(navPage,true);}
+  },{passive:true});
+
+  // Also allow clicking the dots to switch pages
+  dot0.addEventListener('click',()=>setNavPage(0,true));
+  dot1.addEventListener('click',()=>setNavPage(1,true));
+
+  // Expose for lock button update
+  window._navGoPage1=()=>setNavPage(0,true);
+})();
+
+// ── MOBILE QWERTY ────────────────────────────────────────────
+let qkbQuery='',qkbCursorPos=0,qkbTrackpad=false,qkbTrackX=0,qkbTrackCursorStart=0;
+const QKB_TRACK_SENSITIVITY=10;
+function qkbOpen(){
+  if(isDesktop())return;document.activeElement?.blur();
+  qkbQuery=searchQuery;qkbCursorPos=qkbQuery.length;qkbRefresh();
+  document.getElementById('qkb').classList.add('open');
+  requestAnimationFrame(()=>{const kbh=document.getElementById('qkb').offsetHeight;document.getElementById('tblArea').style.height=(window.innerHeight-50-kbh)+'px';});
+}
+function qkbDone(){document.getElementById('qkb').classList.remove('open');document.getElementById('tblArea').style.height='';qkbTrackpad=false;}
+function qkbClear(){qkbQuery='';qkbCursorPos=0;qkbRefresh();searchQuery='';renderTable();searchInEl.value='';}
+function qkbKey(k){
+  if(k==='back'){if(qkbCursorPos>0){qkbQuery=qkbQuery.slice(0,qkbCursorPos-1)+qkbQuery.slice(qkbCursorPos);qkbCursorPos--;}}
+  else if(k===' '){qkbQuery=qkbQuery.slice(0,qkbCursorPos)+' '+qkbQuery.slice(qkbCursorPos);qkbCursorPos++;}
+  else{qkbQuery=qkbQuery.slice(0,qkbCursorPos)+k+qkbQuery.slice(qkbCursorPos);qkbCursorPos++;}
   qkbRefresh();
 }
 function qkbRefresh(){
-  const disp=document.getElementById('qkbDisplay');
-  const inp=document.getElementById('searchIn');
+  const disp=document.getElementById('qkbDisplay'),inp=document.getElementById('searchIn');
   if(qkbQuery){
-    const before=qkbQuery.slice(0,qkbCursorPos);
-    const after=qkbQuery.slice(qkbCursorPos);
+    const before=qkbQuery.slice(0,qkbCursorPos),after=qkbQuery.slice(qkbCursorPos);
     disp.innerHTML='<span class="qkb-text-before"></span><span class="qkb-cursor"></span><span class="qkb-text-after"></span>';
-    disp.querySelector('.qkb-text-before').textContent=before;
-    disp.querySelector('.qkb-text-after').textContent=after;
-    disp.classList.remove('empty');
-    inp.value=qkbQuery;
-  } else {
-    disp.textContent='Search…';disp.classList.add('empty');inp.value='';
-  }
-  searchQuery=qkbQuery.toLowerCase().trim();
-  clearTimeout(sT);
-  sT=setTimeout(()=>renderTable(),80);
+    disp.querySelector('.qkb-text-before').textContent=before;disp.querySelector('.qkb-text-after').textContent=after;
+    disp.classList.remove('empty');inp.value=qkbQuery;
+  } else {disp.textContent='Search…';disp.classList.add('empty');inp.value='';}
+  searchQuery=qkbQuery.toLowerCase().trim();clearTimeout(sT);sT=setTimeout(()=>renderTable(),80);
 }
-
 (function(){
   let holdTimer=null;
   function spaceEl(){return document.querySelector('.qkb-key-space');}
-  function onSpaceTouchStart(e){
-    qkbTrackpad=false;qkbTrackX=e.touches[0].clientX;qkbTrackCursorStart=qkbCursorPos;
-    holdTimer=setTimeout(()=>{
-      qkbTrackpad=true;if(navigator.vibrate)navigator.vibrate(30);
-      spaceEl().style.background='rgba(16,185,129,.35)';
-    },300);
-  }
-  function onSpaceTouchMove(e){
-    if(!qkbTrackpad)return;e.preventDefault();
-    const dx=e.touches[0].clientX-qkbTrackX;
-    const steps=Math.round(dx/QKB_TRACK_SENSITIVITY);
-    qkbCursorPos=Math.max(0,Math.min(qkbQuery.length,qkbTrackCursorStart+steps));
-    qkbRefresh();
-  }
-  function onSpaceTouchEnd(e){
-    clearTimeout(holdTimer);
-    if(qkbTrackpad){qkbTrackpad=false;spaceEl().style.background='';}
-    else{qkbKey(' ');}
-  }
+  function onSpaceTouchStart(e){qkbTrackpad=false;qkbTrackX=e.touches[0].clientX;qkbTrackCursorStart=qkbCursorPos;holdTimer=setTimeout(()=>{qkbTrackpad=true;if(navigator.vibrate)navigator.vibrate(30);spaceEl().style.background='rgba(16,185,129,.35)';},300);}
+  function onSpaceTouchMove(e){if(!qkbTrackpad)return;e.preventDefault();const dx=e.touches[0].clientX-qkbTrackX;const steps=Math.round(dx/QKB_TRACK_SENSITIVITY);qkbCursorPos=Math.max(0,Math.min(qkbQuery.length,qkbTrackCursorStart+steps));qkbRefresh();}
+  function onSpaceTouchEnd(e){clearTimeout(holdTimer);if(qkbTrackpad){qkbTrackpad=false;spaceEl().style.background='';}else{qkbKey(' ');}}
   document.addEventListener('touchstart',e=>{if(e.target.closest('.qkb-key-space'))onSpaceTouchStart(e);},{passive:true});
   document.addEventListener('touchmove',e=>{if(qkbTrackpad){onSpaceTouchMove(e);}},{passive:false});
   document.addEventListener('touchend',e=>{if(e.target.closest('.qkb-key-space')||qkbTrackpad)onSpaceTouchEnd(e);},{passive:true});
 })();
 
-// ── CUSTOM MOBILE FORMULA KEYBOARD ──────────────────────────
+// ── MOBILE FORMULA KEYBOARD ──────────────────────────────────
 let fkbTargetId=null,fkbTargetSid=null,fkbVal='';
-
 function fkbOpen(id,sid){
   if(isDesktop())return;
+  if(!canWrite())return;
   fkbTargetId=id;fkbTargetSid=sid;
-  const existing=formulaData[id]||String(stockData[id]||0);
-  fkbVal=existing;
+  const existing=formulaData[id]||String(stockData[id]||0);fkbVal=existing;
   document.getElementById('fkbDisplay').textContent='='+fkbVal;
-  document.getElementById('fkbOverlay').classList.add('open');
-  document.activeElement?.blur();
+  document.getElementById('fkbOverlay').classList.add('open');document.activeElement?.blur();
 }
-function fkbCancel(){
-  document.getElementById('fkbOverlay').classList.remove('open');
-  fkbTargetId=null;fkbTargetSid=null;fkbVal='';
-}
+function fkbCancel(){document.getElementById('fkbOverlay').classList.remove('open');fkbTargetId=null;fkbTargetSid=null;fkbVal='';}
 function fkbKey(k){
   if(k==='back'){fkbVal=fkbVal.length>0?fkbVal.slice(0,-1):'';}
-  else if(k==='()'){
-    const opens=(fkbVal.match(/\(/g)||[]).length;
-    const closes=(fkbVal.match(/\)/g)||[]).length;
-    fkbVal+=opens>closes?')':'(';
-  } else {fkbVal+=k;}
+  else if(k==='()'){const opens=(fkbVal.match(/\(/g)||[]).length,closes=(fkbVal.match(/\)/g)||[]).length;fkbVal+=opens>closes?')':'(';}
+  else{fkbVal+=k;}
   document.getElementById('fkbDisplay').textContent='='+fkbVal;
 }
 function fkbConfirm(){
-  if(!fkbTargetId)return;
-  const id=fkbTargetId,sid=fkbTargetSid;
-  const clean=fkbVal.replace(/[^0-9.+\-*\/()]/g,'');
-  if(!clean){fkbCancel();return;}
-  let qty;
-  try{qty=Math.max(0,parseFloat(Function('return ('+clean+')')().toFixed(4)));}
-  catch(e){qty=stockData[id]||0;}
-  const inp=document.getElementById('eq-'+sid);
-  if(inp)inp.value='='+clean;
-  document.getElementById('eqok-'+sid)?.classList.remove('on');
-  fkbCancel();
+  if(!fkbTargetId)return;const id=fkbTargetId,sid=fkbTargetSid;
+  const clean=fkbVal.replace(/[^0-9.+\-*\/()]/g,'');if(!clean){fkbCancel();return;}
+  let qty;try{qty=Math.max(0,parseFloat(Function('return ('+clean+')')().toFixed(4)));}catch(e){qty=stockData[id]||0;}
+  const inp=document.getElementById('eq-'+sid);if(inp)inp.value='='+clean;
+  document.getElementById('eqok-'+sid)?.classList.remove('on');fkbCancel();
   sendSetFormula(id,clean,qty);
 }
 
 // ══════════════════════════════════════════════
-// SIMPLE LOGIN — USERNAME + PASSWORD
+// LOGIN
 // ══════════════════════════════════════════════
 const USERS={
   'steve':   {password:'1964',name:'Steve',  color:'#10b981'},
   'aswanth': {password:'2026',name:'Aswanth',color:'#818cf8'},
   'fatima':  {password:'2026',name:'Fatima', color:'#f472b6'},
 };
-
 let currentUser=null;
-
 function showLoginScreen(){document.getElementById('loginScreen').classList.remove('hidden');}
 function hideLoginScreen(){document.getElementById('loginScreen').classList.add('hidden');}
-
 function doLogin(){
   const username=document.getElementById('loginUser').value.trim().toLowerCase();
   const password=document.getElementById('loginPassword').value;
   const errEl=document.getElementById('loginErr');
   if(!username||!password){errEl.textContent='Please enter username and password';return;}
   const user=USERS[username];
-  if(!user||user.password!==password){
-    errEl.textContent='✕ Wrong username or password';
-    document.getElementById('loginPassword').value='';
-    return;
-  }
+  if(!user||user.password!==password){errEl.textContent='✕ Wrong username or password';document.getElementById('loginPassword').value='';return;}
   currentUser={id:username,...user};
   localStorage.setItem('c2c_user',username);
   updateNavUser();
   hideLoginScreen();
+  // Re-apply lock state after login (admin check changes)
+  applyLockState(isLocked);
+  // Show lock button only for admin
+  updateAdminUI();
   if(navigator.vibrate)navigator.vibrate(35);
 }
-
-document.addEventListener('keydown',e=>{
-  if(e.key==='Enter'&&!document.getElementById('loginScreen').classList.contains('hidden'))doLogin();
-});
-
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&!document.getElementById('loginScreen').classList.contains('hidden'))doLogin();});
 function updateNavUser(){
-  const el=document.getElementById('navUser');
-  if(currentUser){el.textContent='👤 '+currentUser.name.toUpperCase();el.style.color=currentUser.color;}
+  const el=document.getElementById('navUser');const elMob=document.getElementById('navUserMob');
+  if(currentUser){
+    if(el){el.textContent='👤 '+currentUser.name.toUpperCase();el.style.color=currentUser.color;}
+    if(elMob){elMob.textContent='👤 '+currentUser.name.toUpperCase();elMob.style.color=currentUser.color;}
+  }
 }
-
+function updateAdminUI(){
+  const lockBtn=document.getElementById('lockBtn');
+  const lockBtnMob=document.getElementById('lockBtnMob');
+  if(isAdmin()){
+    if(lockBtn)lockBtn.classList.add('admin-visible');
+    if(lockBtnMob){lockBtnMob.style.display='inline-flex';}
+  } else {
+    if(lockBtn)lockBtn.classList.remove('admin-visible');
+    if(lockBtnMob){lockBtnMob.style.display='none';}
+  }
+}
 function lockApp(){
   if(!confirm('Sign out '+(currentUser?.name||'')+'?'))return;
-  localStorage.removeItem('c2c_user');
-  currentUser=null;
-  document.getElementById('navUser').textContent='👤 —';
-  document.getElementById('loginUser').value='';
-  document.getElementById('loginPassword').value='';
-  document.getElementById('loginErr').textContent='';
-  showLoginScreen();
+  localStorage.removeItem('c2c_user');currentUser=null;
+  document.getElementById('navUser').textContent='👤 —';document.getElementById('navUserMob').textContent='👤 —';
+  document.getElementById('loginUser').value='';document.getElementById('loginPassword').value='';document.getElementById('loginErr').textContent='';
+  updateAdminUI();showLoginScreen();
 }
 
 // ── BOOT ────────────────────────────────────────────────────
 window.addEventListener('load',()=>{
-  if(localStorage.getItem('c2c_mode')==='light'){document.body.classList.add('light');document.getElementById('modeBtn').textContent='☀️ LIGHT';}
-  loadLocal();loadHistory();
-
-  // FIX: init search mode immediately on load based on device
-  initSearchMode();
+  if(localStorage.getItem('c2c_mode')==='light'){
+    document.body.classList.add('light');
+    document.getElementById('modeBtn').textContent='☀️ LIGHT';
+    document.getElementById('modeBtnMob').textContent='☀️';
+  }
+  loadLocal();loadHistory();initSearchMode();
 
   const savedUser=localStorage.getItem('c2c_user');
   if(savedUser&&USERS[savedUser]){
     currentUser={id:savedUser,...USERS[savedUser]};
-    updateNavUser();
-    hideLoginScreen();
-  } else {
-    showLoginScreen();
-  }
+    updateNavUser();hideLoginScreen();updateAdminUI();
+  } else {showLoginScreen();}
+
+  // Start listening to system lock state immediately
+  startLockListener();
 
   let p=0,attempt=0;
   const bar=document.getElementById('loadBar'),txt=document.getElementById('loadTxt');
   const iv=setInterval(()=>{p=Math.min(p+Math.random()*12,88);bar.style.width=p+'%';},60);
 
   function finishLoad(){
-    clearInterval(iv);bar.style.width='100%';
-    txt.textContent=ITEMS.length.toLocaleString()+' items loaded ✓';
+    clearInterval(iv);bar.style.width='100%';txt.textContent=ITEMS.length.toLocaleString()+' items loaded ✓';
     document.getElementById('barCount').textContent=ITEMS.length.toLocaleString();
     setSync('ok','● LIVE');
     setTimeout(()=>{buildColHeads();renderTable();document.getElementById('loadScreen').style.display='none';startFirebaseListener();},200);
   }
-
   function fetchFromSheet(){
-    attempt++;
-    txt.textContent=attempt>1?'Retrying ('+attempt+'/3)…':'Connecting to sheet…';
+    attempt++;txt.textContent=attempt>1?'Retrying ('+attempt+'/3)…':'Connecting to sheet…';
     fetch(SHEETS_URL+'?action=getAll&_t='+Date.now()+Math.random(),{cache:'no-store',redirect:'follow'})
       .then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
       .then(d=>{
         if(!d.ok||!d.items)throw new Error(d.error||'No data');
-        ITEMS=d.items;
-        ITEMS.forEach(item=>{stockData[item.id]=parseFloat(item.stock)||0;if(item.formula)formulaData[item.id]=item.formula;});
+        ITEMS=d.items;ITEMS.forEach(item=>{stockData[item.id]=parseFloat(item.stock)||0;if(item.formula)formulaData[item.id]=item.formula;});
         try{localStorage.setItem('c2c_items',JSON.stringify(ITEMS));localStorage.setItem('c2c_items_ts',String(Date.now()));}catch(e){}
         db.ref('stock').once('value').then(snap=>{
           const fb=snap.val();
-          if(fb)Object.entries(fb).forEach(([k,v])=>{
-            const item=ITEMS.find(r=>r.id.replace(/[.#$[\]]/g,'_')===k);
-            if(!item)return;
-            stockData[item.id]=parseFloat(v.qty)||0;
-            formulaData[item.id]=String(v.formula||v.qty||0);
-          });
+          if(fb)Object.entries(fb).forEach(([k,v])=>{const item=ITEMS.find(r=>r.id.replace(/[.#$[\]]/g,'_')===k);if(!item)return;stockData[item.id]=parseFloat(v.qty)||0;formulaData[item.id]=String(v.formula||v.qty||0);});
           saveLocal();finishLoad();
         }).catch(()=>finishLoad());
       })
@@ -1391,27 +1293,14 @@ window.addEventListener('load',()=>{
         else{clearInterval(iv);bar.style.width='100%';txt.textContent='✕ Failed — tap to retry';txt.style.cursor='pointer';txt.onclick=()=>{attempt=0;p=0;bar.style.width='0%';txt.style.cursor='';fetchFromSheet();};setSync('error','✕ ERROR');}
       });
   }
-
   const CACHE_KEY='c2c_items',CACHE_TS='c2c_items_ts',CACHE_TTL=6*60*60*1000;
-  const cachedTs=parseInt(localStorage.getItem(CACHE_TS)||'0');
-  const cacheValid=(Date.now()-cachedTs)<CACHE_TTL;
-  const cachedItems=localStorage.getItem(CACHE_KEY);
-
+  const cachedTs=parseInt(localStorage.getItem(CACHE_TS)||'0');const cacheValid=(Date.now()-cachedTs)<CACHE_TTL;const cachedItems=localStorage.getItem(CACHE_KEY);
   if(cachedItems&&cacheValid){
     try{
       ITEMS=JSON.parse(cachedItems);
       if(ITEMS&&ITEMS.length>10){
         txt.textContent='Loaded from cache ⚡';
-        db.ref('stock').once('value').then(snap=>{
-          const fb=snap.val();
-          if(fb)Object.entries(fb).forEach(([k,v])=>{
-            const item=ITEMS.find(r=>r.id.replace(/[.#$[\]]/g,'_')===k);
-            if(!item)return;
-            stockData[item.id]=parseFloat(v.qty)||0;
-            formulaData[item.id]=String(v.formula||v.qty||0);
-          });
-          saveLocal();finishLoad();
-        }).catch(()=>finishLoad());
+        db.ref('stock').once('value').then(snap=>{const fb=snap.val();if(fb)Object.entries(fb).forEach(([k,v])=>{const item=ITEMS.find(r=>r.id.replace(/[.#$[\]]/g,'_')===k);if(!item)return;stockData[item.id]=parseFloat(v.qty)||0;formulaData[item.id]=String(v.formula||v.qty||0);});saveLocal();finishLoad();}).catch(()=>finishLoad());
         return;
       }
     }catch(e){ITEMS=[];}

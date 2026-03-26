@@ -309,7 +309,7 @@ body.light .np-btn-back{color:rgba(0,0,0,.35);}
 .nav-swipe-outer{display:flex;align-items:center;gap:4px;overflow:hidden;max-width:calc(100vw - 160px);}
 #searchIn{cursor:pointer;}
 
-/* ── MOBILE QWERTY SEARCH — ULTRA-TIGHT (NO SPACE BELOW SEARCH BAR) ── */
+/* ── MOBILE QWERTY SEARCH ── */
 .qkb{
   position:fixed;
   bottom:0;left:0;right:0;
@@ -326,10 +326,10 @@ body.light .np-btn-back{color:rgba(0,0,0,.35);}
 .qkb.open{display:flex;}
 body.light .qkb{border-top-color:rgba(0,0,0,.10);}
 
-/* Search bar — minimal padding, hugs the very bottom */
+/* Search bar — flush against bottom row */
 .qkb-bar{
   display:flex;align-items:center;gap:6px;
-  padding:3px 6px env(safe-area-inset-bottom, 0px);
+  padding:2px 6px env(safe-area-inset-bottom, 0px);
   background:var(--kb-bg);
 }
 .qkb-input-display{
@@ -398,7 +398,7 @@ body.light .qkb-clear{background:rgba(239,68,68,.10);}
   display:flex;align-items:center;
 }
 
-/* ── KEY ROWS — tighter gaps ── */
+/* ── KEY ROWS ── */
 .qkb-row{
   display:flex;
   justify-content:center;
@@ -503,9 +503,9 @@ body.light .qkb-key.pressing{background:var(--kb-key-press);}
 body.light .qkb-key-back{background:var(--kb-delete);}
 body.light .qkb-key-back.pressing{background:rgba(239,68,68,.2);}
 
-/* Bottom row — minimal gap before search bar, only safe-area in .qkb-bar */
+/* Bottom row — zero bottom padding, safe-area handled in .qkb-bar */
 .qkb-row-bottom{
-  padding:0 3px 2px;
+  padding:0 3px 0;
   gap:4px;
 }
 .qkb-row-bottom .qkb-key{height:44px;}
@@ -768,7 +768,7 @@ body.light .fkb-btn-op{background:rgba(99,102,241,.10);color:#6366f1;}
     <div class="qkb-key qkb-key-space" data-key=" ">SPACE</div>
     <div class="qkb-key qkb-key-done" data-key="__done__">Done ✓</div>
   </div>
-  <!-- Input display + clear -->
+  <!-- Input display + clear — sits flush under bottom row -->
   <div class="qkb-bar">
     <div class="qkb-input-display empty" id="qkbDisplay">Search…</div>
     <button class="qkb-clear" id="qkbClearBtn">✕ Clear</button>

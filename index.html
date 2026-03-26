@@ -29,12 +29,41 @@ if('serviceWorker'in navigator){const sw=`const C='c2c-v2';self.addEventListener
   --uid-clr:#475569; --pack-clr:#818cf8; --cost-clr:#10b981;
   --safe-bottom:env(safe-area-inset-bottom,0px);
   --row-h:calc((100dvh - 132px) / 7);
+
+  /* ── KEYBOARD THEME ── */
+  --kb-bg:#0d1829;
+  --kb-key:#1e2d45;
+  --kb-key-border:rgba(255,255,255,.10);
+  --kb-key-press:#2a3f5f;
+  --kb-key-text:rgba(255,255,255,.92);
+  --kb-special:#141f30;
+  --kb-special-text:rgba(255,255,255,.55);
+  --kb-action:#10b981;
+  --kb-action-text:#020617;
+  --kb-delete:#2a1a1a;
+  --kb-delete-text:#ef4444;
+  --kb-number:#0f1c2e;
+  --kb-number-text:rgba(255,255,255,.7);
 }
 body.light{
   --bg:#f8fafc; --bg2:#e2e8f0;
   --text:#0f172a; --text2:#475569; --text3:#94a3b8;
   --border:rgba(0,0,0,.08); --border2:rgba(0,0,0,.04);
   --uid-clr:#94a3b8; --pack-clr:#6366f1; --cost-clr:#059669;
+
+  --kb-bg:#d1d5db;
+  --kb-key:#ffffff;
+  --kb-key-border:rgba(0,0,0,.18);
+  --kb-key-press:#e5e7eb;
+  --kb-key-text:#000;
+  --kb-special:#b0b8c4;
+  --kb-special-text:#3d4450;
+  --kb-action:#059669;
+  --kb-action-text:#fff;
+  --kb-delete:#e9d5d5;
+  --kb-delete-text:#dc2626;
+  --kb-number:#c7cdd6;
+  --kb-number-text:#222;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 html,body{height:100%;height:100dvh;overflow:hidden;font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);}
@@ -80,40 +109,15 @@ body.light .nav-user{background:rgba(0,0,0,.05);border-color:rgba(0,0,0,.10);}
 .lock-banner-txt{font-size:10px;font-weight:800;color:#ef4444;letter-spacing:.3px;}
 .lock-banner-sub{font-size:9px;font-weight:700;color:rgba(239,68,68,.6);}
 
-/* ── LOCK OVERLAY on table (when locked + not admin) ── */
-#lockOverlay{
-  position:fixed;inset:0;z-index:4500;
-  display:none;
-  pointer-events:none;
-}
+/* ── LOCK OVERLAY ── */
+#lockOverlay{position:fixed;inset:0;z-index:4500;display:none;pointer-events:none;}
 #lockOverlay.show{display:block;}
-/* subtle grid hatching */
-#lockOverlay::after{
-  content:'🔒 SYSTEM LOCKED — Contact Steve to unlock';
-  position:fixed;bottom:80px;left:50%;transform:translateX(-50%);
-  background:rgba(239,68,68,.13);border:1px solid rgba(239,68,68,.3);
-  color:#ef4444;font-size:10px;font-weight:800;letter-spacing:.4px;
-  padding:6px 16px;border-radius:30px;white-space:nowrap;
-  pointer-events:none;font-family:'Plus Jakarta Sans',sans-serif;
-}
+#lockOverlay::after{content:'🔒 SYSTEM LOCKED — Contact Steve to unlock';position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:rgba(239,68,68,.13);border:1px solid rgba(239,68,68,.3);color:#ef4444;font-size:10px;font-weight:800;letter-spacing:.4px;padding:6px 16px;border-radius:30px;white-space:nowrap;pointer-events:none;font-family:'Plus Jakarta Sans',sans-serif;}
 
 /* ── NAV ── */
-.nav{
-  min-height:50px;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  padding:0 16px;
-  padding-top:env(safe-area-inset-top, 0px);
-  border-bottom:1px solid var(--border);
-  background:var(--bg);
-  flex-shrink:0;
-  gap:8px;
-}
+.nav{min-height:50px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;padding-top:env(safe-area-inset-top, 0px);border-bottom:1px solid var(--border);background:var(--bg);flex-shrink:0;gap:8px;}
 .nav-logo{font-weight:800;font-size:15px;display:flex;align-items:center;gap:8px;color:inherit;text-decoration:none;flex-shrink:0;}
 .nav-logo span{color:var(--brand);}
-
-/* ── DESKTOP nav-right (unchanged) ── */
 .nav-right{display:flex;align-items:center;gap:7px;}
 .sync-badge{font-size:9px;font-weight:800;padding:3px 10px;border-radius:20px;background:var(--brand-dim);border:1px solid var(--brand-border);color:var(--brand);white-space:nowrap;transition:all .3s;}
 .sync-badge.syncing{background:rgba(251,191,36,.10);border-color:rgba(251,191,36,.28);color:var(--warn);}
@@ -124,45 +128,16 @@ body.light .mode-btn{background:rgba(0,0,0,.05);border-color:rgba(0,0,0,.10);}
 .hist-btn{background:rgba(99,102,241,.12);border:1px solid rgba(99,102,241,.3);color:#818cf8;border-radius:20px;padding:3px 10px;font-size:10px;font-weight:800;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;white-space:nowrap;}
 .hist-btn:hover{background:rgba(99,102,241,.22);}
 .nav-label{font-size:9px;font-weight:800;color:var(--text3);letter-spacing:.5px;display:none;}
-
-/* Lock toggle button */
-.lock-btn{
-  border-radius:20px;padding:3px 10px;font-size:11px;font-weight:800;
-  cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;white-space:nowrap;
-  border:1px solid rgba(16,185,129,.3);background:rgba(16,185,129,.1);color:var(--brand);
-  transition:all .2s;display:none;
-}
+.lock-btn{border-radius:20px;padding:3px 10px;font-size:11px;font-weight:800;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;white-space:nowrap;border:1px solid rgba(16,185,129,.3);background:rgba(16,185,129,.1);color:var(--brand);transition:all .2s;display:none;}
 .lock-btn.locked{border-color:rgba(239,68,68,.35);background:rgba(239,68,68,.12);color:#ef4444;}
 .lock-btn:active{opacity:.7;}
 
 /* ── MOBILE NAV SWIPE ── */
-/* Only active on mobile — hidden behind media query on desktop */
-.nav-swipe-outer{
-  position:relative;
-  overflow:hidden;
-  /* width will be auto-set by JS */
-  display:none; /* hidden on desktop */
-}
-.nav-swipe-track{
-  display:flex;
-  align-items:center;
-  transition:transform .32s cubic-bezier(.16,1,.3,1);
-  will-change:transform;
-}
-.nav-swipe-page{
-  display:flex;
-  align-items:center;
-  gap:6px;
-  flex-shrink:0;
-}
-/* Swipe dots */
-.nav-dots{
-  display:flex;gap:4px;align-items:center;margin-left:4px;
-}
-.nav-dot{
-  width:4px;height:4px;border-radius:50%;background:rgba(255,255,255,.15);
-  transition:background .2s,transform .2s;flex-shrink:0;
-}
+.nav-swipe-outer{position:relative;overflow:hidden;display:none;align-items:center;gap:4px;}
+.nav-swipe-track{display:flex;align-items:center;transition:transform .32s cubic-bezier(.16,1,.3,1);will-change:transform;}
+.nav-swipe-page{display:flex;align-items:center;gap:6px;flex-shrink:0;}
+.nav-dots{display:flex;gap:4px;align-items:center;margin-left:4px;}
+.nav-dot{width:4px;height:4px;border-radius:50%;background:rgba(255,255,255,.15);transition:background .2s,transform .2s;flex-shrink:0;}
 .nav-dot.active{background:var(--brand);transform:scale(1.35);}
 body.light .nav-dot{background:rgba(0,0,0,.12);}
 body.light .nav-dot.active{background:var(--brand);}
@@ -191,7 +166,6 @@ body.light .item-row:hover{background:rgba(0,0,0,.02);}
 .cell{padding:8px 10px;overflow:hidden;}
 .cell:first-child{padding-left:18px;}
 .cell:last-child{padding-right:18px;}
-
 .cell-uid{font-family:monospace;font-size:10px;font-weight:700;color:var(--uid-clr);line-height:1.5;}
 .desc-name{font-weight:700;font-size:14px;color:var(--text);line-height:1.4;margin-bottom:3px;}
 .desc-meta{display:flex;flex-wrap:wrap;gap:3px;margin-top:2px;}
@@ -228,7 +202,6 @@ body.light .portal-bar::before{background:linear-gradient(90deg,transparent,rgba
 .bar-icon{font-size:13px;opacity:.35;flex-shrink:0;}
 #searchIn{background:transparent;border:none;color:var(--text);font-size:14px;font-weight:700;outline:none;flex:1;padding:14px 0;font-family:'Plus Jakarta Sans',sans-serif;}
 #searchIn::placeholder{color:var(--text);opacity:.3;font-weight:600;}
-#searchIn.mobile-readonly{cursor:pointer;}
 .bar-count{font-size:10px;font-weight:800;color:var(--brand);background:var(--brand-dim);border:1px solid var(--brand-border);border-radius:50px;padding:3px 11px;white-space:nowrap;flex-shrink:0;}
 .bar-exit{background:var(--danger);border:none;color:white;padding:0 22px;height:46px;font-weight:800;font-size:12px;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;border-radius:0 100px 100px 0;flex-shrink:0;}
 .bar-exit:active{background:#dc2626;}
@@ -332,38 +305,229 @@ body.light .np-btn-back{color:rgba(0,0,0,.35);}
 .cell-brand-col{display:none;}
 .cell-cost{display:none;}
 .portal-bar{width:calc(100% - 20px);max-width:600px;}
-
-/* Mobile nav: hide desktop nav-right, show swipe nav */
 .nav-right{display:none;}
 .nav-swipe-outer{display:flex;align-items:center;gap:4px;overflow:hidden;max-width:calc(100vw - 160px);}
+#searchIn{cursor:pointer;}
 
-/* ── MOBILE QWERTY SEARCH KEYBOARD ── */
-.qkb{position:fixed;bottom:0;left:0;right:0;z-index:5000;background:rgba(13,24,41,.97);border-top:1px solid rgba(255,255,255,.10);padding:4px 4px 0;display:none;flex-direction:column;gap:3px;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);}
+/* ══════════════════════════════════════════════
+   MOBILE QWERTY SEARCH — UPGRADED
+   Native feel: instant pointerdown, iOS-style keys
+══════════════════════════════════════════════ */
+.qkb{
+  position:fixed;
+  bottom:0;left:0;right:0;
+  z-index:5000;
+  background:var(--kb-bg);
+  border-top:1px solid rgba(255,255,255,.07);
+  padding:6px 3px 0;
+  display:none;
+  flex-direction:column;
+  gap:0;
+  /* GPU layer for fast compositing */
+  will-change:transform;
+  transform:translateZ(0);
+}
 .qkb.open{display:flex;}
-body.light .qkb{background:rgba(230,235,245,.97);border-top-color:rgba(0,0,0,.10);}
-.qkb-input-display{flex:1;font-size:15px;font-weight:700;color:var(--text);background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:22px;padding:7px 14px;min-height:36px;white-space:nowrap;overflow:hidden;letter-spacing:.2px;display:flex;align-items:center;}
-.qkb-text-before,.qkb-text-after{color:var(--text);}
-.qkb-cursor{display:inline-block;width:2px;height:1.1em;background:var(--brand);border-radius:1px;vertical-align:middle;margin:0 0px;animation:qkbBlink .9s step-end infinite;user-select:none;flex-shrink:0;}
+body.light .qkb{border-top-color:rgba(0,0,0,.10);}
+
+/* Search bar inside keyboard */
+.qkb-bar{
+  display:flex;align-items:center;gap:6px;
+  padding:5px 6px calc(6px + env(safe-area-inset-bottom, 0px));
+  background:var(--kb-bg);
+}
+.qkb-input-display{
+  flex:1;
+  font-size:15px;font-weight:600;
+  color:var(--text);
+  background:rgba(255,255,255,.09);
+  border:1px solid rgba(255,255,255,.13);
+  border-radius:10px;
+  padding:8px 12px;
+  min-height:38px;
+  white-space:nowrap;
+  overflow:hidden;
+  display:flex;align-items:center;
+  position:relative;
+}
+body.light .qkb-input-display{
+  background:rgba(255,255,255,.7);
+  border-color:rgba(0,0,0,.14);
+  color:#0f172a;
+}
+.qkb-text-before,.qkb-text-after{color:inherit;font-size:15px;font-weight:600;}
+.qkb-cursor{
+  display:inline-block;
+  width:2px;height:1.1em;
+  background:var(--brand);
+  border-radius:1px;
+  vertical-align:middle;
+  margin:0 1px;
+  animation:qkbBlink .9s step-end infinite;
+  flex-shrink:0;
+}
 @keyframes qkbBlink{0%,100%{opacity:1;}50%{opacity:0;}}
-body.light .qkb-input-display{background:rgba(0,0,0,.05);border-color:rgba(0,0,0,.12);}
-.qkb-input-display.empty{color:var(--text3);display:block;}
-.qkb-clear{background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.28);color:#ef4444;border-radius:20px;padding:6px 12px;font-size:10px;font-weight:800;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;white-space:nowrap;flex-shrink:0;}
-.qkb-done{background:var(--brand);border:none;color:#020617;border-radius:20px;padding:6px 14px;font-size:10px;font-weight:800;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;white-space:nowrap;flex-shrink:0;}
-.qkb-row{display:flex;justify-content:center;gap:4px;}
-.qkb-key{flex:1;height:36px;border:1px solid rgba(255,255,255,.09);background:rgba(255,255,255,.09);border-radius:7px;font-size:14px;font-weight:600;color:rgba(255,255,255,.90);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .07s,transform .06s;-webkit-tap-highlight-color:transparent;user-select:none;}
-.qkb-key:active{background:rgba(255,255,255,.25);transform:scale(.88);}
-body.light .qkb-key{background:rgba(0,0,0,.07);border-color:rgba(0,0,0,.10);color:#0f172a;}
-body.light .qkb-key:active{background:rgba(0,0,0,.18);}
-.qkb-key-space{flex:5;background:rgba(16,185,129,.12);border-color:rgba(16,185,129,.22);color:var(--brand);font-size:12px;font-weight:800;letter-spacing:1px;}
-.qkb-key-num{font-size:13px;font-weight:700;color:rgba(255,255,255,.75);}
-body.light .qkb-key-num{color:rgba(0,0,0,.5);}
-.qkb-key-back{flex:0 0 60px;height:44px;font-size:22px;background:rgba(239,68,68,.15);border-color:rgba(239,68,68,.28);color:#ef4444;border-radius:7px;}
-body.light .qkb-key-back{background:rgba(239,68,68,.10);}
-.qkb-row:not(.qkb-row-bottom) .qkb-key{max-width:38px;}
-.qkb-row:nth-child(4) .qkb-key{max-width:46px;}
-.qkb-row-bottom{padding:0 2px;}
+.qkb-input-display.empty{color:var(--text3);font-weight:500;}
+.qkb-clear{
+  background:rgba(239,68,68,.15);
+  border:1px solid rgba(239,68,68,.28);
+  color:#ef4444;
+  border-radius:9px;
+  padding:8px 13px;
+  font-size:11px;font-weight:800;
+  cursor:pointer;
+  font-family:'Plus Jakarta Sans',sans-serif;
+  white-space:nowrap;
+  flex-shrink:0;
+  touch-action:manipulation;
+  -webkit-tap-highlight-color:transparent;
+  height:38px;
+  display:flex;align-items:center;
+}
+body.light .qkb-clear{background:rgba(239,68,68,.10);}
+.qkb-done{
+  background:var(--brand);
+  border:none;
+  color:#020617;
+  border-radius:9px;
+  padding:8px 15px;
+  font-size:11px;font-weight:800;
+  cursor:pointer;
+  font-family:'Plus Jakarta Sans',sans-serif;
+  white-space:nowrap;
+  flex-shrink:0;
+  touch-action:manipulation;
+  -webkit-tap-highlight-color:transparent;
+  height:38px;
+  display:flex;align-items:center;
+}
+
+/* ── KEY ROWS ── */
+.qkb-row{
+  display:flex;
+  justify-content:center;
+  gap:5px;
+  padding:0 4px 5px;
+}
+.qkb-row:first-child{padding-top:2px;}
+
+/* ── BASE KEY ── */
+.qkb-key{
+  /* Size */
+  height:42px;
+  min-width:30px;
+  flex:1;
+  max-width:46px;
+
+  /* Visual */
+  background:var(--kb-key);
+  border:none;
+  border-radius:8px;
+  box-shadow:0 1px 0 rgba(0,0,0,.4);
+
+  /* Text */
+  font-size:17px;
+  font-weight:500;
+  color:var(--kb-key-text);
+  font-family:'Plus Jakarta Sans',sans-serif;
+  letter-spacing:-.2px;
+
+  /* Interaction — CRITICAL for no-delay */
+  cursor:pointer;
+  touch-action:manipulation;
+  -webkit-tap-highlight-color:transparent;
+  user-select:none;
+  -webkit-user-select:none;
+
+  /* Press animation */
+  transition:background 40ms,transform 40ms,box-shadow 40ms;
+  display:flex;align-items:center;justify-content:center;
+  position:relative;
+  overflow:hidden;
+}
+
+/* Instant press state — triggered by JS class */
+.qkb-key.pressing{
+  background:var(--kb-key-press);
+  transform:scale(0.90);
+  box-shadow:0 0 0 rgba(0,0,0,.4);
+  transition:none; /* instant on press, animate on release */
+}
+
+/* Number row */
+.qkb-key-num{
+  background:var(--kb-number);
+  color:var(--kb-number-text);
+  font-size:16px;
+  font-weight:600;
+  max-width:38px;
+  height:40px;
+}
+.qkb-key-num.pressing{background:color-mix(in srgb, var(--kb-number) 60%, white 40%);}
+body.light .qkb-key-num.pressing{background:color-mix(in srgb, var(--kb-number) 60%, black 15%);}
+
+/* Space key */
+.qkb-key-space{
+  flex:5;
+  max-width:none;
+  background:var(--kb-key);
+  font-size:13px;
+  font-weight:700;
+  letter-spacing:1px;
+  color:rgba(255,255,255,.5);
+  height:44px;
+}
+.qkb-key-space.pressing{background:var(--kb-key-press);}
+body.light .qkb-key-space{color:rgba(0,0,0,.4);}
+
+/* Backspace key */
+.qkb-key-back{
+  flex:0 0 52px;
+  max-width:52px;
+  height:44px;
+  font-size:18px;
+  background:var(--kb-delete);
+  color:var(--kb-delete-text);
+  font-weight:700;
+}
+.qkb-key-back.pressing{
+  background:rgba(239,68,68,.35);
+  transform:scale(0.88);
+}
+
+/* Done / action variant */
+.qkb-key-done{
+  flex:0 0 72px;
+  max-width:72px;
+  height:44px;
+  font-size:12px;
+  font-weight:800;
+  background:var(--brand);
+  color:#020617;
+  box-shadow:0 1px 0 rgba(0,0,0,.25),0 0 0 1px rgba(16,185,129,.4);
+  letter-spacing:.3px;
+}
+.qkb-key-done.pressing{
+  background:#0ea572;
+  transform:scale(0.93);
+}
+
+/* Light theme adjustments */
+body.light .qkb-key{
+  background:var(--kb-key);
+  box-shadow:0 1px 0 rgba(0,0,0,.25);
+  color:var(--kb-key-text);
+}
+body.light .qkb-key.pressing{background:var(--kb-key-press);}
+body.light .qkb-key-back{background:var(--kb-delete);}
+body.light .qkb-key-back.pressing{background:rgba(239,68,68,.2);}
+
+/* Bottom row layout */
+.qkb-row-bottom{
+  padding:0 4px calc(4px + env(safe-area-inset-bottom, 0px));
+  gap:5px;
+}
 .qkb-row-bottom .qkb-key{height:44px;}
-.qkb-bar{display:flex;align-items:center;gap:8px;padding:4px 8px env(safe-area-inset-bottom, 4px);margin-top:0;}
 
 /* ── MOBILE FORMULA KEYBOARD ── */
 .fkb-overlay{position:fixed;bottom:0;left:0;right:0;z-index:8000;background:rgba(13,24,41,.97);border-top:1px solid rgba(255,255,255,.10);padding:8px 8px calc(8px + var(--safe-bottom));display:none;flex-direction:column;gap:6px;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);}
@@ -378,7 +542,7 @@ body.light .fkb-display{background:rgba(0,0,0,.05);border-color:rgba(0,0,0,.12);
 .fkb-row-1{grid-template-columns:repeat(6,1fr);}
 .fkb-row-2{grid-template-columns:repeat(6,1fr);}
 .fkb-row-3{grid-template-columns:repeat(6,1fr);}
-.fkb-btn{border:1px solid rgba(255,255,255,.09);background:rgba(255,255,255,.08);border-radius:9px;height:44px;font-size:16px;font-weight:600;color:rgba(255,255,255,.90);cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;display:flex;align-items:center;justify-content:center;transition:background .08s,transform .07s;-webkit-tap-highlight-color:transparent;}
+.fkb-btn{border:1px solid rgba(255,255,255,.09);background:rgba(255,255,255,.08);border-radius:9px;height:44px;font-size:16px;font-weight:600;color:rgba(255,255,255,.90);cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;display:flex;align-items:center;justify-content:center;transition:background .08s,transform .07s;-webkit-tap-highlight-color:transparent;touch-action:manipulation;}
 .fkb-btn:active{background:rgba(255,255,255,.22);transform:scale(.88);}
 body.light .fkb-btn{background:rgba(0,0,0,.07);border-color:rgba(0,0,0,.10);color:#0f172a;}
 body.light .fkb-btn:active{background:rgba(0,0,0,.15);}
@@ -398,30 +562,16 @@ body.light .fkb-btn-op{background:rgba(99,102,241,.10);color:#6366f1;}
   .nav-logo{font-size:17px;}
   .nav-label{display:inline;font-size:10px;}
   .hist-btn{display:inline-flex;}
-  .tbl-area{
-    height:calc(100dvh - 56px - 68px);
-    mask-image:linear-gradient(to bottom,black 85%,transparent 100%);
-    -webkit-mask-image:linear-gradient(to bottom,black 85%,transparent 100%);
-    padding:0 24px 20px;
-  }
-  .col-heads{
-    display:grid;grid-template-columns:100px 1fr 160px 60px 90px 195px 140px;
-    padding:0;border-radius:12px;border:1px solid var(--border);margin-bottom:4px;
-  }
+  .tbl-area{height:calc(100dvh - 56px - 68px);mask-image:linear-gradient(to bottom,black 85%,transparent 100%);-webkit-mask-image:linear-gradient(to bottom,black 85%,transparent 100%);padding:0 24px 20px;}
+  .col-heads{display:grid;grid-template-columns:100px 1fr 160px 60px 90px 195px 140px;padding:0;border-radius:12px;border:1px solid var(--border);margin-bottom:4px;}
   .col-h{padding:11px 14px;font-size:9.5px;letter-spacing:.7px;}
   .col-h:first-child{border-radius:12px 0 0 12px;padding-left:18px;}
   .col-h:last-child{border-radius:0 12px 12px 0;padding-right:18px;}
-  .item-row{
-    display:grid;grid-template-columns:100px 1fr 160px 60px 90px 195px 140px;
-    padding:0;min-height:76px;border-radius:8px;margin-bottom:2px;
-    border:1px solid var(--border2);
-  }
+  .item-row{display:grid;grid-template-columns:100px 1fr 160px 60px 90px 195px 140px;padding:0;min-height:76px;border-radius:8px;margin-bottom:2px;border:1px solid var(--border2);}
   .item-row:hover{border-color:rgba(255,255,255,.06);}
   .cell{padding:12px 14px;display:flex;align-items:center;}
   .cell:first-child{padding-left:18px;border-radius:8px 0 0 8px;}
   .cell:last-child{padding-right:18px;border-radius:0 8px 8px 0;}
-
-  /* ── DESKTOP BIGGER TEXT ── */
   .cell-uid{display:flex;font-family:monospace;font-size:11.5px;font-weight:700;color:var(--uid-clr);line-height:1.4;word-break:break-all;}
   .cell-um{display:flex;font-size:14px;font-weight:700;color:var(--text2);justify-content:center;text-align:center;}
   .cell-sup{display:flex;font-size:14px;font-weight:600;color:var(--text2);align-items:center;line-height:1.4;}
@@ -440,14 +590,9 @@ body.light .fkb-btn-op{background:rgba(99,102,241,.10);color:#6366f1;}
   .mob-uid{display:none;}
   .mob-sup{display:none;}
   .portal-bar{width:80%;max-width:1100px;}
-
-  /* Desktop: restore nav-right, hide swipe nav */
   .nav-right{display:flex;}
   .nav-swipe-outer{display:none;}
-
   #searchIn{cursor:text;}
-
-  /* Admin lock btn visible on desktop for Steve */
   .lock-btn{display:none;}
   .lock-btn.admin-visible{display:inline-flex;align-items:center;gap:4px;}
 }
@@ -473,7 +618,7 @@ body.light .fkb-btn-op{background:rgba(99,102,241,.10);color:#6366f1;}
   </div>
 </div>
 
-<!-- LOCK BANNER (shown to non-admins when locked) -->
+<!-- LOCK BANNER -->
 <div id="lockBanner">
   <span class="lock-banner-icon">🔒</span>
   <span class="lock-banner-txt">SYSTEM LOCKED</span>
@@ -486,7 +631,6 @@ body.light .fkb-btn-op{background:rgba(99,102,241,.10);color:#6366f1;}
   <button class="install-x" onclick="document.getElementById('installBanner').classList.remove('show');localStorage.setItem('c2c_nodismiss','1')">✕</button>
 </div>
 
-<!-- LOCK OVERLAY (blocks taps on table for non-admins) -->
 <div id="lockOverlay"></div>
 
 <nav class="nav">
@@ -506,22 +650,18 @@ body.light .fkb-btn-op{background:rgba(99,102,241,.10);color:#6366f1;}
   <!-- MOBILE nav swipe -->
   <div class="nav-swipe-outer" id="navSwipeOuter">
     <div class="nav-swipe-track" id="navSwipeTrack">
-      <!-- Page 1: LIVE + USER + HISTORY -->
       <div class="nav-swipe-page" id="navPage1">
         <span class="sync-badge" id="syncBadgeMob">● LIVE</span>
         <span class="nav-user" id="navUserMob" onclick="lockApp()" title="Sign out">👤 —</span>
         <button class="hist-btn" onclick="openHistory()">📋</button>
       </div>
-      <!-- Spacer between pages -->
       <div style="width:10px;flex-shrink:0;"></div>
-      <!-- Page 2: MODE + RESET + LOCK (admin) -->
       <div class="nav-swipe-page" id="navPage2">
         <button class="mode-btn" id="modeBtnMob" onclick="toggleMode()">🌙</button>
         <button class="mode-btn" onclick="forceRefresh()">↺</button>
         <button class="lock-btn" id="lockBtnMob" onclick="toggleSystemLock()">🔓</button>
       </div>
     </div>
-    <!-- Swipe indicator dots -->
     <div class="nav-dots" id="navDots">
       <div class="nav-dot active" id="navDot0"></div>
       <div class="nav-dot" id="navDot1"></div>
@@ -591,48 +731,71 @@ body.light .fkb-btn-op{background:rgba(99,102,241,.10);color:#6366f1;}
   <div class="hist-body" id="histBody"><div class="hist-empty">Loading…</div></div>
 </div>
 
-<!-- MOBILE QWERTY SEARCH -->
+<!-- ══════════════════════════════════════════════
+     MOBILE QWERTY SEARCH — UPGRADED KEYBOARD
+     • No onclick handlers (pointerdown in JS)
+     • data-key attribute for event delegation
+     • Native-feel key layout
+══════════════════════════════════════════════ -->
 <div class="qkb" id="qkb">
+  <!-- Number row -->
   <div class="qkb-row">
-    <div class="qkb-key qkb-key-num" onclick="qkbKey('1')">1</div>
-    <div class="qkb-key qkb-key-num" onclick="qkbKey('2')">2</div>
-    <div class="qkb-key qkb-key-num" onclick="qkbKey('3')">3</div>
-    <div class="qkb-key qkb-key-num" onclick="qkbKey('4')">4</div>
-    <div class="qkb-key qkb-key-num" onclick="qkbKey('5')">5</div>
-    <div class="qkb-key qkb-key-num" onclick="qkbKey('6')">6</div>
-    <div class="qkb-key qkb-key-num" onclick="qkbKey('7')">7</div>
-    <div class="qkb-key qkb-key-num" onclick="qkbKey('8')">8</div>
-    <div class="qkb-key qkb-key-num" onclick="qkbKey('9')">9</div>
-    <div class="qkb-key qkb-key-num" onclick="qkbKey('0')">0</div>
+    <div class="qkb-key qkb-key-num" data-key="1">1</div>
+    <div class="qkb-key qkb-key-num" data-key="2">2</div>
+    <div class="qkb-key qkb-key-num" data-key="3">3</div>
+    <div class="qkb-key qkb-key-num" data-key="4">4</div>
+    <div class="qkb-key qkb-key-num" data-key="5">5</div>
+    <div class="qkb-key qkb-key-num" data-key="6">6</div>
+    <div class="qkb-key qkb-key-num" data-key="7">7</div>
+    <div class="qkb-key qkb-key-num" data-key="8">8</div>
+    <div class="qkb-key qkb-key-num" data-key="9">9</div>
+    <div class="qkb-key qkb-key-num" data-key="0">0</div>
   </div>
+  <!-- QWERTY row 1 -->
   <div class="qkb-row">
-    <div class="qkb-key" onclick="qkbKey('q')">Q</div><div class="qkb-key" onclick="qkbKey('w')">W</div>
-    <div class="qkb-key" onclick="qkbKey('e')">E</div><div class="qkb-key" onclick="qkbKey('r')">R</div>
-    <div class="qkb-key" onclick="qkbKey('t')">T</div><div class="qkb-key" onclick="qkbKey('y')">Y</div>
-    <div class="qkb-key" onclick="qkbKey('u')">U</div><div class="qkb-key" onclick="qkbKey('i')">I</div>
-    <div class="qkb-key" onclick="qkbKey('o')">O</div><div class="qkb-key" onclick="qkbKey('p')">P</div>
+    <div class="qkb-key" data-key="q">Q</div>
+    <div class="qkb-key" data-key="w">W</div>
+    <div class="qkb-key" data-key="e">E</div>
+    <div class="qkb-key" data-key="r">R</div>
+    <div class="qkb-key" data-key="t">T</div>
+    <div class="qkb-key" data-key="y">Y</div>
+    <div class="qkb-key" data-key="u">U</div>
+    <div class="qkb-key" data-key="i">I</div>
+    <div class="qkb-key" data-key="o">O</div>
+    <div class="qkb-key" data-key="p">P</div>
   </div>
+  <!-- QWERTY row 2 -->
+  <div class="qkb-row" style="padding-left:5%;padding-right:5%;">
+    <div class="qkb-key" data-key="a">A</div>
+    <div class="qkb-key" data-key="s">S</div>
+    <div class="qkb-key" data-key="d">D</div>
+    <div class="qkb-key" data-key="f">F</div>
+    <div class="qkb-key" data-key="g">G</div>
+    <div class="qkb-key" data-key="h">H</div>
+    <div class="qkb-key" data-key="j">J</div>
+    <div class="qkb-key" data-key="k">K</div>
+    <div class="qkb-key" data-key="l">L</div>
+  </div>
+  <!-- QWERTY row 3 + backspace -->
   <div class="qkb-row">
-    <div class="qkb-key" onclick="qkbKey('a')">A</div><div class="qkb-key" onclick="qkbKey('s')">S</div>
-    <div class="qkb-key" onclick="qkbKey('d')">D</div><div class="qkb-key" onclick="qkbKey('f')">F</div>
-    <div class="qkb-key" onclick="qkbKey('g')">G</div><div class="qkb-key" onclick="qkbKey('h')">H</div>
-    <div class="qkb-key" onclick="qkbKey('j')">J</div><div class="qkb-key" onclick="qkbKey('k')">K</div>
-    <div class="qkb-key" onclick="qkbKey('l')">L</div>
+    <div class="qkb-key" data-key="z">Z</div>
+    <div class="qkb-key" data-key="x">X</div>
+    <div class="qkb-key" data-key="c">C</div>
+    <div class="qkb-key" data-key="v">V</div>
+    <div class="qkb-key" data-key="b">B</div>
+    <div class="qkb-key" data-key="n">N</div>
+    <div class="qkb-key" data-key="m">M</div>
+    <div class="qkb-key qkb-key-back" data-key="back">⌫</div>
   </div>
-  <div class="qkb-row">
-    <div class="qkb-key" onclick="qkbKey('z')">Z</div><div class="qkb-key" onclick="qkbKey('x')">X</div>
-    <div class="qkb-key" onclick="qkbKey('c')">C</div><div class="qkb-key" onclick="qkbKey('v')">V</div>
-    <div class="qkb-key" onclick="qkbKey('b')">B</div><div class="qkb-key" onclick="qkbKey('n')">N</div>
-    <div class="qkb-key" onclick="qkbKey('m')">M</div>
-  </div>
+  <!-- Bottom row: space + done -->
   <div class="qkb-row qkb-row-bottom">
-    <div class="qkb-key qkb-key-space" onclick="qkbKey(' ')">SPACE</div>
-    <div class="qkb-key qkb-key-back" onclick="qkbKey('back')">⌫</div>
+    <div class="qkb-key qkb-key-space" data-key=" ">SPACE</div>
+    <div class="qkb-key qkb-key-done" data-key="__done__">Done ✓</div>
   </div>
+  <!-- Input display + clear -->
   <div class="qkb-bar">
     <div class="qkb-input-display empty" id="qkbDisplay">Search…</div>
-    <button class="qkb-clear" onclick="qkbClear()">✕</button>
-    <button class="qkb-done" onclick="qkbDone()">Done</button>
+    <button class="qkb-clear" id="qkbClearBtn">✕ Clear</button>
   </div>
 </div>
 
@@ -686,7 +849,7 @@ const SHEETS_URL='https://script.google.com/macros/s/AKfycbyHiiuDy1HQzz_D9O1f1hZ
 let ITEMS=[],historyLog=[];
 const stockData={},formulaData={};
 let fbListening=false,searchQuery='';
-let isLocked=false; // system lock state
+let isLocked=false;
 const isDesktop=()=>window.innerWidth>=768;
 const isAdmin=()=>currentUser&&currentUser.id==='steve';
 
@@ -742,68 +905,41 @@ function applyLockState(locked){
   const overlay=document.getElementById('lockOverlay');
   const lockBtn=document.getElementById('lockBtn');
   const lockBtnMob=document.getElementById('lockBtnMob');
-
   if(locked){
-    if(!isAdmin()){
-      banner.classList.add('show');
-      overlay.classList.add('show');
-    } else {
-      banner.classList.remove('show');
-      overlay.classList.remove('show');
-    }
+    if(!isAdmin()){banner.classList.add('show');overlay.classList.add('show');}
+    else{banner.classList.remove('show');overlay.classList.remove('show');}
     if(lockBtn){lockBtn.textContent='🔒 LOCKED';lockBtn.classList.add('locked');}
     if(lockBtnMob){lockBtnMob.textContent='🔒';lockBtnMob.classList.add('locked');}
   } else {
-    banner.classList.remove('show');
-    overlay.classList.remove('show');
+    banner.classList.remove('show');overlay.classList.remove('show');
     if(lockBtn){lockBtn.textContent='🔓 UNLOCKED';lockBtn.classList.remove('locked');}
     if(lockBtnMob){lockBtnMob.textContent='🔓';lockBtnMob.classList.remove('locked');}
   }
 }
-
 function showToast(msg,type){
   let t=document.getElementById('sysToast');
-  if(!t){t=document.createElement('div');t.id='sysToast';
-    t.style.cssText='position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(12px);z-index:99999;padding:8px 18px;border-radius:30px;font-size:11px;font-weight:800;font-family:"Plus Jakarta Sans",sans-serif;opacity:0;transition:all .3s;pointer-events:none;white-space:nowrap;';
-    document.body.appendChild(t);}
+  if(!t){t=document.createElement('div');t.id='sysToast';t.style.cssText='position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(12px);z-index:99999;padding:8px 18px;border-radius:30px;font-size:11px;font-weight:800;font-family:"Plus Jakarta Sans",sans-serif;opacity:0;transition:all .3s;pointer-events:none;white-space:nowrap;';document.body.appendChild(t);}
   const isErr=type==='error';
   t.style.background=isErr?'rgba(239,68,68,.18)':'rgba(16,185,129,.18)';
   t.style.border='1px solid '+(isErr?'rgba(239,68,68,.4)':'rgba(16,185,129,.4)');
   t.style.color=isErr?'#ef4444':'#10b981';
-  t.textContent=msg;
-  t.style.opacity='1';t.style.transform='translateX(-50%) translateY(0)';
+  t.textContent=msg;t.style.opacity='1';t.style.transform='translateX(-50%) translateY(0)';
   clearTimeout(t._tid);t._tid=setTimeout(()=>{t.style.opacity='0';t.style.transform='translateX(-50%) translateY(12px)';},2400);
 }
-
 function toggleSystemLock(){
   if(!isAdmin()){showToast('Only Steve (admin) can lock/unlock.','error');return;}
   const newLocked=!isLocked;
-  // Use stock/__SYSLOCK__ — same Firebase path rules as stock entries
   db.ref('stock/__SYSLOCK__').set({locked:newLocked,ts:Date.now()}).then(()=>{
     applyLockState(newLocked);
     showToast(newLocked?'🔒 System locked — only Steve can write':'🔓 System unlocked',newLocked?'error':'ok');
     if(navigator.vibrate)navigator.vibrate(newLocked?[30,20,30]:35);
-  }).catch(e=>{
-    console.error('Lock write failed:',e);
-    showToast('Could not update lock — check connection','error');
-  });
+  }).catch(e=>{showToast('Could not update lock — check connection','error');});
 }
-
-function startLockListener(){
-  db.ref('stock/__SYSLOCK__').on('value',snap=>{
-    const val=snap.val();
-    applyLockState(val&&val.locked===true);
-  });
-}
-
+function startLockListener(){db.ref('stock/__SYSLOCK__').on('value',snap=>{const val=snap.val();applyLockState(val&&val.locked===true);});}
 function canWrite(){
   if(isLocked&&!isAdmin()){
-    // Flash the banner
-    const banner=document.getElementById('lockBanner');
-    banner.style.background='rgba(239,68,68,.22)';
-    setTimeout(()=>{banner.style.background='';},400);
-    if(navigator.vibrate)navigator.vibrate([10,10,10]);
-    return false;
+    const banner=document.getElementById('lockBanner');banner.style.background='rgba(239,68,68,.22)';setTimeout(()=>{banner.style.background='';},400);
+    if(navigator.vibrate)navigator.vibrate([10,10,10]);return false;
   }
   return true;
 }
@@ -819,8 +955,7 @@ function updateSheetBackground(uid,qty,formula,added){
   fetch(SHEETS_URL+'?'+params.toString(),{cache:'no-store',redirect:'follow',keepalive:true}).catch(()=>{});
 }
 function fbWrite(uid,qty,formula,added){
-  lockWrite(uid);
-  const k=uid.replace(/[.#$[\]]/g,'_');
+  lockWrite(uid);const k=uid.replace(/[.#$[\]]/g,'_');
   db.ref('stock/'+k).set({qty,formula:formula||String(qty),ts:Date.now(),added:added??0}).then(()=>{setSync('ok','● LIVE');updateSheetBackground(uid,qty,formula||String(qty),added??0);}).catch(()=>setSync('error','✕ OFFLINE'));
 }
 function startFirebaseListener(){
@@ -839,7 +974,7 @@ function startFirebaseListener(){
   });
 }
 
-// ── WRITE OPS (all guarded by canWrite) ─────────────────────
+// ── WRITE OPS ────────────────────────────────────────────────
 function sendAdd(uid,addQty){
   if(!canWrite())return;
   const oldVal=stockData[uid]||0;const newVal=parseFloat((oldVal+addQty).toFixed(4));
@@ -1001,7 +1136,8 @@ function initSearchMode(){
     searchInEl.style.pointerEvents='';searchInEl.style.cursor='text';barInnerEl.onclick=null;
   } else {
     searchInEl.setAttribute('readonly','');searchInEl.setAttribute('inputmode','none');
-    searchInEl.style.pointerEvents='none';searchInEl.style.cursor='pointer';barInnerEl.onclick=()=>qkbOpen();
+    searchInEl.style.pointerEvents='none';searchInEl.style.cursor='pointer';
+    barInnerEl.onclick=()=>qkbOpen();
   }
 }
 let sT;
@@ -1088,107 +1224,204 @@ document.getElementById('installBtn').addEventListener('click',()=>{if(dip){dip.
 
 // ── MOBILE NAV SWIPE ────────────────────────────────────────
 (function(){
-  let navPage=0; // 0 = page1 (LIVE/STEVE/HISTORY), 1 = page2 (MODE/RESET/LOCK)
+  let navPage=0;
   let swipeStartX=0,swipeStartY=0,swipeDragging=false,swipeDx=0;
   const track=document.getElementById('navSwipeTrack');
   const outer=document.getElementById('navSwipeOuter');
   const dot0=document.getElementById('navDot0');
   const dot1=document.getElementById('navDot1');
-
   function getPage1W(){return document.getElementById('navPage1').offsetWidth;}
-  function getPage2W(){return document.getElementById('navPage2').offsetWidth;}
-
   function setNavPage(page,animated){
     navPage=page;
     const page1W=getPage1W();
     const offset=page===0?0:-(page1W+10);
     track.style.transition=animated?'transform .32s cubic-bezier(.16,1,.3,1)':'none';
     track.style.transform=`translateX(${offset}px)`;
-    // Update dots
-    dot0.classList.toggle('active',page===0);
-    dot1.classList.toggle('active',page===1);
+    dot0.classList.toggle('active',page===0);dot1.classList.toggle('active',page===1);
   }
-
-  // Touch swipe on the nav-swipe-outer
-  outer.addEventListener('touchstart',e=>{
-    if(e.touches.length!==1)return;
-    swipeStartX=e.touches[0].clientX;swipeStartY=e.touches[0].clientY;
-    swipeDragging=true;swipeDx=0;
-    track.style.transition='none';
-  },{passive:true});
-
-  outer.addEventListener('touchmove',e=>{
-    if(!swipeDragging)return;
-    const dx=e.touches[0].clientX-swipeStartX;
-    const dy=e.touches[0].clientY-swipeStartY;
-    if(Math.abs(dy)>Math.abs(dx)&&Math.abs(swipeDx)<5){swipeDragging=false;return;}
-    swipeDx=dx;
-    const page1W=getPage1W();
-    const baseOffset=navPage===0?0:-(page1W+10);
-    const newOffset=baseOffset+dx*0.6;
-    track.style.transform=`translateX(${newOffset}px)`;
-  },{passive:true});
-
-  outer.addEventListener('touchend',e=>{
-    if(!swipeDragging)return;swipeDragging=false;
-    if(Math.abs(swipeDx)>30){
-      if(swipeDx<0&&navPage===0)setNavPage(1,true);
-      else if(swipeDx>0&&navPage===1)setNavPage(0,true);
-      else setNavPage(navPage,true);
-    } else {setNavPage(navPage,true);}
-  },{passive:true});
-
-  // Also allow clicking the dots to switch pages
-  dot0.addEventListener('click',()=>setNavPage(0,true));
-  dot1.addEventListener('click',()=>setNavPage(1,true));
-
-  // Expose for lock button update
+  outer.addEventListener('touchstart',e=>{if(e.touches.length!==1)return;swipeStartX=e.touches[0].clientX;swipeStartY=e.touches[0].clientY;swipeDragging=true;swipeDx=0;track.style.transition='none';},{passive:true});
+  outer.addEventListener('touchmove',e=>{if(!swipeDragging)return;const dx=e.touches[0].clientX-swipeStartX;const dy=e.touches[0].clientY-swipeStartY;if(Math.abs(dy)>Math.abs(dx)&&Math.abs(swipeDx)<5){swipeDragging=false;return;}swipeDx=dx;const page1W=getPage1W();const baseOffset=navPage===0?0:-(page1W+10);const newOffset=baseOffset+dx*0.6;track.style.transform=`translateX(${newOffset}px)`;},{passive:true});
+  outer.addEventListener('touchend',e=>{if(!swipeDragging)return;swipeDragging=false;if(Math.abs(swipeDx)>30){if(swipeDx<0&&navPage===0)setNavPage(1,true);else if(swipeDx>0&&navPage===1)setNavPage(0,true);else setNavPage(navPage,true);}else{setNavPage(navPage,true);}},{passive:true});
+  dot0.addEventListener('click',()=>setNavPage(0,true));dot1.addEventListener('click',()=>setNavPage(1,true));
   window._navGoPage1=()=>setNavPage(0,true);
 })();
 
-// ── MOBILE QWERTY ────────────────────────────────────────────
-let qkbQuery='',qkbCursorPos=0,qkbTrackpad=false,qkbTrackX=0,qkbTrackCursorStart=0;
-const QKB_TRACK_SENSITIVITY=10;
-function qkbOpen(){
-  if(isDesktop())return;document.activeElement?.blur();
-  qkbQuery=searchQuery;qkbCursorPos=qkbQuery.length;qkbRefresh();
-  document.getElementById('qkb').classList.add('open');
-  requestAnimationFrame(()=>{const kbh=document.getElementById('qkb').offsetHeight;document.getElementById('tblArea').style.height=(window.innerHeight-50-kbh)+'px';});
-}
-function qkbDone(){document.getElementById('qkb').classList.remove('open');document.getElementById('tblArea').style.height='';qkbTrackpad=false;}
-function qkbClear(){qkbQuery='';qkbCursorPos=0;qkbRefresh();searchQuery='';renderTable();searchInEl.value='';}
-function qkbKey(k){
-  if(k==='back'){if(qkbCursorPos>0){qkbQuery=qkbQuery.slice(0,qkbCursorPos-1)+qkbQuery.slice(qkbCursorPos);qkbCursorPos--;}}
-  else if(k===' '){qkbQuery=qkbQuery.slice(0,qkbCursorPos)+' '+qkbQuery.slice(qkbCursorPos);qkbCursorPos++;}
-  else{qkbQuery=qkbQuery.slice(0,qkbCursorPos)+k+qkbQuery.slice(qkbCursorPos);qkbCursorPos++;}
-  qkbRefresh();
-}
-function qkbRefresh(){
-  const disp=document.getElementById('qkbDisplay'),inp=document.getElementById('searchIn');
-  if(qkbQuery){
-    const before=qkbQuery.slice(0,qkbCursorPos),after=qkbQuery.slice(qkbCursorPos);
-    disp.innerHTML='<span class="qkb-text-before"></span><span class="qkb-cursor"></span><span class="qkb-text-after"></span>';
-    disp.querySelector('.qkb-text-before').textContent=before;disp.querySelector('.qkb-text-after').textContent=after;
-    disp.classList.remove('empty');inp.value=qkbQuery;
-  } else {disp.textContent='Search…';disp.classList.add('empty');inp.value='';}
-  searchQuery=qkbQuery.toLowerCase().trim();clearTimeout(sT);sT=setTimeout(()=>renderTable(),80);
-}
+// ══════════════════════════════════════════════════════════════
+// MOBILE QWERTY — FULLY REACTIVE ENGINE
+// Key insight: pointerdown fires INSTANTLY (no 300ms iOS delay)
+// We handle the full press/release cycle ourselves.
+// ══════════════════════════════════════════════════════════════
 (function(){
-  let holdTimer=null;
-  function spaceEl(){return document.querySelector('.qkb-key-space');}
-  function onSpaceTouchStart(e){qkbTrackpad=false;qkbTrackX=e.touches[0].clientX;qkbTrackCursorStart=qkbCursorPos;holdTimer=setTimeout(()=>{qkbTrackpad=true;if(navigator.vibrate)navigator.vibrate(30);spaceEl().style.background='rgba(16,185,129,.35)';},300);}
-  function onSpaceTouchMove(e){if(!qkbTrackpad)return;e.preventDefault();const dx=e.touches[0].clientX-qkbTrackX;const steps=Math.round(dx/QKB_TRACK_SENSITIVITY);qkbCursorPos=Math.max(0,Math.min(qkbQuery.length,qkbTrackCursorStart+steps));qkbRefresh();}
-  function onSpaceTouchEnd(e){clearTimeout(holdTimer);if(qkbTrackpad){qkbTrackpad=false;spaceEl().style.background='';}else{qkbKey(' ');}}
-  document.addEventListener('touchstart',e=>{if(e.target.closest('.qkb-key-space'))onSpaceTouchStart(e);},{passive:true});
-  document.addEventListener('touchmove',e=>{if(qkbTrackpad){onSpaceTouchMove(e);}},{passive:false});
-  document.addEventListener('touchend',e=>{if(e.target.closest('.qkb-key-space')||qkbTrackpad)onSpaceTouchEnd(e);},{passive:true});
+  let qkbQuery='', qkbCursorPos=0;
+  // Backspace key-repeat state
+  let backspaceTimer=null, backspaceInterval=null;
+  // Track currently pressed key element for visual feedback
+  let pressedKey=null;
+
+  // ── KEY PRESS HANDLER (instant, no delay) ──
+  function handleKey(k){
+    if(k==='__done__'){qkbDoneAction();return;}
+    if(k==='back'){
+      doBackspace();
+      // Start key-repeat for backspace after 500ms hold
+      backspaceTimer=setTimeout(()=>{
+        backspaceInterval=setInterval(()=>{doBackspace();},60);
+      },500);
+    } else if(k===' '){
+      qkbQuery=qkbQuery.slice(0,qkbCursorPos)+' '+qkbQuery.slice(qkbCursorPos);
+      qkbCursorPos++;
+      qkbRefresh();
+    } else {
+      qkbQuery=qkbQuery.slice(0,qkbCursorPos)+k+qkbQuery.slice(qkbCursorPos);
+      qkbCursorPos++;
+      qkbRefresh();
+    }
+  }
+
+  function doBackspace(){
+    if(qkbCursorPos>0){
+      qkbQuery=qkbQuery.slice(0,qkbCursorPos-1)+qkbQuery.slice(qkbCursorPos);
+      qkbCursorPos--;
+      qkbRefresh();
+    }
+  }
+
+  function stopBackspaceRepeat(){
+    clearTimeout(backspaceTimer);clearInterval(backspaceInterval);
+    backspaceTimer=null;backspaceInterval=null;
+  }
+
+  function releaseKey(el){
+    if(el)el.classList.remove('pressing');
+    pressedKey=null;
+    stopBackspaceRepeat();
+  }
+
+  // ── EVENT DELEGATION on the keyboard container ──
+  // Uses pointerdown (fires instantly on touch, no 300ms delay)
+  const qkbEl=document.getElementById('qkb');
+
+  qkbEl.addEventListener('pointerdown',function(e){
+    const keyEl=e.target.closest('[data-key]');
+    if(!keyEl)return;
+
+    // Prevent text selection & default browser behavior
+    e.preventDefault();
+
+    // Visual press state — immediate
+    if(pressedKey&&pressedKey!==keyEl)pressedKey.classList.remove('pressing');
+    pressedKey=keyEl;
+    keyEl.classList.add('pressing');
+
+    // Micro-haptic on every key
+    if(navigator.vibrate)navigator.vibrate(7);
+
+    // Fire the key action immediately
+    handleKey(keyEl.dataset.key);
+
+    // Capture to this element so we get pointerup even if finger moves
+    keyEl.setPointerCapture(e.pointerId);
+  },{passive:false});
+
+  qkbEl.addEventListener('pointerup',function(e){
+    const keyEl=e.target.closest('[data-key]');
+    releaseKey(keyEl||pressedKey);
+  },{passive:true});
+
+  qkbEl.addEventListener('pointercancel',function(e){
+    releaseKey(pressedKey);
+  },{passive:true});
+
+  // ── CLEAR BUTTON ──
+  document.getElementById('qkbClearBtn').addEventListener('pointerdown',function(e){
+    e.preventDefault();
+    if(navigator.vibrate)navigator.vibrate(10);
+    qkbQuery='';qkbCursorPos=0;
+    qkbRefresh();
+  },{passive:false});
+
+  // ── SPACE HOLD → CURSOR TRACKPAD ──
+  let trackpadMode=false,trackpadStartX=0,trackpadCursorStart=0;
+  const TRACK_SENSITIVITY=9;
+  const spaceEl=qkbEl.querySelector('[data-key=" "]');
+  let spaceHoldTimer=null;
+
+  if(spaceEl){
+    spaceEl.addEventListener('pointerdown',function(e){
+      trackpadStartX=e.clientX;trackpadCursorStart=qkbCursorPos;trackpadMode=false;
+      spaceHoldTimer=setTimeout(()=>{
+        trackpadMode=true;
+        if(navigator.vibrate)navigator.vibrate([0,0,30]);
+        spaceEl.style.background='rgba(16,185,129,.4)';
+      },320);
+    },{passive:true});
+
+    spaceEl.addEventListener('pointermove',function(e){
+      if(!trackpadMode)return;
+      const dx=e.clientX-trackpadStartX;
+      const steps=Math.round(dx/TRACK_SENSITIVITY);
+      const newPos=Math.max(0,Math.min(qkbQuery.length,trackpadCursorStart+steps));
+      if(newPos!==qkbCursorPos){qkbCursorPos=newPos;qkbRefreshDisplay();}
+    },{passive:true});
+
+    spaceEl.addEventListener('pointerup',function(){
+      clearTimeout(spaceHoldTimer);
+      if(trackpadMode){trackpadMode=false;spaceEl.style.background='';}
+    },{passive:true});
+
+    spaceEl.addEventListener('pointercancel',function(){
+      clearTimeout(spaceHoldTimer);trackpadMode=false;spaceEl.style.background='';
+    },{passive:true});
+  }
+
+  // ── REFRESH — updates display + triggers search IMMEDIATELY ──
+  function qkbRefresh(){
+    qkbRefreshDisplay();
+    // Update search query directly — no setTimeout, instant filter
+    searchQuery=qkbQuery.toLowerCase().trim();
+    searchInEl.value=qkbQuery;
+    // Use rAF so DOM paint happens before heavy table render
+    requestAnimationFrame(()=>renderTable());
+  }
+
+  function qkbRefreshDisplay(){
+    const disp=document.getElementById('qkbDisplay');
+    if(qkbQuery){
+      const before=qkbQuery.slice(0,qkbCursorPos),after=qkbQuery.slice(qkbCursorPos);
+      disp.innerHTML='<span class="qkb-text-before"></span><span class="qkb-cursor"></span><span class="qkb-text-after"></span>';
+      disp.querySelector('.qkb-text-before').textContent=before;
+      disp.querySelector('.qkb-text-after').textContent=after;
+      disp.classList.remove('empty');
+    } else {
+      disp.textContent='Search…';disp.classList.add('empty');
+    }
+  }
+
+  function qkbDoneAction(){
+    qkbEl.classList.remove('open');
+    document.getElementById('tblArea').style.height='';
+    trackpadMode=false;
+  }
+
+  // ── PUBLIC API ──
+  window.qkbOpen=function(){
+    if(isDesktop())return;
+    document.activeElement?.blur();
+    qkbQuery=searchQuery;qkbCursorPos=qkbQuery.length;
+    qkbRefreshDisplay();
+    qkbEl.classList.add('open');
+    requestAnimationFrame(()=>{
+      const kbh=qkbEl.offsetHeight;
+      document.getElementById('tblArea').style.height=(window.innerHeight-50-kbh)+'px';
+    });
+  };
+  window.qkbClose=qkbDoneAction;
 })();
 
 // ── MOBILE FORMULA KEYBOARD ──────────────────────────────────
 let fkbTargetId=null,fkbTargetSid=null,fkbVal='';
 function fkbOpen(id,sid){
-  if(isDesktop())return;
-  if(!canWrite())return;
+  if(isDesktop())return;if(!canWrite())return;
   fkbTargetId=id;fkbTargetSid=sid;
   const existing=formulaData[id]||String(stockData[id]||0);fkbVal=existing;
   document.getElementById('fkbDisplay').textContent='='+fkbVal;
@@ -1230,12 +1463,7 @@ function doLogin(){
   if(!user||user.password!==password){errEl.textContent='✕ Wrong username or password';document.getElementById('loginPassword').value='';return;}
   currentUser={id:username,...user};
   localStorage.setItem('c2c_user',username);
-  updateNavUser();
-  hideLoginScreen();
-  // Re-apply lock state after login (admin check changes)
-  applyLockState(isLocked);
-  // Show lock button only for admin
-  updateAdminUI();
+  updateNavUser();hideLoginScreen();applyLockState(isLocked);updateAdminUI();
   if(navigator.vibrate)navigator.vibrate(35);
 }
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&!document.getElementById('loginScreen').classList.contains('hidden'))doLogin();});
@@ -1247,15 +1475,9 @@ function updateNavUser(){
   }
 }
 function updateAdminUI(){
-  const lockBtn=document.getElementById('lockBtn');
-  const lockBtnMob=document.getElementById('lockBtnMob');
-  if(isAdmin()){
-    if(lockBtn)lockBtn.classList.add('admin-visible');
-    if(lockBtnMob){lockBtnMob.style.display='inline-flex';}
-  } else {
-    if(lockBtn)lockBtn.classList.remove('admin-visible');
-    if(lockBtnMob){lockBtnMob.style.display='none';}
-  }
+  const lockBtn=document.getElementById('lockBtn');const lockBtnMob=document.getElementById('lockBtnMob');
+  if(isAdmin()){if(lockBtn)lockBtn.classList.add('admin-visible');if(lockBtnMob){lockBtnMob.style.display='inline-flex';}}
+  else{if(lockBtn)lockBtn.classList.remove('admin-visible');if(lockBtnMob){lockBtnMob.style.display='none';}}
 }
 function lockApp(){
   if(!confirm('Sign out '+(currentUser?.name||'')+'?'))return;
@@ -1280,7 +1502,6 @@ window.addEventListener('load',()=>{
     updateNavUser();hideLoginScreen();updateAdminUI();
   } else {showLoginScreen();}
 
-  // Start listening to system lock state immediately
   startLockListener();
 
   let p=0,attempt=0;

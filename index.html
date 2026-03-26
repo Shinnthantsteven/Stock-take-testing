@@ -309,7 +309,7 @@ body.light .np-btn-back{color:rgba(0,0,0,.35);}
 .nav-swipe-outer{display:flex;align-items:center;gap:4px;overflow:hidden;max-width:calc(100vw - 160px);}
 #searchIn{cursor:pointer;}
 
-/* ── MOBILE QWERTY SEARCH — TIGHT + SAFE-AREA OPTIMIZED ── */
+/* ── MOBILE QWERTY SEARCH — ULTRA-TIGHT (NO SPACE BELOW SEARCH BAR) ── */
 .qkb{
   position:fixed;
   bottom:0;left:0;right:0;
@@ -326,10 +326,10 @@ body.light .np-btn-back{color:rgba(0,0,0,.35);}
 .qkb.open{display:flex;}
 body.light .qkb{border-top-color:rgba(0,0,0,.10);}
 
-/* Search bar — only safe-area padding at bottom, nothing extra */
+/* Search bar — minimal padding, hugs the very bottom */
 .qkb-bar{
   display:flex;align-items:center;gap:6px;
-  padding:4px 6px env(safe-area-inset-bottom, 0px);
+  padding:3px 6px env(safe-area-inset-bottom, 0px);
   background:var(--kb-bg);
 }
 .qkb-input-display{
@@ -339,8 +339,8 @@ body.light .qkb{border-top-color:rgba(0,0,0,.10);}
   background:rgba(255,255,255,.09);
   border:1px solid rgba(255,255,255,.13);
   border-radius:10px;
-  padding:7px 12px;
-  min-height:36px;
+  padding:6px 12px;
+  min-height:34px;
   white-space:nowrap;
   overflow:hidden;
   display:flex;align-items:center;
@@ -369,7 +369,7 @@ body.light .qkb-input-display{
   border:1px solid rgba(239,68,68,.28);
   color:#ef4444;
   border-radius:9px;
-  padding:7px 13px;
+  padding:6px 13px;
   font-size:11px;font-weight:800;
   cursor:pointer;
   font-family:'Plus Jakarta Sans',sans-serif;
@@ -377,7 +377,7 @@ body.light .qkb-input-display{
   flex-shrink:0;
   touch-action:manipulation;
   -webkit-tap-highlight-color:transparent;
-  height:36px;
+  height:34px;
   display:flex;align-items:center;
 }
 body.light .qkb-clear{background:rgba(239,68,68,.10);}
@@ -386,7 +386,7 @@ body.light .qkb-clear{background:rgba(239,68,68,.10);}
   border:none;
   color:#020617;
   border-radius:9px;
-  padding:7px 15px;
+  padding:6px 15px;
   font-size:11px;font-weight:800;
   cursor:pointer;
   font-family:'Plus Jakarta Sans',sans-serif;
@@ -394,7 +394,7 @@ body.light .qkb-clear{background:rgba(239,68,68,.10);}
   flex-shrink:0;
   touch-action:manipulation;
   -webkit-tap-highlight-color:transparent;
-  height:36px;
+  height:34px;
   display:flex;align-items:center;
 }
 
@@ -403,7 +403,7 @@ body.light .qkb-clear{background:rgba(239,68,68,.10);}
   display:flex;
   justify-content:center;
   gap:4px;
-  padding:0 3px 4px;
+  padding:0 3px 3px;
 }
 .qkb-row:first-child{padding-top:2px;}
 
@@ -503,9 +503,9 @@ body.light .qkb-key.pressing{background:var(--kb-key-press);}
 body.light .qkb-key-back{background:var(--kb-delete);}
 body.light .qkb-key-back.pressing{background:rgba(239,68,68,.2);}
 
-/* Bottom row — NO extra env() padding here, only in .qkb-bar above */
+/* Bottom row — minimal gap before search bar, only safe-area in .qkb-bar */
 .qkb-row-bottom{
-  padding:0 3px 4px;
+  padding:0 3px 2px;
   gap:4px;
 }
 .qkb-row-bottom .qkb-key{height:44px;}
@@ -712,12 +712,7 @@ body.light .fkb-btn-op{background:rgba(99,102,241,.10);color:#6366f1;}
   <div class="hist-body" id="histBody"><div class="hist-empty">Loading…</div></div>
 </div>
 
-<!-- ══════════════════════════════════════════════
-     MOBILE QWERTY SEARCH — UPGRADED KEYBOARD
-     • No onclick handlers (pointerdown in JS)
-     • data-key attribute for event delegation
-     • Native-feel key layout
-══════════════════════════════════════════════ -->
+<!-- MOBILE QWERTY SEARCH -->
 <div class="qkb" id="qkb">
   <!-- Number row -->
   <div class="qkb-row">
@@ -1227,24 +1222,16 @@ document.getElementById('installBtn').addEventListener('click',()=>{if(dip){dip.
   window._navGoPage1=()=>setNavPage(0,true);
 })();
 
-// ══════════════════════════════════════════════════════════════
-// MOBILE QWERTY — FULLY REACTIVE ENGINE
-// Key insight: pointerdown fires INSTANTLY (no 300ms iOS delay)
-// We handle the full press/release cycle ourselves.
-// ══════════════════════════════════════════════════════════════
+// ── MOBILE QWERTY ENGINE ────────────────────────────────────
 (function(){
   let qkbQuery='', qkbCursorPos=0;
-  // Backspace key-repeat state
   let backspaceTimer=null, backspaceInterval=null;
-  // Track currently pressed key element for visual feedback
   let pressedKey=null;
 
-  // ── KEY PRESS HANDLER (instant, no delay) ──
   function handleKey(k){
     if(k==='__done__'){qkbDoneAction();return;}
     if(k==='back'){
       doBackspace();
-      // Start key-repeat for backspace after 500ms hold
       backspaceTimer=setTimeout(()=>{
         backspaceInterval=setInterval(()=>{doBackspace();},60);
       },500);
@@ -1278,29 +1265,17 @@ document.getElementById('installBtn').addEventListener('click',()=>{if(dip){dip.
     stopBackspaceRepeat();
   }
 
-  // ── EVENT DELEGATION on the keyboard container ──
-  // Uses pointerdown (fires instantly on touch, no 300ms delay)
   const qkbEl=document.getElementById('qkb');
 
   qkbEl.addEventListener('pointerdown',function(e){
     const keyEl=e.target.closest('[data-key]');
     if(!keyEl)return;
-
-    // Prevent text selection & default browser behavior
     e.preventDefault();
-
-    // Visual press state — immediate
     if(pressedKey&&pressedKey!==keyEl)pressedKey.classList.remove('pressing');
     pressedKey=keyEl;
     keyEl.classList.add('pressing');
-
-    // Micro-haptic on every key
     if(navigator.vibrate)navigator.vibrate(7);
-
-    // Fire the key action immediately
     handleKey(keyEl.dataset.key);
-
-    // Capture to this element so we get pointerup even if finger moves
     keyEl.setPointerCapture(e.pointerId);
   },{passive:false});
 
@@ -1313,7 +1288,6 @@ document.getElementById('installBtn').addEventListener('click',()=>{if(dip){dip.
     releaseKey(pressedKey);
   },{passive:true});
 
-  // ── CLEAR BUTTON ──
   document.getElementById('qkbClearBtn').addEventListener('pointerdown',function(e){
     e.preventDefault();
     if(navigator.vibrate)navigator.vibrate(10);
@@ -1321,7 +1295,6 @@ document.getElementById('installBtn').addEventListener('click',()=>{if(dip){dip.
     qkbRefresh();
   },{passive:false});
 
-  // ── SPACE HOLD → CURSOR TRACKPAD ──
   let trackpadMode=false,trackpadStartX=0,trackpadCursorStart=0;
   const TRACK_SENSITIVITY=9;
   const spaceEl=qkbEl.querySelector('[data-key=" "]');
@@ -1355,13 +1328,10 @@ document.getElementById('installBtn').addEventListener('click',()=>{if(dip){dip.
     },{passive:true});
   }
 
-  // ── REFRESH — updates display + triggers search IMMEDIATELY ──
   function qkbRefresh(){
     qkbRefreshDisplay();
-    // Update search query directly — no setTimeout, instant filter
     searchQuery=qkbQuery.toLowerCase().trim();
     searchInEl.value=qkbQuery;
-    // Use rAF so DOM paint happens before heavy table render
     requestAnimationFrame(()=>renderTable());
   }
 
@@ -1384,7 +1354,6 @@ document.getElementById('installBtn').addEventListener('click',()=>{if(dip){dip.
     trackpadMode=false;
   }
 
-  // ── PUBLIC API ──
   window.qkbOpen=function(){
     if(isDesktop())return;
     document.activeElement?.blur();
@@ -1424,9 +1393,7 @@ function fkbConfirm(){
   sendSetFormula(id,clean,qty);
 }
 
-// ══════════════════════════════════════════════
-// LOGIN
-// ══════════════════════════════════════════════
+// ── LOGIN ────────────────────────────────────────────────────
 const USERS={
   'steve':   {password:'1964',name:'Steve',  color:'#10b981'},
   'aswanth': {password:'2026',name:'Aswanth',color:'#818cf8'},

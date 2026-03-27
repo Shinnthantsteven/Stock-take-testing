@@ -341,7 +341,8 @@ body.light .qkb{border-top-color:rgba(0,0,0,.10);}
   border-radius:10px;
   padding:6px 12px;
   min-height:34px;
-  white-space:nowrap;
+  /* FIX: white-space:pre so spaces are preserved and rendered correctly */
+  white-space:pre;
   overflow:hidden;
   display:flex;align-items:center;
   position:relative;
@@ -351,7 +352,13 @@ body.light .qkb-input-display{
   border-color:rgba(0,0,0,.14);
   color:#0f172a;
 }
-.qkb-text-before,.qkb-text-after{color:inherit;font-size:15px;font-weight:600;}
+/* FIX: white-space:pre on text spans so trailing/leading spaces render */
+.qkb-text-before,.qkb-text-after{
+  color:inherit;
+  font-size:15px;
+  font-weight:600;
+  white-space:pre;
+}
 .qkb-cursor{
   display:inline-block;
   width:2px;height:1.1em;
@@ -1165,7 +1172,9 @@ function npDraw(){
   }catch(e){prevEl.textContent='';}
 }
 function npConfirm(){
-  const ex=stockData[np.id]||0;if(np.val==='0'){closeNp();return;}
+  // FIX: guard — if nothing entered, just close
+  if(np.val==='0'){closeNp();return;}
+  const ex=stockData[np.id]||0;
   let nt,ent;
   try{
     ent=parseFloat(Function('return ('+np.val+')')());
@@ -1176,9 +1185,8 @@ function npConfirm(){
   if(navigator.vibrate)navigator.vibrate(35);
   const diff=parseFloat((nt-ex).toFixed(4));
   if(np.op==='=')sendSet(np.id,nt);else if(diff!==0)sendAdd(np.id,diff);
-  const item=ITEMS.find(r=>r.id===np.id);
-  document.getElementById('npExisting').innerHTML=`Current: <span>${nt} ${item?.um||''}</span>`;
-  np.val='0';npDraw();
+  // FIX: close the numpad automatically after confirming — no need to tap again
+  closeNp();
 }
 document.addEventListener('keydown',e=>{
   if(!document.getElementById('npPopup').classList.contains('open'))return;
@@ -1337,11 +1345,12 @@ document.getElementById('installBtn').addEventListener('click',()=>{if(dip){dip.
 
   function qkbRefreshDisplay(){
     const disp=document.getElementById('qkbDisplay');
-    if(qkbQuery){
-      const before=qkbQuery.slice(0,qkbCursorPos),after=qkbQuery.slice(qkbCursorPos);
+    if(qkbQuery.length>0){
+      // FIX: Use textContent on spans — with white-space:pre on the spans
+      // spaces at the start/end of before/after now render correctly.
       disp.innerHTML='<span class="qkb-text-before"></span><span class="qkb-cursor"></span><span class="qkb-text-after"></span>';
-      disp.querySelector('.qkb-text-before').textContent=before;
-      disp.querySelector('.qkb-text-after').textContent=after;
+      disp.querySelector('.qkb-text-before').textContent=qkbQuery.slice(0,qkbCursorPos);
+      disp.querySelector('.qkb-text-after').textContent=qkbQuery.slice(qkbCursorPos);
       disp.classList.remove('empty');
     } else {
       disp.textContent='Search…';disp.classList.add('empty');

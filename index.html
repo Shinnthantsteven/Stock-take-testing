@@ -27,6 +27,8 @@ if('serviceWorker'in navigator){const sw=`const C='c2c-v2';self.addEventListener
   --text:#f1f5f9; --text2:#94a3b8; --text3:#475569;
   --border:rgba(255,255,255,.08); --border2:rgba(255,255,255,.04);
   --uid-clr:#475569; --pack-clr:#818cf8; --cost-clr:#10b981;
+  /* QB Stock color — cool blue */
+  --qb-clr:#38bdf8; --qb-dim:rgba(56,189,248,.10); --qb-border:rgba(56,189,248,.28);
   --safe-bottom:env(safe-area-inset-bottom,0px);
   --row-h:calc((100dvh - 132px) / 7);
   --kb-bg:#0d1829;
@@ -48,6 +50,7 @@ body.light{
   --text:#0f172a; --text2:#475569; --text3:#94a3b8;
   --border:rgba(0,0,0,.08); --border2:rgba(0,0,0,.04);
   --uid-clr:#94a3b8; --pack-clr:#6366f1; --cost-clr:#059669;
+  --qb-clr:#0284c7; --qb-dim:rgba(2,132,199,.10); --qb-border:rgba(2,132,199,.28);
   --kb-bg:#d1d5db;
   --kb-key:#ffffff;
   --kb-key-border:rgba(0,0,0,.18);
@@ -149,6 +152,7 @@ body.light .tbl-area::-webkit-scrollbar-thumb{background:rgba(0,0,0,.08);}
 .col-h{padding:8px 10px;font-size:8px;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:.9px;}
 .col-h:first-child{padding-left:18px;}
 .col-h:last-child{padding-right:18px;}
+.col-h.qb-head{color:var(--qb-clr);}
 .item-row{border-bottom:1px solid var(--border2);align-items:center;transition:background .12s;}
 .item-row:hover{background:rgba(255,255,255,.025);}
 body.light .item-row:hover{background:rgba(0,0,0,.02);}
@@ -182,6 +186,24 @@ body.light .stock-empty-btn{border-color:rgba(0,0,0,.13);color:rgba(0,0,0,.15);}
 .cell-pack-col{font-size:13px;font-weight:700;color:var(--pack-clr);}
 .cell-cost{font-size:14px;font-weight:800;color:var(--cost-clr);}
 .empty-state{text-align:center;padding:60px 20px;color:var(--text3);font-size:12px;font-weight:700;}
+
+/* ── QB STOCK CELL ── */
+.cell-qb{font-size:15px;font-weight:800;color:var(--qb-clr);display:flex;align-items:center;justify-content:center;}
+.qb-zero{color:var(--text3);font-size:13px;font-weight:700;opacity:.45;}
+
+/* ── MOBILE QB BADGE ── */
+.mob-qb{
+  display:inline-flex;align-items:center;gap:3px;
+  font-size:9px;font-weight:800;
+  color:var(--qb-clr);
+  background:var(--qb-dim);
+  border:1px solid var(--qb-border);
+  border-radius:4px;
+  padding:1px 6px;
+  margin-top:3px;
+  white-space:nowrap;
+}
+.mob-qb-label{opacity:.65;font-size:8px;font-weight:700;}
 
 /* ── PORTAL BAR ── */
 .portal-bar{position:fixed;bottom:calc(14px + var(--safe-bottom));left:50%;transform:translateX(-50%);border-radius:100px;border:1.5px solid rgba(255,255,255,.22);display:flex;align-items:center;z-index:1000;overflow:hidden;background:rgba(2,6,23,.7);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);}
@@ -218,6 +240,8 @@ body.light .np-drag-name{color:rgba(0,0,0,.45);}
 .np-existing{font-size:8px;font-weight:700;color:rgba(255,255,255,.28);padding:2px 10px 0;text-align:right;}
 body.light .np-existing{color:rgba(0,0,0,.28);}
 .np-existing span{color:var(--brand);}
+/* QB info inside numpad */
+.np-qb-info{font-size:8px;font-weight:700;color:var(--qb-clr);padding:1px 10px 0;text-align:right;opacity:.8;}
 .np-display{padding:2px 10px 0;text-align:right;}
 .np-value{font-size:22px;font-weight:700;line-height:1;letter-spacing:-.5px;color:rgba(255,255,255,.88);word-break:break-all;transition:color .1s;min-height:24px;}
 .np-value.active{color:#fff;text-shadow:0 0 14px rgba(16,185,129,.45);}
@@ -295,6 +319,8 @@ body.light .np-btn-back{color:rgba(0,0,0,.35);}
 .cell-pack-col{display:none;}
 .cell-brand-col{display:none;}
 .cell-cost{display:none;}
+/* QB hidden on mobile in its own column, shown inside desc area */
+.cell-qb{display:none;}
 .portal-bar{width:calc(100% - 20px);max-width:600px;}
 .nav-right{display:none;}
 .nav-swipe-outer{display:flex;align-items:center;gap:4px;overflow:hidden;max-width:calc(100vw - 160px);}
@@ -375,12 +401,8 @@ body.light .qkb-key-back.pressing{background:rgba(239,68,68,.2);}
 }
 .fkb-overlay.open{display:flex;}
 body.light .fkb-overlay{background:rgba(235,240,250,.97);border-top-color:rgba(0,0,0,.10);}
-
-/* Top row */
 .fkb-top{display:flex;align-items:center;gap:8px;padding:0 4px 2px;}
 .fkb-label{font-size:10px;font-weight:800;color:var(--text3);flex-shrink:0;}
-
-/* Formula display with cursor */
 .fkb-display{
   flex:1;font-family:monospace;font-size:15px;font-weight:700;
   color:var(--text);background:rgba(255,255,255,.06);
@@ -400,8 +422,6 @@ body.light .fkb-display{background:rgba(0,0,0,.05);border-color:rgba(0,0,0,.12);
   animation:qkbBlink .9s step-end infinite;
 }
 .fkb-close{background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);color:#ef4444;border-radius:8px;padding:6px 12px;font-size:10px;font-weight:800;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;white-space:nowrap;flex-shrink:0;}
-
-/* Nav row: ◀ trackpad ▶ */
 .fkb-nav-row{
   display:grid !important;
   grid-template-columns:52px 1fr 52px;
@@ -432,8 +452,6 @@ body.light .fkb-trackpad.active{background:rgba(5,150,105,.12);border-color:rgba
 .fkb-btn-nav.pressing{background:rgba(255,255,255,.2);transform:scale(.88);color:rgba(255,255,255,.9);}
 body.light .fkb-btn-nav{color:rgba(0,0,0,.5);background:rgba(0,0,0,.07);}
 body.light .fkb-btn-nav.pressing{background:rgba(0,0,0,.15);}
-
-/* Key rows */
 .fkb-row{display:grid;gap:5px;}
 .fkb-row-1{grid-template-columns:repeat(6,1fr);}
 .fkb-row-2{grid-template-columns:repeat(6,1fr);}
@@ -459,11 +477,12 @@ body.light .fkb-btn-op{background:rgba(99,102,241,.10);color:#6366f1;}
   .nav-label{display:inline;font-size:10px;}
   .hist-btn{display:inline-flex;}
   .tbl-area{height:calc(100dvh - 56px - 68px);mask-image:linear-gradient(to bottom,black 85%,transparent 100%);-webkit-mask-image:linear-gradient(to bottom,black 85%,transparent 100%);padding:0 24px 20px;}
-  .col-heads{display:grid;grid-template-columns:100px 1fr 160px 60px 90px 195px 140px;padding:0;border-radius:12px;border:1px solid var(--border);margin-bottom:4px;}
+  /* ── UPDATED GRID: added QB column (80px) after Physical Stock ── */
+  .col-heads{display:grid;grid-template-columns:100px 1fr 160px 80px 60px 90px 195px 140px;padding:0;border-radius:12px;border:1px solid var(--border);margin-bottom:4px;}
   .col-h{padding:11px 14px;font-size:9.5px;letter-spacing:.7px;}
   .col-h:first-child{border-radius:12px 0 0 12px;padding-left:18px;}
   .col-h:last-child{border-radius:0 12px 12px 0;padding-right:18px;}
-  .item-row{display:grid;grid-template-columns:100px 1fr 160px 60px 90px 195px 140px;padding:0;min-height:76px;border-radius:8px;margin-bottom:2px;border:1px solid var(--border2);}
+  .item-row{display:grid;grid-template-columns:100px 1fr 160px 80px 60px 90px 195px 140px;padding:0;min-height:76px;border-radius:8px;margin-bottom:2px;border:1px solid var(--border2);}
   .item-row:hover{border-color:rgba(255,255,255,.06);}
   .cell{padding:12px 14px;display:flex;align-items:center;}
   .cell:first-child{padding-left:18px;border-radius:8px 0 0 8px;}
@@ -491,6 +510,12 @@ body.light .fkb-btn-op{background:rgba(99,102,241,.10);color:#6366f1;}
   #searchIn{cursor:text;}
   .lock-btn{display:none;}
   .lock-btn.admin-visible{display:inline-flex;align-items:center;gap:4px;}
+  /* QB column on desktop */
+  .cell-qb{display:flex;justify-content:center;text-align:center;flex-direction:column;align-items:center;gap:2px;}
+  .cell-qb .qb-val{font-size:17px;font-weight:800;color:var(--qb-clr);}
+  .cell-qb .qb-zero{font-size:14px;color:var(--text3);opacity:.35;}
+  /* Mobile QB badge hidden on desktop */
+  .mob-qb{display:none;}
 }
 </style>
 </head>
@@ -588,6 +613,7 @@ body.light .fkb-btn-op{background:rgba(99,102,241,.10);color:#6366f1;}
     <button class="np-ok" onclick="npConfirm()">✓</button>
   </div>
   <div class="np-existing" id="npExisting"></div>
+  <div class="np-qb-info" id="npQbInfo"></div>
   <div class="np-display"><div class="np-value" id="npVal">0</div></div>
   <div class="np-preview" id="npPreview"></div>
   <div class="np-ops">
@@ -687,8 +713,6 @@ body.light .fkb-btn-op{background:rgba(99,102,241,.10);color:#6366f1;}
     <div class="fkb-display" id="fkbDisplay"></div>
     <button class="fkb-close" onclick="fkbCancel()">✕ CANCEL</button>
   </div>
-
-  <!-- Cursor nav row: ◀  DRAG TRACKPAD  ▶ -->
   <div class="fkb-row fkb-nav-row">
     <button class="fkb-btn fkb-btn-nav" id="fkbNavL"
       onpointerdown="fkbNavStart(-1,this)" onpointerup="fkbNavStop()"
@@ -698,7 +722,6 @@ body.light .fkb-btn-op{background:rgba(99,102,241,.10);color:#6366f1;}
       onpointerdown="fkbNavStart(1,this)" onpointerup="fkbNavStop()"
       onpointercancel="fkbNavStop()">▶</button>
   </div>
-
   <div class="fkb-row fkb-row-1">
     <button class="fkb-btn" onclick="fkbKey('7')">7</button>
     <button class="fkb-btn" onclick="fkbKey('8')">8</button>
@@ -741,6 +764,9 @@ const SHEETS_URL='https://script.google.com/macros/s/AKfycbyHiiuDy1HQzz_D9O1f1hZ
 // ── STATE ────────────────────────────────────────────────────────────────────
 let ITEMS=[],historyLog=[];
 const stockData={},formulaData={};
+// ── QB STOCK DATA (read-only from sheet column T) ────────────────────────────
+const qbData={};
+
 let fbListening=false,searchQuery='';
 let isLocked=false;
 const isDesktop=()=>window.innerWidth>=768;
@@ -933,10 +959,31 @@ function stockCellHtml(id){
   }
   return`<div class="stock-empty-btn" onclick="openNp('${id}')">＋</div>`;
 }
+
+// ── QB CELL HTML ─────────────────────────────────────────────────────────────
+function qbCellHtml(id){
+  const qty=qbData[id];
+  if(qty===undefined||qty===null||qty===''){return`<span class="qb-zero">—</span>`;}
+  const n=parseFloat(qty);
+  if(isNaN(n)||n===0)return`<span class="qb-zero">0</span>`;
+  const disp=n%1===0?n:n.toFixed(2);
+  return`<span class="qb-val">${disp}</span>`;
+}
+
+// ── QB BADGE for mobile (shown in description cell) ──────────────────────────
+function qbMobileBadge(id){
+  const qty=qbData[id];
+  if(qty===undefined||qty===null||qty==='')return'';
+  const n=parseFloat(qty);
+  if(isNaN(n))return'';
+  const disp=n%1===0?n:n.toFixed(2);
+  return`<span class="mob-qb"><span class="mob-qb-label">QB </span>${disp}</span>`;
+}
+
 function buildColHeads(){
   const desktop=isDesktop();
   document.getElementById('colHeads').innerHTML=desktop
-    ?`<div class="col-h">UID</div><div class="col-h">Item Description</div><div class="col-h">📦 Physical Stock</div><div class="col-h">U/M</div><div class="col-h">Pack</div><div class="col-h">Supplier</div><div class="col-h">Brand / Origin</div>`
+    ?`<div class="col-h">UID</div><div class="col-h">Item Description</div><div class="col-h">📦 Physical Stock</div><div class="col-h qb-head">QB Stock</div><div class="col-h">U/M</div><div class="col-h">Pack</div><div class="col-h">Supplier</div><div class="col-h">Brand / Origin</div>`
     :`<div class="col-h">Item Description</div><div class="col-h">📦 Stock</div>`;
 }
 function getFiltered(){
@@ -957,6 +1004,7 @@ function rowHtml(r){
       <div class="cell cell-uid">${xe(r.id)}</div>
       <div class="cell cell-desc"><div class="desc-name">${xe(dDesc)}</div>${r.cat?`<div class="desc-meta"><span class="pill pill-cat">${xe(r.cat)}</span></div>`:''}</div>
       <div class="cell cell-stock">${stockCellHtml(r.id)}</div>
+      <div class="cell cell-qb">${qbCellHtml(r.id)}</div>
       <div class="cell cell-um">${xe(r.um)}</div>
       <div class="cell cell-pack-col">${xe(r.pack)}</div>
       <div class="cell cell-sup">${xe(r.sup)}</div>
@@ -968,6 +1016,7 @@ function rowHtml(r){
       <div class="cell">
         <div class="desc-name">${xe(mDesc)} <span style="color:var(--pack-clr);font-size:10px">(${xe(r.pack)})</span></div>
         <span class="mob-uid">${xe(r.id)}</span><span class="mob-sup">(${xe(r.sup)})</span>
+        ${qbMobileBadge(r.id)}
         <div class="desc-meta">${r.brand?`<span class="pill pill-brand">${xe(r.brand)}</span>`:''}${r.origin?`<span class="pill pill-origin">${xe(r.origin)}</span>`:''}</div>
       </div>
       <div class="cell cell-mob-right" id="cmr-${sid}">${stockCellHtmlMobile(r.id,r.um)}</div>
@@ -1042,11 +1091,20 @@ function openNp(id){
   const item=ITEMS.find(r=>r.id===id);if(!item)return;
   np.id=id;np.val='0';np.op='+';
   const popup=document.getElementById('npPopup');
-  npPos.x=Math.min(npPos.x,window.innerWidth-186);npPos.y=Math.max(10,Math.min(npPos.y,window.innerHeight-380));
+  npPos.x=Math.min(npPos.x,window.innerWidth-186);npPos.y=Math.max(10,Math.min(npPos.y,window.innerHeight-400));
   popup.style.left=npPos.x+'px';popup.style.top=npPos.y+'px';
   document.getElementById('npName').textContent=item.desc;
   const umEl=document.getElementById('npUm');umEl.textContent=item.um||'';umEl.style.display=item.um?'inline-block':'none';
-  const ex=stockData[id]||0;document.getElementById('npExisting').innerHTML=ex>0?`Current: <span>${ex} ${item.um}</span>`:'No stock yet';
+  const ex=stockData[id]||0;
+  document.getElementById('npExisting').innerHTML=ex>0?`Current: <span>${ex} ${item.um}</span>`:'No stock yet';
+  // Show QB qty in numpad
+  const qbEl=document.getElementById('npQbInfo');
+  const qb=qbData[id];
+  if(qb!==undefined&&qb!==null&&qb!==''){
+    const qbN=parseFloat(qb);
+    qbEl.textContent=isNaN(qbN)?'':'QB: '+(qbN%1===0?qbN:qbN.toFixed(2))+(item.um?' '+item.um:'');
+    qbEl.style.display='block';
+  }else{qbEl.style.display='none';}
   document.querySelectorAll('.np-op-tab').forEach(t=>t.classList.remove('active'));document.querySelector('.np-op-tab[data-op="+"]').classList.add('active');
   npDraw();popup.classList.add('open');
   setTimeout(()=>document.addEventListener('pointerdown',npOutside),50);
@@ -1127,7 +1185,7 @@ document.getElementById('installBtn').addEventListener('click',()=>{if(dip){dip.
   window._navGoPage1=()=>setNavPage(0,true);
 })();
 
-// ── MOBILE QWERTY ENGINE — FAST (display sync, search debounced) ─────────────
+// ── MOBILE QWERTY ENGINE ─────────────────────────────────────────────────────
 (function(){
   let qkbQuery='', qkbCursorPos=0;
   let bsTimer=null, bsInterval=null;
@@ -1136,13 +1194,11 @@ document.getElementById('installBtn').addEventListener('click',()=>{if(dip){dip.
   let spaceHoldTimer=null;
   let searchDebounce=null;
 
-  // Pre-cache — zero getElementById per keypress
   const qkbEl   = document.getElementById('qkb');
   const dispEl   = document.getElementById('qkbDisplay');
   const clearBtn = document.getElementById('qkbClearBtn');
   const spaceEl  = qkbEl.querySelector('[data-key=" "]');
 
-  // ── DISPLAY — synchronous, ~0ms ──────────────────────────────
   function updateDisplay(){
     if(!qkbQuery){
       dispEl.textContent='Search…';
@@ -1159,7 +1215,6 @@ document.getElementById('installBtn').addEventListener('click',()=>{if(dip){dip.
     dispEl.querySelector('.qkb-text-after').textContent=qkbQuery.slice(qkbCursorPos);
   }
 
-  // ── SEARCH — debounced 45ms, never blocks display ─────────────
   function triggerSearch(){
     clearTimeout(searchDebounce);
     searchDebounce=setTimeout(()=>{
@@ -1169,7 +1224,6 @@ document.getElementById('installBtn').addEventListener('click',()=>{if(dip){dip.
     },45);
   }
 
-  // ── KEY HANDLER ──────────────────────────────────────────────
   function handleKey(k){
     if(k==='__done__'){qkbDone();return;}
     if(k==='back'){
@@ -1186,7 +1240,6 @@ document.getElementById('installBtn').addEventListener('click',()=>{if(dip){dip.
     triggerSearch();
   }
 
-  // ── BACKSPACE REPEAT ─────────────────────────────────────────
   function startBsRepeat(){
     stopBsRepeat();
     bsTimer=setTimeout(()=>{
@@ -1204,7 +1257,6 @@ document.getElementById('installBtn').addEventListener('click',()=>{if(dip){dip.
     clearTimeout(bsTimer);clearInterval(bsInterval);bsTimer=null;bsInterval=null;
   }
 
-  // ── POINTER EVENTS ───────────────────────────────────────────
   qkbEl.addEventListener('pointerdown',e=>{
     const keyEl=e.target.closest('[data-key]');if(!keyEl)return;
     e.preventDefault();
@@ -1224,7 +1276,6 @@ document.getElementById('installBtn').addEventListener('click',()=>{if(dip){dip.
   qkbEl.addEventListener('pointerup',releasePressed,{passive:true});
   qkbEl.addEventListener('pointercancel',releasePressed,{passive:true});
 
-  // ── CLEAR BUTTON ─────────────────────────────────────────────
   clearBtn.addEventListener('pointerdown',e=>{
     e.preventDefault();
     qkbQuery='';qkbCursorPos=0;
@@ -1232,7 +1283,6 @@ document.getElementById('installBtn').addEventListener('click',()=>{if(dip){dip.
     if(navigator.vibrate)navigator.vibrate(10);
   },{passive:false});
 
-  // ── SPACE TRACKPAD ───────────────────────────────────────────
   if(spaceEl){
     spaceEl.addEventListener('pointerdown',e=>{
       trackpadStartX=e.clientX;trackpadCursorStart=qkbCursorPos;trackpadMode=false;
@@ -1253,7 +1303,6 @@ document.getElementById('installBtn').addEventListener('click',()=>{if(dip){dip.
     spaceEl.addEventListener('pointercancel',endTrackpad,{passive:true});
   }
 
-  // ── DONE / OPEN / CLOSE ──────────────────────────────────────
   function qkbDone(){
     qkbEl.classList.remove('open');
     document.getElementById('tblArea').style.height='';
@@ -1273,7 +1322,7 @@ document.getElementById('installBtn').addEventListener('click',()=>{if(dip){dip.
   window.qkbClose=qkbDone;
 })();
 
-// ── MOBILE FORMULA KEYBOARD — CURSOR EDITION ─────────────────────────────────
+// ── MOBILE FORMULA KEYBOARD ───────────────────────────────────────────────────
 let fkbTargetId=null, fkbTargetSid=null, fkbVal='', fkbCursorPos=0;
 let fkbNavTimer=null, fkbNavInterval=null;
 
@@ -1289,7 +1338,6 @@ function fkbRefreshDisplay(){
   }
   bSpan.textContent='='+fkbVal.slice(0,fkbCursorPos);
   disp.querySelector('.fkb-after').textContent=fkbVal.slice(fkbCursorPos);
-  // Auto-scroll so cursor stays in view
   requestAnimationFrame(()=>{
     const cursor=disp.querySelector('.fkb-cursor-bar');if(!cursor)return;
     const cRight=cursor.offsetLeft+cursor.offsetWidth;
@@ -1302,7 +1350,7 @@ function fkbOpen(id,sid){
   if(isDesktop())return;if(!canWrite())return;
   fkbTargetId=id;fkbTargetSid=sid;
   fkbVal=formulaData[id]||String(stockData[id]||0);
-  fkbCursorPos=fkbVal.length;   // cursor at end on open
+  fkbCursorPos=fkbVal.length;
   fkbRefreshDisplay();
   document.getElementById('fkbOverlay').classList.add('open');
   document.activeElement?.blur();
@@ -1338,7 +1386,6 @@ function fkbMoveCursor(delta){
   if(navigator.vibrate)navigator.vibrate(5);
 }
 
-// ◀ ▶ hold-to-repeat
 function fkbNavStart(delta,el){
   fkbNavStop();el.classList.add('pressing');
   fkbMoveCursor(delta);
@@ -1352,7 +1399,6 @@ function fkbNavStop(){
   document.querySelectorAll('.fkb-btn-nav').forEach(b=>b.classList.remove('pressing'));
 }
 
-// Drag trackpad for formula cursor
 (function(){
   let active=false,startX=0,startCursor=0;
   const tp=document.getElementById('fkbTrackpad');
@@ -1464,7 +1510,15 @@ window.addEventListener('load',()=>{
       .then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
       .then(d=>{
         if(!d.ok||!d.items)throw new Error(d.error||'No data');
-        ITEMS=d.items;ITEMS.forEach(item=>{stockData[item.id]=parseFloat(item.stock)||0;if(item.formula)formulaData[item.id]=item.formula;});
+        ITEMS=d.items;
+        ITEMS.forEach(item=>{
+          stockData[item.id]=parseFloat(item.stock)||0;
+          if(item.formula)formulaData[item.id]=item.formula;
+          // ── Load QB Stock from sheet data (field: qbQty or qbStock) ──
+          // Your Apps Script getAll should return item.qbQty (column T value)
+          if(item.qbQty!==undefined)qbData[item.id]=item.qbQty;
+          else if(item.qbStock!==undefined)qbData[item.id]=item.qbStock;
+        });
         try{localStorage.setItem('c2c_items',JSON.stringify(ITEMS));localStorage.setItem('c2c_items_ts',String(Date.now()));}catch(e){}
         db.ref('stock').once('value').then(snap=>{
           const fb=snap.val();
@@ -1484,6 +1538,10 @@ window.addEventListener('load',()=>{
       ITEMS=JSON.parse(cachedItems);
       if(ITEMS&&ITEMS.length>10){
         txt.textContent='Loaded from cache ⚡';
+        ITEMS.forEach(item=>{
+          if(item.qbQty!==undefined)qbData[item.id]=item.qbQty;
+          else if(item.qbStock!==undefined)qbData[item.id]=item.qbStock;
+        });
         db.ref('stock').once('value').then(snap=>{const fb=snap.val();if(fb)Object.entries(fb).forEach(([k,v])=>{const item=ITEMS.find(r=>r.id.replace(/[.#$[\]]/g,'_')===k);if(!item)return;stockData[item.id]=parseFloat(v.qty)||0;formulaData[item.id]=String(v.formula||v.qty||0);});saveLocal();finishLoad();}).catch(()=>finishLoad());
         return;
       }

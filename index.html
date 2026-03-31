@@ -153,6 +153,8 @@ body.light .item-row:hover{background:rgba(0,0,0,.02);}
 .pill-cat{background:rgba(251,191,36,.12);color:#fbbf24;border:1px solid rgba(251,191,36,.3);}
 .pill-brand{background:rgba(59,130,246,.10);color:#60a5fa;border:1px solid rgba(59,130,246,.22);}
 .pill-origin{background:rgba(16,185,129,.08);color:#10b981;border:1px solid rgba(16,185,129,.2);}
+/* ── QB PILL — mobile inline tag ── */
+.pill-qb{background:var(--qb-dim);color:var(--qb-clr);border:1px solid var(--qb-border);}
 .cell-stock{display:flex;align-items:center;justify-content:center;}
 .stock-wrap{display:flex;flex-direction:column;align-items:center;gap:3px;}
 .stock-qty{font-size:17px;font-weight:800;color:var(--brand);line-height:1;cursor:pointer;display:inline-block;}
@@ -178,19 +180,6 @@ body.light .stock-empty-btn{border-color:rgba(0,0,0,.13);color:rgba(0,0,0,.15);}
 .qb-label-tag{font-size:7px;font-weight:800;letter-spacing:.8px;color:var(--qb-clr);opacity:.55;text-transform:uppercase;}
 .qb-val-num{font-size:20px;font-weight:800;color:var(--qb-clr);line-height:1;}
 .qb-zero{color:var(--text3);font-size:13px;font-weight:700;opacity:.35;}
-
-/* ── MOBILE QB BLOCK — prominent, full width ── */
-.mob-qb-block{
-  display:flex;align-items:center;gap:6px;
-  margin:5px 0 2px;
-  background:var(--qb-dim);
-  border:1px solid var(--qb-border);
-  border-radius:8px;
-  padding:5px 10px;
-}
-.mob-qb-label{font-size:8px;font-weight:800;color:var(--qb-clr);opacity:.6;letter-spacing:.5px;text-transform:uppercase;flex-shrink:0;}
-.mob-qb-val{font-size:18px;font-weight:800;color:var(--qb-clr);line-height:1;}
-.mob-qb-um{font-size:9px;font-weight:700;color:var(--qb-clr);opacity:.55;margin-left:2px;}
 
 /* ── PORTAL BAR ── */
 .portal-bar{position:fixed;bottom:calc(14px + var(--safe-bottom));left:50%;transform:translateX(-50%);border-radius:100px;border:1.5px solid rgba(255,255,255,.22);display:flex;align-items:center;z-index:1000;overflow:hidden;background:rgba(2,6,23,.7);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);}
@@ -395,7 +384,6 @@ body.light .fkb-btn-op{background:rgba(99,102,241,.10);color:#6366f1;}
   .hist-btn{display:inline-flex;}
   .tbl-area{height:calc(100dvh - 56px - 68px);mask-image:linear-gradient(to bottom,black 85%,transparent 100%);-webkit-mask-image:linear-gradient(to bottom,black 85%,transparent 100%);padding:0 24px 20px;}
 
-  /* ── COLUMN ORDER: UID | Desc | QB Stock | Physical Stock | UM | Pack | Supplier | Brand ── */
   .col-heads{display:grid;grid-template-columns:100px 1fr 100px 170px 60px 90px 195px 140px;padding:0;border-radius:12px;border:1px solid var(--border);margin-bottom:4px;}
   .col-h{padding:11px 14px;font-size:9.5px;letter-spacing:.7px;}
   .col-h:first-child{border-radius:12px 0 0 12px;padding-left:18px;}
@@ -429,7 +417,6 @@ body.light .fkb-btn-op{background:rgba(99,102,241,.10);color:#6366f1;}
   .lock-btn{display:none;}
   .lock-btn.admin-visible{display:inline-flex;align-items:center;gap:4px;}
 
-  /* QB column — desktop */
   .cell-qb{
     display:flex;justify-content:center;align-items:center;
     border-right:1px solid var(--qb-border);
@@ -440,8 +427,8 @@ body.light .fkb-btn-op{background:rgba(99,102,241,.10);color:#6366f1;}
   .qb-val-num{font-size:22px;font-weight:800;color:var(--qb-clr);line-height:1;}
   .qb-zero{color:var(--text3);font-size:13px;font-weight:700;opacity:.35;}
 
-  /* Mobile QB block hidden on desktop */
-  .mob-qb-block{display:none;}
+  /* pill-qb hidden on desktop (QB has its own column) */
+  .pill-qb{display:none;}
 }
 </style>
 </head>
@@ -824,7 +811,7 @@ function confirmEq(id,sid){
   sendSetFormula(id,clean,qty);
 }
 
-/* ── QB CELL HTML ── */
+/* ── QB CELL HTML (desktop) ── */
 function qbCellHtml(id){
   const qty=qbData[id];
   if(qty===undefined||qty===null||qty===''){
@@ -836,18 +823,14 @@ function qbCellHtml(id){
   return`<div class="cell-qb-inner"><span class="qb-label-tag">QB QTY</span><span class="qb-val-num">${disp}</span></div>`;
 }
 
-/* ── MOBILE QB BLOCK ── */
-function qbMobileBlock(id,um){
-  const qty=qbData[id];
-  if(qty===undefined||qty===null||qty==='')return'';
-  const n=parseFloat(qty);
+/* ── QB PILL (mobile inline) ── */
+function qbPill(id,um){
+  const q=qbData[id];
+  if(q===undefined||q===null||q==='')return'';
+  const n=parseFloat(q);
   if(isNaN(n))return'';
   const disp=n%1===0?n:n.toFixed(2);
-  return`<div class="mob-qb-block">
-    <span class="mob-qb-label">QB QTY</span>
-    <span class="mob-qb-val">${disp}</span>
-    ${um?`<span class="mob-qb-um">${xe(um)}</span>`:''}
-  </div>`;
+  return`<span class="pill pill-qb">QB:${disp}${um?xe(um):''}</span>`;
 }
 
 function stockCellHtmlMobile(id,um){
@@ -909,7 +892,6 @@ function rowHtml(r){
   const sid=r.id.replace(/[^a-zA-Z0-9_-]/g,'_');const desktop=isDesktop();
   if(desktop){
     const dDesc=cleanDesc(r.desc,r.id);
-    /* ORDER: UID | Desc | QB | Physical Stock | UM | Pack | Supplier | Brand */
     return`<div class="item-row" id="row-${sid}">
       <div class="cell cell-uid">${xe(r.id)}</div>
       <div class="cell cell-desc">
@@ -933,10 +915,10 @@ function rowHtml(r){
         <div class="desc-name">${xe(mDesc)} <span style="color:var(--pack-clr);font-size:10px">(${xe(r.pack)})</span></div>
         <span class="mob-uid">${xe(r.id)}</span>
         <span class="mob-sup">(${xe(r.sup)})</span>
-        ${qbMobileBlock(r.id,r.um)}
         <div class="desc-meta">
           ${r.brand?`<span class="pill pill-brand">${xe(r.brand)}</span>`:''}
           ${r.origin?`<span class="pill pill-origin">${xe(r.origin)}</span>`:''}
+          ${qbPill(r.id,r.um)}
         </div>
       </div>
       <div class="cell cell-mob-right" id="cmr-${sid}">${stockCellHtmlMobile(r.id,r.um)}</div>

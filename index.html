@@ -233,7 +233,6 @@ body.light .np-existing{color:rgba(0,0,0,.28);}
 .np-display{padding:2px 10px 0;text-align:right;}
 .np-value{font-size:22px;font-weight:700;line-height:1;letter-spacing:-.5px;color:rgba(255,255,255,.88);word-break:break-all;transition:color .1s;min-height:24px;}
 .np-value.active{color:#fff;text-shadow:0 0 14px rgba(16,185,129,.45);}
-/* ── FIX: Operator-coloured value display ── */
 .np-value.op-minus{color:#ef4444 !important;text-shadow:0 0 14px rgba(239,68,68,.35);}
 .np-value.op-times{color:#fbbf24 !important;text-shadow:0 0 14px rgba(251,191,36,.3);}
 .np-value.op-divide{color:#818cf8 !important;text-shadow:0 0 14px rgba(129,140,248,.3);}
@@ -285,7 +284,6 @@ body.light .np-btn-back{color:rgba(0,0,0,.35);}
 .hist-src.web{background:rgba(59,130,246,.1);color:#60a5fa;border:1px solid rgba(59,130,246,.2);}
 .hist-src.sheet{background:rgba(251,191,36,.1);color:#fbbf24;border:1px solid rgba(251,191,36,.2);}
 .hist-src.mobile{background:rgba(16,185,129,.1);color:#10b981;border:1px solid rgba(16,185,129,.2);}
-/* ── FIX: Per-user history badge colours ── */
 .hist-src.Steve{background:rgba(16,185,129,.14);color:#10b981;border:1px solid rgba(16,185,129,.32);}
 .hist-src.Aswanth{background:rgba(129,140,248,.14);color:#818cf8;border:1px solid rgba(129,140,248,.32);}
 .hist-src.Fatima{background:rgba(244,114,182,.14);color:#f472b6;border:1px solid rgba(244,114,182,.32);}
@@ -809,7 +807,9 @@ firebase.auth().signInAnonymously().catch(()=>{});
 const db=firebase.database();
 
 function normalizeFormula(f){if(!f)return '';return String(f).replace(/\s/g,'').replace(/^=/,'');}
-const SHEETS_URL='https://script.google.com/macros/s/AKfycbz32vxnXgW2X7swgnetu3yTaYRK6LK_L1kjhoUw_vWQlrcwK0qd0SAFtKw7BRPcot5-/exec';
+
+// ── UPDATED SHEETS URL ──
+const SHEETS_URL='https://script.google.com/macros/s/AKfycbxSJ8ICQZ-DQBrJ1Mel_VLW2kP7waByQYPhGwWfMAgIoXeVOsJA3BwVeiC6T1B_IIgT/exec';
 
 let ITEMS=[],historyLog=[];
 const stockData={},formulaData={},qbData={};
@@ -879,18 +879,10 @@ function fetchHistory(){
     .then(r=>r.json()).then(d=>{if(d.ok&&d.history){d.history.forEach(e=>{if(!historyLog.some(l=>l.ts===e.ts&&l.uid===e.uid))historyLog.unshift(e);});historyLog=historyLog.slice(0,500);saveHistory();}renderHistory();}).catch(()=>renderHistory());
 }
 
-/* ══════════════════════════════════════════════
-   FIX 1: renderHistory — show user names with
-   colour-coded badges (Steve / Aswanth / Fatima)
-   instead of generic WEB / MOBILE labels
-══════════════════════════════════════════════ */
-// Known user names → CSS class suffix (must match .hist-src.X in CSS)
 const KNOWN_USERS={Steve:'Steve',Aswanth:'Aswanth',Fatima:'Fatima'};
-// User emoji avatars for a personal touch
 const USER_EMOJI={Steve:'🟢',Aswanth:'🟣',Fatima:'🩷'};
 
 function resolveHistSource(raw){
-  // raw can be: 'sheet' | 'mobile' | 'web' | 'Steve' | 'Aswanth' | 'Fatima'
   if(raw==='sheet')    return{label:'📊 SHEET',cls:'sheet'};
   if(raw==='mobile')   return{label:'📱 MOBILE',cls:'mobile'};
   if(KNOWN_USERS[raw]) return{label:(USER_EMOJI[raw]||'👤')+' '+raw,cls:raw};
@@ -922,7 +914,6 @@ function addLocalHistory(uid,oldVal,newVal,added,formula,source){
   const item=ITEMS.find(r=>r.id===uid);
   const ts=new Date().toISOString().replace('T',' ').slice(0,19);
   const addStr=added>=0?'+'+parseFloat(added.toFixed(4)):String(parseFloat(added.toFixed(4)));
-  // Use currentUser.name so history stores 'Steve', 'Aswanth', etc.
   const who=currentUser?currentUser.name:(source||'web');
   historyLog.unshift({ts,uid,desc:item?item.desc:uid,oldVal,newVal,added:addStr,formula:formula||'',source:who});
   if(historyLog.length>500)historyLog.pop();
@@ -1260,17 +1251,10 @@ function npKey(k){
   npDraw();
 }
 
-/* ══════════════════════════════════════════════
-   FIX 2: npDraw — show operator sign in the big
-   value display so the user can see −5, +5, etc.
-   Colour-coded: red for minus, amber for multiply,
-   indigo for divide, green for add/set (default).
-══════════════════════════════════════════════ */
 function npDraw(){
   const valEl=document.getElementById('npVal'),prevEl=document.getElementById('npPreview');
   const ex=stockData[np.id]||0,um=(ITEMS.find(r=>r.id===np.id)||{}).um||'';
 
-  // Build display string with visible operator prefix
   let dispStr=np.val;
   let opClass='np-value';
   if(np.val!=='0'){
@@ -1279,12 +1263,10 @@ function npDraw(){
     else if(np.op==='+'){dispStr='+'+np.val;}
     else if(np.op==='*'){dispStr='×'+np.val;opClass+=' op-times';}
     else if(np.op==='/'){dispStr='÷'+np.val;opClass+=' op-divide';}
-    // op==='=' keeps plain number, no prefix
   }
   valEl.textContent=dispStr;
   valEl.className=opClass;
 
-  // Calculation preview line
   if(np.val==='0'){prevEl.textContent='';return;}
   try{
     const ent=parseFloat(Function('return ('+np.val+')')());if(isNaN(ent)){prevEl.textContent='';return;}

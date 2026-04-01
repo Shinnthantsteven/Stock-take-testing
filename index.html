@@ -1381,123 +1381,126 @@ window.addEventListener('load',()=>{
   const bar=document.getElementById('loadBar'),txt=document.getElementById('loadTxt');
   const iv=setInterval(()=>{p=Math.min(p+Math.random()*12,88);bar.style.width=p+'%';},60);
 
-  function finishLoad(){
-    clearInterval(iv);bar.style.width='100%';txt.textContent=ITEMS.length.toLocaleString()+' items loaded ✓';
+  function showApp(){
+    clearInterval(iv);bar.style.width='100%';
     document.getElementById('barCount').textContent=ITEMS.length.toLocaleString();
+    buildColHeads();renderTable();
+    document.getElementById('loadScreen').style.display='none';
     setSync('ok','● LIVE');
-    setTimeout(()=>{buildColHeads();renderTable();document.getElementById('loadScreen').style.display='none';startFirebaseListener();},200);
-    setTimeout(flushPendingUpdates,1000);
+    startFirebaseListener();
+    setTimeout(flushPendingUpdates,800);
   }
 
-  function fetchFromSheet(){
-    attempt++;txt.textContent=attempt>1?'Retrying ('+attempt+'/3)…':'Connecting to sheet…';
-    fetch(SHEETS_URL+'?action=getAll&_t='+Date.now()+Math.random(),{cache:'no-store',redirect:'follow'})
-      .then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
-      .then(d=>{
-        if(!d.ok||!d.items)throw new Error(d.error||'No data');
-        ITEMS=d.items;
-        ITEMS.forEach(item=>{
-          stockData[item.id]=parseFloat(item.stock)||0;
-          if(item.formula)formulaData[item.id]=item.formula;
-          if(item.qbQty!==undefined&&item.qbQty!==null)qbData[item.id]=item.qbQty;
-          else if(item.qbStock!==undefined)qbData[item.id]=item.qbStock;
-          if(item.expiry)expiryData[item.id]=item.expiry;
-        });
-        try{localStorage.setItem('c2c_items',JSON.stringify(ITEMS));localStorage.setItem('c2c_items_ts',String(Date.now()));}catch(e){}
-        db.ref('stock').once('value').then(snap=>{
-          const fb=snap.val();
-          if(fb)Object.entries(fb).forEach(([k,v])=>{
-            if(k==='__SYSLOCK__')return;
-            const item=ITEMS.find(r=>r.id.replace(/[.#$[\]]/g,'_')===k);if(!item)return;
-            stockData[item.id]=parseFloat(v.qty)||0;formulaData[item.id]=String(v.formula||v.qty||0);
+  function applyFirebaseSnap(snap){
+    const fb=snap.val();
+    if(!fb)return;
+    Object.entries(fb).forEach(([k,v])=>{
+      if(k==='__SYSLOCK__')return;
+      const item=ITEMS.find(r=>r.id.replace(/[.#$[\]]/g,'_')===k);if(!item)return;
+      stockData[item.id]=parseFloat(v.qty)||0;
+      formulaData[item.id]=String(v.formula||v.qty||0);
+    });
+    saveLocal();
+  }
+
+  function applySheetData(items){
+    ITEMS=items;
+    ITEMS.forEach(item=>{
+      if(!stockData[item.id])stockData[item.id]=parseFloat(item.stock)||0;
+      if(item.formula&&!formulaData[item.id])formulaData[item.id]=item.formula;
+      if(item.qbQty!==undefined&&item.qbQty!==null)qbData[item.id]=item.qbQty;
+      else if(item.qbStock!==undefined)qbData[item.id]=item.qbStock;
+      if(item.expiry)expiryData[item.id]=item.expiry;
+    });
+    try{localStorage.setItem('c2c_items',JSON.stringify(ITEMS));localStorage.setItem('c2c_items_ts',String(Date.now()));}catch(e){}
+    saveLocal();
+  }
+
+  function backgroundSheetRefresh(){
+    setTimeout(()=>{
+      fetch(SHEETS_URL+'?action=getAll&_t='+Date.now()+Math.random(),{cache:'no-store',redirect:'follow'})
+        .then(r=>r.json()).then(d=>{
+          if(!d.ok||!d.items)return;
+          d.items.forEach(item=>{
+            if(item.qbQty!==undefined&&item.qbQty!==null)qbData[item.id]=item.qbQty;
+            if(item.expiry&&item.expiry!==expiryData[item.id]){
+              expiryData[item.id]=item.expiry;updateExpiryDisplay(item.id);
+            }
           });
-          saveLocal();finishLoad();
-        }).catch(()=>finishLoad());
-      })
-      .catch(()=>{
-        if(attempt<3){txt.textContent='Retrying…';setTimeout(fetchFromSheet,2000);}
-        else{
-          const cachedItems=localStorage.getItem('c2c_items');
-          if(cachedItems){
-            try{
-              ITEMS=JSON.parse(cachedItems);
-              if(ITEMS&&ITEMS.length>0){
-                txt.textContent='⚠ Offline — using cached data';
-                ITEMS.forEach(item=>{
-                  if(item.qbQty!==undefined&&item.qbQty!==null)qbData[item.id]=item.qbQty;
-                  else if(item.qbStock!==undefined)qbData[item.id]=item.qbStock;
-                  if(item.expiry)expiryData[item.id]=item.expiry;
-                });
-                db.ref('stock').once('value').then(snap=>{
-                  const fb=snap.val();
-                  if(fb)Object.entries(fb).forEach(([k,v])=>{
-                    if(k==='__SYSLOCK__')return;
-                    const item=ITEMS.find(r=>r.id.replace(/[.#$[\]]/g,'_')===k);if(!item)return;
-                    stockData[item.id]=parseFloat(v.qty)||0;formulaData[item.id]=String(v.formula||v.qty||0);
-                  });
-                  saveLocal();finishLoad();
-                }).catch(()=>finishLoad());
-                return;
-              }
-            }catch(e){ITEMS=[];}
-          }
-          clearInterval(iv);bar.style.width='100%';
-          txt.textContent='✕ Failed — tap to retry';txt.style.cursor='pointer';
-          txt.onclick=()=>{attempt=0;p=0;bar.style.width='0%';txt.style.cursor='';txt.onclick=null;fetchFromSheet();};
-          setSync('error','✕ ERROR');
-        }
-      });
+          try{localStorage.setItem('c2c_items',JSON.stringify(d.items));localStorage.setItem('c2c_items_ts',String(Date.now()));}catch(e){}
+        }).catch(()=>{});
+    },4000);
   }
 
-  const CACHE_KEY='c2c_items',CACHE_TS='c2c_items_ts';
-  const cachedItems=localStorage.getItem(CACHE_KEY);
-
-  if(cachedItems){
+  // ── STEP 1: Try cache — show UI instantly ──
+  const cachedRaw=localStorage.getItem('c2c_items');
+  if(cachedRaw){
     try{
-      ITEMS=JSON.parse(cachedItems);
-      if(ITEMS&&ITEMS.length>10){
-        // Load QB + expiry from cache
-        ITEMS.forEach(item=>{
+      const cached=JSON.parse(cachedRaw);
+      if(cached&&cached.length>0){
+        txt.textContent='⚡ Loading…';
+        cached.forEach(item=>{
           if(item.qbQty!==undefined&&item.qbQty!==null)qbData[item.id]=item.qbQty;
           else if(item.qbStock!==undefined)qbData[item.id]=item.qbStock;
           if(item.expiry)expiryData[item.id]=item.expiry;
+          if(!stockData[item.id]&&item.stock)stockData[item.id]=parseFloat(item.stock)||0;
         });
-        // stockData already loaded by loadLocal() above from c2c_stock
-        // Show UI INSTANTLY — no waiting for anything
-        clearInterval(iv);
-        buildColHeads();renderTable();
-        document.getElementById('loadScreen').style.display='none';
-        setSync('ok','● LIVE');
-        startFirebaseListener(); // connects in background, updates rows as values arrive
-        setTimeout(flushPendingUpdates,800);
-        // Silent sheet refresh after 4 sec — updates cache, expiry, QB
-        setTimeout(()=>{
-          fetch(SHEETS_URL+'?action=getAll&_t='+Date.now()+Math.random(),{cache:'no-store',redirect:'follow'})
-            .then(r=>r.json()).then(d=>{
-              if(!d.ok||!d.items)return;
-              try{localStorage.setItem(CACHE_KEY,JSON.stringify(d.items));localStorage.setItem(CACHE_TS,String(Date.now()));}catch(e){}
-              d.items.forEach(item=>{
-                if(item.qbQty!==undefined&&item.qbQty!==null)qbData[item.id]=item.qbQty;
-                if(item.expiry&&item.expiry!==expiryData[item.id]){
-                  expiryData[item.id]=item.expiry;updateExpiryDisplay(item.id);
-                }
-                // Update stock if Firebase hasn't already
-                const cached=parseFloat(item.stock)||0;
-                if(!stockData[item.id]&&cached>0){
-                  stockData[item.id]=cached;
-                  if(item.formula)formulaData[item.id]=item.formula;
-                  updateRowDisplay(item.id);
-                }
-              });
-              saveLocal();
-            }).catch(()=>{});
-        },4000);
+        ITEMS=cached;
+        // Show app immediately
+        showApp();
+        // Background: update stock from Firebase silently
+        db.ref('stock').once('value').then(snap=>{applyFirebaseSnap(snap);ITEMS.forEach(r=>updateRowDisplay(r.id));}).catch(()=>{});
+        // Background: refresh full data from sheet
+        backgroundSheetRefresh();
         return;
       }
-    }catch(e){ITEMS=[];}
+    }catch(e){}
   }
-  // No cache — first ever open, fetch from sheet
-  fetchFromSheet();
+
+  // ── STEP 2: No cache — try Firebase snapshot first (faster than sheet) ──
+  txt.textContent='Connecting…';
+  db.ref('stock').once('value').then(fbSnap=>{
+    // Firebase connected — now fetch sheet for item list
+    txt.textContent='Loading items…';
+    fetch(SHEETS_URL+'?action=getAll&_t='+Date.now()+Math.random(),{cache:'no-store',redirect:'follow'})
+      .then(r=>r.json()).then(d=>{
+        if(!d.ok||!d.items)throw new Error('No data');
+        applySheetData(d.items);
+        applyFirebaseSnap(fbSnap);
+        showApp();
+      })
+      .catch(()=>{
+        // Sheet failed — retry up to 2 more times
+        if(attempt<2){
+          attempt++;txt.textContent='Retrying ('+attempt+'/2)…';
+          setTimeout(()=>{
+            fetch(SHEETS_URL+'?action=getAll&_t='+Date.now()+Math.random(),{cache:'no-store',redirect:'follow'})
+              .then(r=>r.json()).then(d=>{
+                if(!d.ok||!d.items)throw new Error();
+                applySheetData(d.items);applyFirebaseSnap(fbSnap);showApp();
+              }).catch(()=>{
+                // Give up — show retry button
+                clearInterval(iv);bar.style.width='100%';
+                txt.textContent='✕ Failed — tap to retry';txt.style.cursor='pointer';
+                txt.onclick=()=>{location.reload();};
+                setSync('error','✕ ERROR');
+              });
+          },2500);
+        }
+      });
+  }).catch(()=>{
+    // Firebase also failed — try sheet directly
+    fetch(SHEETS_URL+'?action=getAll&_t='+Date.now()+Math.random(),{cache:'no-store',redirect:'follow'})
+      .then(r=>r.json()).then(d=>{
+        if(!d.ok||!d.items)throw new Error();
+        applySheetData(d.items);showApp();
+      }).catch(()=>{
+        clearInterval(iv);bar.style.width='100%';
+        txt.textContent='✕ No connection — tap to retry';txt.style.cursor='pointer';
+        txt.onclick=()=>{location.reload();};
+        setSync('error','✕ ERROR');
+      });
+  });
 });
 </script>
 </body>

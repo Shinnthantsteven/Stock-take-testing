@@ -15,7 +15,7 @@
 const _m={name:"Chef2Chef Stock",short_name:"C2C Stock",description:"Physical Stock Count Module",start_url:"./",display:"standalone",background_color:"#020617",theme_color:"#020617",orientation:"any",icons:[{src:"data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='100' fill='%23020617'/><text y='.85em' font-size='384' x='50%' text-anchor='middle'>🥩</text></svg>",sizes:"512x512",type:"image/svg+xml"}]};
 const _b=new Blob([JSON.stringify(_m)],{type:'application/json'});
 const _l=document.createElement('link');_l.rel='manifest';_l.href=URL.createObjectURL(_b);document.head.appendChild(_l);
-if('serviceWorker'in navigator){const sw=`const C='c2c-v3';self.addEventListener('install',e=>self.skipWaiting());self.addEventListener('activate',e=>e.waitUntil(clients.claim()));self.addEventListener('fetch',e=>{const u=e.request.url;if(u.includes('script.google.com')||u.includes('firebaseio.com'))return;if(u.includes('fonts.gstatic')||u.includes('gstatic.com/firebasejs')||u.includes('fonts.googleapis')){e.respondWith(caches.open(C).then(c=>c.match(e.request).then(r=>r||fetch(e.request).then(res=>{c.put(e.request,res.clone());return res;}))));}});`;navigator.serviceWorker.register(URL.createObjectURL(new Blob([sw],{type:'text/javascript'}))).catch(()=>{});}
+if('serviceWorker'in navigator){const sw=`const C='c2c-v4';self.addEventListener('install',e=>self.skipWaiting());self.addEventListener('activate',e=>e.waitUntil(clients.claim()));self.addEventListener('fetch',e=>{const u=e.request.url;if(u.includes('script.google.com')||u.includes('firebaseio.com'))return;if(u.includes('fonts.gstatic')||u.includes('gstatic.com/firebasejs')||u.includes('fonts.googleapis')){e.respondWith(caches.open(C).then(c=>c.match(e.request).then(r=>r||fetch(e.request).then(res=>{c.put(e.request,res.clone());return res;}))));}});`;navigator.serviceWorker.register(URL.createObjectURL(new Blob([sw],{type:'text/javascript'}))).catch(()=>{});}
 </script>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -88,10 +88,23 @@ body.light .nav-user{background:rgba(0,0,0,.05);border-color:rgba(0,0,0,.10);}
 .lock-banner-txt{font-size:10px;font-weight:800;color:#ef4444;letter-spacing:.3px;}
 .lock-banner-sub{font-size:9px;font-weight:700;color:rgba(239,68,68,.6);}
 
+/* ── OFFLINE BANNER ── */
+#offlineBanner{display:none;align-items:center;justify-content:center;gap:8px;padding:5px 16px;background:linear-gradient(90deg,rgba(251,191,36,.12),rgba(251,191,36,.07));border-bottom:1px solid rgba(251,191,36,.22);flex-shrink:0;}
+#offlineBanner.show{display:flex;}
+.offline-icon{font-size:12px;}
+.offline-txt{font-size:10px;font-weight:800;color:#fbbf24;letter-spacing:.3px;}
+.offline-sub{font-size:9px;font-weight:700;color:rgba(251,191,36,.55);}
+#pendingBadge{display:none;font-size:8px;font-weight:800;padding:2px 7px;border-radius:20px;background:rgba(251,191,36,.2);border:1px solid rgba(251,191,36,.4);color:#fbbf24;margin-left:4px;}
+#pendingBadge.show{display:inline-block;}
+
 /* ── LOCK OVERLAY ── */
 #lockOverlay{position:fixed;inset:0;z-index:4500;display:none;pointer-events:none;}
 #lockOverlay.show{display:block;}
 #lockOverlay::after{content:'🔒 SYSTEM LOCKED — Contact Steve to unlock';position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:rgba(239,68,68,.13);border:1px solid rgba(239,68,68,.3);color:#ef4444;font-size:10px;font-weight:800;letter-spacing:.4px;padding:6px 16px;border-radius:30px;white-space:nowrap;pointer-events:none;font-family:'Plus Jakarta Sans',sans-serif;}
+
+/* ── KB SHIELD (prevents Done→EXIT tap-through) ── */
+#kbShield{position:fixed;inset:0;z-index:999;display:none;pointer-events:none;}
+#kbShield.active{display:block;pointer-events:all;}
 
 /* ── NAV ── */
 .nav{min-height:50px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;padding-top:env(safe-area-inset-top,0px);border-bottom:1px solid var(--border);background:var(--bg);flex-shrink:0;gap:8px;}
@@ -101,6 +114,7 @@ body.light .nav-user{background:rgba(0,0,0,.05);border-color:rgba(0,0,0,.10);}
 .sync-badge{font-size:9px;font-weight:800;padding:3px 10px;border-radius:20px;background:var(--brand-dim);border:1px solid var(--brand-border);color:var(--brand);white-space:nowrap;transition:all .3s;}
 .sync-badge.syncing{background:rgba(251,191,36,.10);border-color:rgba(251,191,36,.28);color:var(--warn);}
 .sync-badge.error{background:rgba(239,68,68,.10);border-color:rgba(239,68,68,.28);color:#ef4444;}
+.sync-badge.offline{background:rgba(251,191,36,.10);border-color:rgba(251,191,36,.28);color:#fbbf24;}
 .mode-btn{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);color:var(--text);border-radius:20px;padding:3px 10px;font-size:9px;font-weight:800;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:opacity .2s;}
 .mode-btn:active{opacity:.7;}
 body.light .mode-btn{background:rgba(0,0,0,.05);border-color:rgba(0,0,0,.10);}
@@ -191,8 +205,9 @@ body.light .portal-bar::before{background:linear-gradient(90deg,transparent,rgba
 #searchIn{background:transparent;border:none;color:var(--text);font-size:14px;font-weight:700;outline:none;flex:1;padding:14px 0;font-family:'Plus Jakarta Sans',sans-serif;}
 #searchIn::placeholder{color:var(--text);opacity:.3;font-weight:600;}
 .bar-count{font-size:10px;font-weight:800;color:var(--brand);background:var(--brand-dim);border:1px solid var(--brand-border);border-radius:50px;padding:3px 11px;white-space:nowrap;flex-shrink:0;}
-.bar-exit{background:var(--danger);border:none;color:white;padding:0 22px;height:46px;font-weight:800;font-size:12px;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;border-radius:0 100px 100px 0;flex-shrink:0;}
-.bar-exit:active{background:#dc2626;}
+/* EXIT button — safer styling, no accidental tap */
+.bar-exit{background:rgba(239,68,68,.15);border:none;border-left:1px solid rgba(239,68,68,.2);color:#ef4444;padding:0 18px;height:46px;font-weight:800;font-size:11px;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;border-radius:0 100px 100px 0;flex-shrink:0;letter-spacing:.5px;transition:background .2s;}
+.bar-exit:active{background:rgba(239,68,68,.32);}
 
 /* ── NUMPAD ── */
 @keyframes popIn{from{transform:scale(0.86);opacity:0;}to{transform:scale(1);opacity:1;}}
@@ -303,11 +318,7 @@ body.light .np-btn-back{color:rgba(0,0,0,.35);}
 @keyframes qkbBlink{0%,100%{opacity:1;}50%{opacity:0;}}
 
 /* ══════════════════════════════════════════════
-   MOBILE QWERTY KEYBOARD — IMPROVED
-   • Larger keys (46px tall) with more spacing
-   • iOS-style key preview bubble on press
-   • Search query cached for 6 hours
-   • Instant pointer response (no delay)
+   MOBILE QWERTY KEYBOARD
 ══════════════════════════════════════════════ */
 .qkb{
   position:fixed;bottom:0;left:0;right:0;z-index:5000;
@@ -320,7 +331,6 @@ body.light .np-btn-back{color:rgba(0,0,0,.35);}
 .qkb.open{display:flex;}
 body.light .qkb{border-top-color:rgba(0,0,0,.10);}
 
-/* Search bar inside keyboard */
 .qkb-bar{
   display:flex;align-items:center;gap:6px;
   padding:5px 6px calc(env(safe-area-inset-bottom,0px) + 6px);
@@ -345,11 +355,9 @@ body.light .qkb-input-display{background:rgba(255,255,255,.7);border-color:rgba(
 }
 body.light .qkb-clear{background:rgba(239,68,68,.10);}
 
-/* Number row */
 .qkb-row{display:flex;justify-content:center;gap:5px;padding:0 3px 4px;}
 .qkb-row:first-child{padding-top:3px;}
 
-/* ── KEY BASE ── */
 .qkb-key{
   height:46px;min-width:30px;flex:1;max-width:48px;
   background:var(--kb-key);
@@ -364,11 +372,9 @@ body.light .qkb-clear{background:rgba(239,68,68,.10);}
   touch-action:manipulation;
   -webkit-tap-highlight-color:transparent;
   user-select:none;-webkit-user-select:none;
-  /* instant: no transition on normal state */
   position:relative;overflow:visible;
   display:flex;align-items:center;justify-content:center;
 }
-/* pressed state — no transition so it's instant */
 .qkb-key.pressing{
   background:var(--kb-key-press);
   box-shadow:0 1px 0 rgba(0,0,0,.45);
@@ -377,7 +383,6 @@ body.light .qkb-clear{background:rgba(239,68,68,.10);}
 body.light .qkb-key{background:var(--kb-key);box-shadow:0 3px 0 rgba(0,0,0,.25);color:var(--kb-key-text);}
 body.light .qkb-key.pressing{background:var(--kb-key-press);box-shadow:0 1px 0 rgba(0,0,0,.25);}
 
-/* ── NUMBER KEY ── */
 .qkb-key-num{
   background:var(--kb-number);color:var(--kb-number-text);
   font-size:16px;font-weight:600;
@@ -391,7 +396,6 @@ body.light .qkb-key.pressing{background:var(--kb-key-press);box-shadow:0 1px 0 r
 }
 body.light .qkb-key-num.pressing{background:color-mix(in srgb,var(--kb-number) 70%,black 10%);}
 
-/* ── SPACE KEY ── */
 .qkb-key-space{
   flex:5;max-width:none;
   background:var(--kb-key);
@@ -401,7 +405,6 @@ body.light .qkb-key-num.pressing{background:color-mix(in srgb,var(--kb-number) 7
 .qkb-key-space.pressing{background:var(--kb-key-press);transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45);}
 body.light .qkb-key-space{color:rgba(0,0,0,.4);}
 
-/* ── BACKSPACE KEY ── */
 .qkb-key-back{
   flex:0 0 52px;max-width:52px;height:46px;
   font-size:16px;
@@ -414,13 +417,14 @@ body.light .qkb-key-space{color:rgba(0,0,0,.4);}
   box-shadow:0 1px 0 rgba(100,0,0,.3);
 }
 
-/* ── DONE KEY ── */
+/* Done key — slightly inset from right edge to avoid accidental EXIT tap */
 .qkb-key-done{
-  flex:0 0 72px;max-width:72px;height:46px;
+  flex:0 0 68px;max-width:68px;height:46px;
   font-size:12px;font-weight:800;
   background:var(--brand);color:#020617;
   box-shadow:0 3px 0 rgba(5,100,60,.5),0 0 0 1px rgba(16,185,129,.4);
   letter-spacing:.3px;
+  margin-right:4px; /* gap so it's never right at the screen edge */
 }
 .qkb-key-done.pressing{
   background:#0ea572;
@@ -431,8 +435,7 @@ body.light .qkb-key-space{color:rgba(0,0,0,.4);}
 .qkb-row-bottom{padding:0 3px 0;gap:5px;}
 .qkb-row-bottom .qkb-key{height:46px;}
 
-/* ══ KEY PREVIEW BUBBLE (iOS-style) ══
-   Floats above the pressed key so your finger doesn't hide what you typed */
+/* ── KEY PREVIEW BUBBLE ── */
 .qkb-preview{
   position:fixed;
   z-index:6000;
@@ -440,7 +443,6 @@ body.light .qkb-key-space{color:rgba(0,0,0,.4);}
   display:none;
   flex-direction:column;
   align-items:center;
-  /* offset so bubble appears above finger */
   transform:translateX(-50%) translateY(-8px);
 }
 .qkb-preview.visible{display:flex;}
@@ -451,7 +453,7 @@ body.light .qkb-key-space{color:rgba(0,0,0,.4);}
   font-weight:500;
   font-family:'Plus Jakarta Sans',sans-serif;
   min-width:48px;height:56px;
-  border-radius:10px 10px 10px 2px; /* iOS teardrop shape */
+  border-radius:10px 10px 10px 2px;
   display:flex;align-items:center;justify-content:center;
   box-shadow:0 4px 16px rgba(0,0,0,.5);
   border:1px solid rgba(255,255,255,.15);
@@ -461,7 +463,6 @@ body.light .qkb-preview-char{
   box-shadow:0 4px 16px rgba(0,0,0,.2);
   border-color:rgba(0,0,0,.1);
 }
-/* little tail triangle */
 .qkb-preview-tail{
   width:0;height:0;
   border-left:8px solid transparent;
@@ -589,6 +590,13 @@ body.light .fkb-btn-op{background:rgba(99,102,241,.10);color:#6366f1;}
   <span class="lock-banner-sub"> — Stock entries disabled by Admin</span>
 </div>
 
+<div id="offlineBanner">
+  <span class="offline-icon">📶</span>
+  <span class="offline-txt">OFFLINE MODE</span>
+  <span class="offline-sub"> — Changes saved locally, will sync when connected</span>
+  <span id="pendingBadge"></span>
+</div>
+
 <div id="installBanner">
   <span class="install-txt">📱 Add Chef2Chef Stock to your Home Screen</span>
   <button class="install-btn" id="installBtn">Install App</button>
@@ -596,6 +604,9 @@ body.light .fkb-btn-op{background:rgba(99,102,241,.10);color:#6366f1;}
 </div>
 
 <div id="lockOverlay"></div>
+
+<!-- Shield: blocks stray taps after keyboard close (prevents Done→EXIT bug) -->
+<div id="kbShield"></div>
 
 <nav class="nav">
   <a class="nav-logo" href="#"><span style="font-size:22px">🥩</span> CHEF2CHEF <span>STOCK</span></a>
@@ -640,7 +651,7 @@ body.light .fkb-btn-op{background:rgba(99,102,241,.10);color:#6366f1;}
     <input id="searchIn" type="search" placeholder="Search UID, description, supplier, category…" autocomplete="off" spellcheck="false">
     <span class="bar-count" id="barCount">—</span>
   </div>
-  <button class="bar-exit" onclick="location.reload()">EXIT</button>
+  <button class="bar-exit" id="exitBtn" onclick="exitApp()">EXIT ✕</button>
 </div>
 
 <!-- NUMPAD -->
@@ -692,7 +703,7 @@ body.light .fkb-btn-op{background:rgba(99,102,241,.10);color:#6366f1;}
   <div class="hist-body" id="histBody"><div class="hist-empty">Loading…</div></div>
 </div>
 
-<!-- KEY PREVIEW BUBBLE (floats above pressed key) -->
+<!-- KEY PREVIEW BUBBLE -->
 <div class="qkb-preview" id="qkbPreview">
   <div class="qkb-preview-char" id="qkbPreviewChar"></div>
   <div class="qkb-preview-tail"></div>
@@ -700,7 +711,6 @@ body.light .fkb-btn-op{background:rgba(99,102,241,.10);color:#6366f1;}
 
 <!-- MOBILE QWERTY -->
 <div class="qkb" id="qkb">
-  <!-- Number row -->
   <div class="qkb-row">
     <div class="qkb-key qkb-key-num" data-key="1">1</div>
     <div class="qkb-key qkb-key-num" data-key="2">2</div>
@@ -713,7 +723,6 @@ body.light .fkb-btn-op{background:rgba(99,102,241,.10);color:#6366f1;}
     <div class="qkb-key qkb-key-num" data-key="9">9</div>
     <div class="qkb-key qkb-key-num" data-key="0">0</div>
   </div>
-  <!-- Q row -->
   <div class="qkb-row">
     <div class="qkb-key" data-key="q">Q</div><div class="qkb-key" data-key="w">W</div>
     <div class="qkb-key" data-key="e">E</div><div class="qkb-key" data-key="r">R</div>
@@ -721,7 +730,6 @@ body.light .fkb-btn-op{background:rgba(99,102,241,.10);color:#6366f1;}
     <div class="qkb-key" data-key="u">U</div><div class="qkb-key" data-key="i">I</div>
     <div class="qkb-key" data-key="o">O</div><div class="qkb-key" data-key="p">P</div>
   </div>
-  <!-- A row (inset) -->
   <div class="qkb-row" style="padding-left:6%;padding-right:6%;">
     <div class="qkb-key" data-key="a">A</div><div class="qkb-key" data-key="s">S</div>
     <div class="qkb-key" data-key="d">D</div><div class="qkb-key" data-key="f">F</div>
@@ -729,7 +737,6 @@ body.light .fkb-btn-op{background:rgba(99,102,241,.10);color:#6366f1;}
     <div class="qkb-key" data-key="j">J</div><div class="qkb-key" data-key="k">K</div>
     <div class="qkb-key" data-key="l">L</div>
   </div>
-  <!-- Z row -->
   <div class="qkb-row">
     <div class="qkb-key" data-key="z">Z</div><div class="qkb-key" data-key="x">X</div>
     <div class="qkb-key" data-key="c">C</div><div class="qkb-key" data-key="v">V</div>
@@ -737,12 +744,10 @@ body.light .fkb-btn-op{background:rgba(99,102,241,.10);color:#6366f1;}
     <div class="qkb-key" data-key="m">M</div>
     <div class="qkb-key qkb-key-back" data-key="back">⌫</div>
   </div>
-  <!-- Bottom row: space + done -->
   <div class="qkb-row qkb-row-bottom">
     <div class="qkb-key qkb-key-space" data-key=" ">SPACE</div>
     <div class="qkb-key qkb-key-done" data-key="__done__">Done ✓</div>
   </div>
-  <!-- Search bar -->
   <div class="qkb-bar">
     <div class="qkb-input-display empty" id="qkbDisplay">Search…</div>
     <button class="qkb-clear" id="qkbClearBtn">✕ Clear</button>
@@ -806,11 +811,108 @@ let isLocked=false;
 const isDesktop=()=>window.innerWidth>=768;
 const isAdmin=()=>currentUser&&currentUser.id==='steve';
 
+/* ════════════════════════════════════════
+   OFFLINE / PENDING SYNC SYSTEM
+   ════════════════════════════════════════ */
+let pendingSheetUpdates=[];   // queue for failed sheet writes
+let isOnline=navigator.onLine;
+
+function updateOfflineUI(){
+  const banner=document.getElementById('offlineBanner');
+  const badge=document.getElementById('pendingBadge');
+  if(!isOnline){
+    banner.classList.add('show');
+    if(pendingSheetUpdates.length>0){
+      badge.textContent=pendingSheetUpdates.length+' pending';
+      badge.classList.add('show');
+    }else{
+      badge.classList.remove('show');
+    }
+  }else{
+    banner.classList.remove('show');
+    badge.classList.remove('show');
+  }
+}
+
+function savePendingUpdates(){
+  try{localStorage.setItem('c2c_pending',JSON.stringify(pendingSheetUpdates.slice(0,50)));}catch(e){}
+}
+function loadPendingUpdates(){
+  try{
+    const p=JSON.parse(localStorage.getItem('c2c_pending')||'[]');
+    if(Array.isArray(p))pendingSheetUpdates=p;
+  }catch(e){pendingSheetUpdates=[];}
+}
+
+function flushPendingUpdates(){
+  if(!pendingSheetUpdates.length||!isOnline)return;
+  const batch=[...pendingSheetUpdates];
+  pendingSheetUpdates=[];
+  savePendingUpdates();
+  // Replay each with a small delay to avoid flooding
+  batch.forEach((u,i)=>setTimeout(()=>updateSheetBackground(u.uid,u.qty,u.formula,u.added),i*200));
+  showToast('↑ Syncing '+batch.length+' offline update'+(batch.length>1?'s':'')+'…','ok');
+}
+
+window.addEventListener('online',()=>{
+  isOnline=true;
+  setSync('ok','● LIVE');
+  updateOfflineUI();
+  flushPendingUpdates();
+  // Re-check Firebase connection
+  db.ref('.info/connected').once('value');
+});
+window.addEventListener('offline',()=>{
+  isOnline=false;
+  setSync('offline','◌ OFFLINE');
+  updateOfflineUI();
+});
+
+/* ════════════════════════════════════════
+   KB SHIELD — prevents Done→EXIT tap-through
+   ════════════════════════════════════════ */
+let kbJustClosed=false;
+const kbShieldEl=document.getElementById('kbShield');
+
+function activateKbShield(){
+  kbJustClosed=true;
+  kbShieldEl.classList.add('active');
+  // Shield stays up for 450ms — enough for any ghost touch to be absorbed
+  setTimeout(()=>{
+    kbJustClosed=false;
+    kbShieldEl.classList.remove('active');
+  },450);
+}
+
+/* ════════════════════════════════════════
+   EXIT — safe version with confirm + pending check
+   ════════════════════════════════════════ */
+function exitApp(){
+  if(kbJustClosed)return; // absorb stray Done→EXIT tap-through
+  const pending=pendingSheetUpdates.length;
+  let msg='Exit and reload the app?';
+  if(pending>0)msg='You have '+pending+' unsynced update'+(pending>1?'s':'')+'. Exit anyway? They may be lost.';
+  if(!confirm(msg))return;
+  location.reload();
+}
+
+/* ════════════════════════════════════════
+   UTILS
+   ════════════════════════════════════════ */
 function xe(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function cleanDesc(desc,id){let d=String(desc||'').trim();if(id&&d.startsWith(id)){d=d.slice(id.length).trim();d=d.replace(/^[\s\(\-\:\|]+/,'').replace(/\)\s*$/,'').trim();}return d||desc;}
-function setSync(state,msg){const el=document.getElementById('syncBadge');el.className='sync-badge'+(state==='ok'?'':' '+state);el.textContent=msg;const el2=document.getElementById('syncBadgeMob');if(el2){el2.className='sync-badge'+(state==='ok'?'':' '+state);el2.textContent=msg;}}
+function setSync(state,msg){
+  ['syncBadge','syncBadgeMob'].forEach(id=>{
+    const el=document.getElementById(id);if(!el)return;
+    el.className='sync-badge'+(state==='ok'?'':' '+state);el.textContent=msg;
+  });
+}
 function toggleMode(){const light=document.body.classList.toggle('light');document.getElementById('modeBtn').textContent=light?'☀️ LIGHT':'🌙 DARK';document.getElementById('modeBtnMob').textContent=light?'☀️':'🌙';localStorage.setItem('c2c_mode',light?'light':'dark');}
-function forceRefresh(){localStorage.removeItem('c2c_items');localStorage.removeItem('c2c_items_ts');setSync('syncing','⟳ REFRESHING');location.reload();}
+function forceRefresh(){
+  if(pendingSheetUpdates.length>0&&!confirm('Force refresh will discard '+pendingSheetUpdates.length+' pending sync(s). Continue?'))return;
+  localStorage.removeItem('c2c_items');localStorage.removeItem('c2c_items_ts');
+  setSync('syncing','⟳ REFRESHING');location.reload();
+}
 function saveLocal(){try{localStorage.setItem('c2c_stock',JSON.stringify({s:stockData,f:formulaData}));}catch(e){}}
 function loadLocal(){try{const d=JSON.parse(localStorage.getItem('c2c_stock')||'{}');if(d.s)Object.assign(stockData,d.s);if(d.f)Object.assign(formulaData,d.f);}catch(e){}}
 function saveHistory(){try{localStorage.setItem('c2c_history',JSON.stringify(historyLog.slice(0,500)));}catch(e){}}
@@ -891,14 +993,42 @@ function lockWrite(uid){ownWrites[uid]=Date.now();}
 function isOwnEcho(uid){return ownWrites[uid]&&(Date.now()-ownWrites[uid])<8000;}
 setInterval(()=>{const now=Date.now();Object.keys(ownWrites).forEach(k=>{if(now-ownWrites[k]>10000)delete ownWrites[k];});},30000);
 
+/* ── Sheet update with offline queue ── */
 function updateSheetBackground(uid,qty,formula,added){
+  if(!isOnline){
+    // Queue and dedupe: keep only latest update per uid
+    pendingSheetUpdates=pendingSheetUpdates.filter(p=>p.uid!==uid);
+    pendingSheetUpdates.push({uid,qty,formula:normalizeFormula(formula)||String(qty),added:added??0});
+    savePendingUpdates();
+    updateOfflineUI();
+    return;
+  }
   const params=new URLSearchParams({action:'updateRow',uid,qty,formula:normalizeFormula(formula)||'',added:added??0,_t:Date.now()});
-  fetch(SHEETS_URL+'?'+params.toString(),{cache:'no-store',redirect:'follow',keepalive:true}).catch(()=>{});
+  fetch(SHEETS_URL+'?'+params.toString(),{cache:'no-store',redirect:'follow',keepalive:true})
+    .catch(()=>{
+      // Network error even though navigator.onLine is true — queue it
+      pendingSheetUpdates=pendingSheetUpdates.filter(p=>p.uid!==uid);
+      pendingSheetUpdates.push({uid,qty,formula:normalizeFormula(formula)||String(qty),added:added??0});
+      savePendingUpdates();
+      setSync('syncing','⚠ SHEET SYNC');
+      updateOfflineUI();
+    });
 }
+
 function fbWrite(uid,qty,formula,added){
   lockWrite(uid);const k=uid.replace(/[.#$[\]]/g,'_');
-  db.ref('stock/'+k).set({qty,formula:formula||String(qty),ts:Date.now(),added:added??0}).then(()=>{setSync('ok','● LIVE');updateSheetBackground(uid,qty,formula||String(qty),added??0);}).catch(()=>setSync('error','✕ OFFLINE'));
+  db.ref('stock/'+k).set({qty,formula:formula||String(qty),ts:Date.now(),added:added??0})
+    .then(()=>{
+      setSync('ok','● LIVE');
+      updateSheetBackground(uid,qty,formula||String(qty),added??0);
+    })
+    .catch(()=>{
+      // Firebase write failed (offline) — data is in localStorage, Firebase SDK will retry
+      setSync('offline','◌ OFFLINE');
+      updateSheetBackground(uid,qty,formula||String(qty),added??0);
+    });
 }
+
 function startFirebaseListener(){
   if(fbListening)return;fbListening=true;
   db.ref('stock').on('child_changed',snap=>{
@@ -911,6 +1041,13 @@ function startFirebaseListener(){
       const oldVal=stockData[uid]||0;stockData[uid]=newQty;formulaData[uid]=newForm;
       updateRowDisplay(uid);addLocalHistory(uid,oldVal,newQty,val.added||(newQty-oldVal),newForm,val.source||'web');
       saveLocal();setSync('ok','● LIVE');
+    }
+  });
+  // Monitor connection state
+  db.ref('.info/connected').on('value',snap=>{
+    if(snap.val()===true){
+      if(!isOnline){isOnline=true;updateOfflineUI();}
+      setSync('ok','● LIVE');
     }
   });
 }
@@ -955,22 +1092,17 @@ function confirmEq(id,sid){
   sendSetFormula(id,clean,qty);
 }
 
-/* ── QB CELL HTML (desktop) ── */
 function qbCellHtml(id){
   const qty=qbData[id];
-  if(qty===undefined||qty===null||qty===''){
-    return`<div class="cell-qb-inner"><span class="qb-label-tag">QB QTY</span><span class="qb-zero">—</span></div>`;
-  }
+  if(qty===undefined||qty===null||qty===''){return`<div class="cell-qb-inner"><span class="qb-label-tag">QB QTY</span><span class="qb-zero">—</span></div>`;}
   const n=parseFloat(qty);
   if(isNaN(n)){return`<div class="cell-qb-inner"><span class="qb-label-tag">QB QTY</span><span class="qb-zero">—</span></div>`;}
   const disp=n%1===0?n:n.toFixed(2);
   return`<div class="cell-qb-inner"><span class="qb-label-tag">QB QTY</span><span class="qb-val-num">${disp}</span></div>`;
 }
 function qbPill(id,um){
-  const q=qbData[id];
-  if(q===undefined||q===null||q==='')return'';
-  const n=parseFloat(q);
-  if(isNaN(n))return'';
+  const q=qbData[id];if(q===undefined||q===null||q==='')return'';
+  const n=parseFloat(q);if(isNaN(n))return'';
   const disp=n%1===0?n:n.toFixed(2);
   return`<span class="pill pill-qb">QB:${disp}${um?xe(um):''}</span>`;
 }
@@ -1225,24 +1357,17 @@ document.getElementById('installBtn').addEventListener('click',()=>{if(dip){dip.
 })();
 
 /* ══════════════════════════════════════════════
-   MOBILE QWERTY KEYBOARD — IMPROVED ENGINE
-   Features:
-   • iOS-style floating preview bubble above pressed key
-   • Larger key hit targets (46px) with proper 3px depth shadow
-   • No CSS transition on press = instant visual response
-   • 6-hour search query cache in localStorage
-   • Backspace repeat acceleration (faster after 380ms)
-   • Trackpad cursor on space long-press
+   MOBILE QWERTY KEYBOARD ENGINE
+   KEY FIX: Done key uses activateKbShield() so
+   the stray pointerup/click can't reach EXIT button
 ══════════════════════════════════════════════ */
 (function(){
-  /* ── State ── */
   let qkbQuery='',qkbCursorPos=0;
   let bsTimer=null,bsInterval=null,pressedKey=null;
   let trackpadMode=false,trackpadStartX=0,trackpadCursorStart=0;
   let spaceHoldTimer=null,searchDebounce=null;
   let previewHideTimer=null;
 
-  /* ── Elements ── */
   const qkbEl    = document.getElementById('qkb');
   const dispEl   = document.getElementById('qkbDisplay');
   const clearBtn = document.getElementById('qkbClearBtn');
@@ -1250,7 +1375,6 @@ document.getElementById('installBtn').addEventListener('click',()=>{if(dip){dip.
   const previewEl= document.getElementById('qkbPreview');
   const previewCh= document.getElementById('qkbPreviewChar');
 
-  /* ── Search cache: 6-hour TTL ── */
   const SEARCH_TTL = 6 * 60 * 60 * 1000;
   function saveSearchCache(q){
     try{localStorage.setItem('c2c_search_q',q);localStorage.setItem('c2c_search_ts',String(Date.now()));}catch(e){}
@@ -1263,23 +1387,19 @@ document.getElementById('installBtn').addEventListener('click',()=>{if(dip){dip.
     return '';
   }
 
-  /* ── Key preview bubble ── */
   function showPreview(keyEl,label){
     if(!keyEl||!label||label==='__done__'||label==='back'||label===' ')return;
     const rect=keyEl.getBoundingClientRect();
     const cx=rect.left+rect.width/2;
-    const by=rect.top-6; // just above key
+    const by=rect.top-6;
     previewCh.textContent=label.toUpperCase();
     previewEl.style.left=cx+'px';
     previewEl.style.top=by+'px';
     previewEl.classList.add('visible');
     clearTimeout(previewHideTimer);
   }
-  function hidePreview(){
-    previewEl.classList.remove('visible');
-  }
+  function hidePreview(){previewEl.classList.remove('visible');}
 
-  /* ── Display update ── */
   function updateDisplay(){
     if(!qkbQuery){
       dispEl.textContent='Search…';
@@ -1296,7 +1416,6 @@ document.getElementById('installBtn').addEventListener('click',()=>{if(dip){dip.
     dispEl.querySelector('.qkb-text-after').textContent=qkbQuery.slice(qkbCursorPos);
   }
 
-  /* ── Search trigger ── */
   function triggerSearch(){
     clearTimeout(searchDebounce);
     searchDebounce=setTimeout(()=>{
@@ -1304,10 +1423,9 @@ document.getElementById('installBtn').addEventListener('click',()=>{if(dip){dip.
       searchInEl.value=qkbQuery;
       renderTable();
       saveSearchCache(qkbQuery);
-    },40); // 40ms — fast but avoids re-render on every key
+    },40);
   }
 
-  /* ── Key handler ── */
   function handleKey(k){
     if(k==='__done__'){qkbDone();return;}
     if(k==='back'){
@@ -1324,7 +1442,6 @@ document.getElementById('installBtn').addEventListener('click',()=>{if(dip){dip.
     triggerSearch();
   }
 
-  /* ── Backspace repeat (accelerates) ── */
   function startBsRepeat(){
     stopBsRepeat();
     bsTimer=setTimeout(()=>{
@@ -1335,55 +1452,39 @@ document.getElementById('installBtn').addEventListener('click',()=>{if(dip){dip.
           qkbCursorPos--;
           updateDisplay();
           triggerSearch();
-          // accelerate: reduce interval down to 30ms
           if(speed>30){speed=Math.max(30,speed-8);clearInterval(bsInterval);bsInterval=setInterval(arguments.callee,speed);}
-        }else{
-          stopBsRepeat();
-        }
+        }else{stopBsRepeat();}
       },speed);
     },360);
   }
   function stopBsRepeat(){clearTimeout(bsTimer);clearInterval(bsInterval);bsTimer=null;bsInterval=null;}
 
-  /* ── Pointer events ── */
   qkbEl.addEventListener('pointerdown',e=>{
     const keyEl=e.target.closest('[data-key]');
     if(!keyEl)return;
-    e.preventDefault(); // critical: stops any focus/scroll side-effects
+    e.preventDefault();
 
-    // Release previous key if still held
-    if(pressedKey&&pressedKey!==keyEl){
-      pressedKey.classList.remove('pressing');
-    }
+    if(pressedKey&&pressedKey!==keyEl){pressedKey.classList.remove('pressing');}
     pressedKey=keyEl;
-    keyEl.classList.add('pressing');   // instant — no CSS transition
+    keyEl.classList.add('pressing');
     keyEl.setPointerCapture(e.pointerId);
 
-    // Haptic
     if(navigator.vibrate)navigator.vibrate(5);
 
     const k=keyEl.dataset.key;
-
-    // Show preview bubble for letter/number keys
     showPreview(keyEl,k);
-
     handleKey(k);
     if(k==='back')startBsRepeat();
   },{passive:false});
 
   function releasePressed(e){
-    if(pressedKey){
-      pressedKey.classList.remove('pressing');
-      pressedKey=null;
-    }
+    if(pressedKey){pressedKey.classList.remove('pressing');pressedKey=null;}
     stopBsRepeat();
-    // Hide preview after a short delay so it's still visible
     previewHideTimer=setTimeout(hidePreview,80);
   }
   qkbEl.addEventListener('pointerup',releasePressed,{passive:true});
   qkbEl.addEventListener('pointercancel',releasePressed,{passive:true});
 
-  /* ── Clear button ── */
   clearBtn.addEventListener('pointerdown',e=>{
     e.preventDefault();
     qkbQuery='';qkbCursorPos=0;
@@ -1392,7 +1493,6 @@ document.getElementById('installBtn').addEventListener('click',()=>{if(dip){dip.
     if(navigator.vibrate)navigator.vibrate(10);
   },{passive:false});
 
-  /* ── Space long-press → trackpad cursor ── */
   if(spaceEl){
     spaceEl.addEventListener('pointerdown',e=>{
       trackpadStartX=e.clientX;
@@ -1418,19 +1518,21 @@ document.getElementById('installBtn').addEventListener('click',()=>{if(dip){dip.
     spaceEl.addEventListener('pointercancel',endTrackpad,{passive:true});
   }
 
-  /* ── Open / Close ── */
+  /* ── qkbDone: close keyboard + activate shield to block Done→EXIT tap-through ── */
   function qkbDone(){
     qkbEl.classList.remove('open');
     document.getElementById('tblArea').style.height='';
     trackpadMode=false;
     hidePreview();
+    // CRITICAL FIX: activate the transparent shield for 450ms
+    // This absorbs any stray pointerup/click that would otherwise
+    // hit the EXIT button which was sitting behind the Done key
+    activateKbShield();
   }
 
   window.qkbOpen=function(){
     if(isDesktop())return;
     document.activeElement?.blur();
-
-    // Restore from cache on first open if current searchQuery is empty
     if(!searchQuery){
       const cached=loadSearchCache();
       if(cached){
@@ -1438,13 +1540,10 @@ document.getElementById('installBtn').addEventListener('click',()=>{if(dip){dip.
         searchQuery=cached.toLowerCase().trim();
         searchInEl.value=cached;
         renderTable();
-      }else{
-        qkbQuery='';
-      }
+      }else{qkbQuery='';}
     }else{
-      qkbQuery=searchQuery; // sync to current search
+      qkbQuery=searchQuery;
     }
-
     qkbCursorPos=qkbQuery.length;
     updateDisplay();
     qkbEl.classList.add('open');
@@ -1455,10 +1554,8 @@ document.getElementById('installBtn').addEventListener('click',()=>{if(dip){dip.
   };
   window.qkbClose=qkbDone;
 
-  /* ── Restore cached search on page load ── */
   window.addEventListener('load',()=>{
     setTimeout(()=>{
-      // Only restore if we're on mobile and there's a recent cache
       if(!isDesktop()){
         const cached=loadSearchCache();
         if(cached){
@@ -1468,12 +1565,12 @@ document.getElementById('installBtn').addEventListener('click',()=>{if(dip){dip.
           if(ITEMS.length)renderTable();
         }
       }
-    },400); // after items load
+    },400);
   });
 
 })();
 
-/* ── FORMULA KEYBOARD (mobile) ── */
+/* ── FORMULA KEYBOARD ── */
 let fkbTargetId=null,fkbTargetSid=null,fkbVal='',fkbCursorPos=0;
 let fkbNavTimer=null,fkbNavInterval=null;
 function fkbRefreshDisplay(){
@@ -1560,19 +1657,25 @@ function lockApp(){
 /* ── APP INIT ── */
 window.addEventListener('load',()=>{
   if(localStorage.getItem('c2c_mode')==='light'){document.body.classList.add('light');document.getElementById('modeBtn').textContent='☀️ LIGHT';document.getElementById('modeBtnMob').textContent='☀️';}
-  loadLocal();loadHistory();initSearchMode();
+  loadLocal();loadHistory();loadPendingUpdates();initSearchMode();
+  updateOfflineUI();
+
   const savedUser=localStorage.getItem('c2c_user');
   if(savedUser&&USERS[savedUser]){currentUser={id:savedUser,...USERS[savedUser]};updateNavUser();hideLoginScreen();updateAdminUI();}
   else showLoginScreen();
   startLockListener();
+
   let p=0,attempt=0;
   const bar=document.getElementById('loadBar'),txt=document.getElementById('loadTxt');
   const iv=setInterval(()=>{p=Math.min(p+Math.random()*12,88);bar.style.width=p+'%';},60);
+
   function finishLoad(){
     clearInterval(iv);bar.style.width='100%';txt.textContent=ITEMS.length.toLocaleString()+' items loaded ✓';
     document.getElementById('barCount').textContent=ITEMS.length.toLocaleString();
     setSync('ok','● LIVE');
     setTimeout(()=>{buildColHeads();renderTable();document.getElementById('loadScreen').style.display='none';startFirebaseListener();},200);
+    // Flush any pending sheet updates now that we're loaded
+    setTimeout(flushPendingUpdates,1000);
   }
   function fetchFromSheet(){
     attempt++;txt.textContent=attempt>1?'Retrying ('+attempt+'/3)…':'Connecting to sheet…';
@@ -1596,7 +1699,32 @@ window.addEventListener('load',()=>{
       })
       .catch(()=>{
         if(attempt<3){txt.textContent='Retrying…';setTimeout(fetchFromSheet,2000);}
-        else{clearInterval(iv);bar.style.width='100%';txt.textContent='✕ Failed — tap to retry';txt.style.cursor='pointer';txt.onclick=()=>{attempt=0;p=0;bar.style.width='0%';txt.style.cursor='';fetchFromSheet();};setSync('error','✕ ERROR');}
+        else{
+          // Offline fallback: try loading items from cache even if expired
+          const cachedItems=localStorage.getItem('c2c_items');
+          if(cachedItems){
+            try{
+              ITEMS=JSON.parse(cachedItems);
+              if(ITEMS&&ITEMS.length>0){
+                txt.textContent='⚠ Offline — using cached data';
+                ITEMS.forEach(item=>{
+                  if(item.qbQty!==undefined&&item.qbQty!==null)qbData[item.id]=item.qbQty;
+                  else if(item.qbStock!==undefined)qbData[item.id]=item.qbStock;
+                });
+                db.ref('stock').once('value').then(snap=>{
+                  const fb=snap.val();
+                  if(fb)Object.entries(fb).forEach(([k,v])=>{const item=ITEMS.find(r=>r.id.replace(/[.#$[\]]/g,'_')===k);if(!item)return;stockData[item.id]=parseFloat(v.qty)||0;formulaData[item.id]=String(v.formula||v.qty||0);});
+                  saveLocal();finishLoad();
+                }).catch(()=>{finishLoad();});
+                return;
+              }
+            }catch(e){ITEMS=[];}
+          }
+          clearInterval(iv);bar.style.width='100%';
+          txt.textContent='✕ Failed — tap to retry';txt.style.cursor='pointer';
+          txt.onclick=()=>{attempt=0;p=0;bar.style.width='0%';txt.style.cursor='';txt.onclick=null;fetchFromSheet();};
+          setSync('error','✕ ERROR');
+        }
       });
   }
   const CACHE_KEY='c2c_items',CACHE_TS='c2c_items_ts',CACHE_TTL=6*60*60*1000;

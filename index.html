@@ -205,7 +205,6 @@ body.light .portal-bar::before{background:linear-gradient(90deg,transparent,rgba
 #searchIn{background:transparent;border:none;color:var(--text);font-size:14px;font-weight:700;outline:none;flex:1;padding:14px 0;font-family:'Plus Jakarta Sans',sans-serif;}
 #searchIn::placeholder{color:var(--text);opacity:.3;font-weight:600;}
 .bar-count{font-size:10px;font-weight:800;color:var(--brand);background:var(--brand-dim);border:1px solid var(--brand-border);border-radius:50px;padding:3px 11px;white-space:nowrap;flex-shrink:0;}
-/* EXIT button — safer styling, no accidental tap */
 .bar-exit{background:rgba(239,68,68,.15);border:none;border-left:1px solid rgba(239,68,68,.2);color:#ef4444;padding:0 18px;height:46px;font-weight:800;font-size:11px;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;border-radius:0 100px 100px 0;flex-shrink:0;letter-spacing:.5px;transition:background .2s;}
 .bar-exit:active{background:rgba(239,68,68,.32);}
 
@@ -234,8 +233,15 @@ body.light .np-existing{color:rgba(0,0,0,.28);}
 .np-display{padding:2px 10px 0;text-align:right;}
 .np-value{font-size:22px;font-weight:700;line-height:1;letter-spacing:-.5px;color:rgba(255,255,255,.88);word-break:break-all;transition:color .1s;min-height:24px;}
 .np-value.active{color:#fff;text-shadow:0 0 14px rgba(16,185,129,.45);}
+/* ── FIX: Operator-coloured value display ── */
+.np-value.op-minus{color:#ef4444 !important;text-shadow:0 0 14px rgba(239,68,68,.35);}
+.np-value.op-times{color:#fbbf24 !important;text-shadow:0 0 14px rgba(251,191,36,.3);}
+.np-value.op-divide{color:#818cf8 !important;text-shadow:0 0 14px rgba(129,140,248,.3);}
 body.light .np-value{color:#0f172a;}
 body.light .np-value.active{color:#059669;text-shadow:none;}
+body.light .np-value.op-minus{color:#dc2626 !important;}
+body.light .np-value.op-times{color:#d97706 !important;}
+body.light .np-value.op-divide{color:#6366f1 !important;}
 .np-preview{font-size:7px;font-weight:700;color:rgba(251,191,36,.85);text-align:right;min-height:9px;padding:0 10px 2px;line-height:1.3;}
 .np-ops{display:flex;gap:3px;padding:2px 5px 3px;}
 .np-op-tab{flex:1;padding:5px 0;border-radius:7px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.07);color:rgba(255,255,255,.45);font-size:13px;font-weight:700;cursor:pointer;transition:all .15s;line-height:1;}
@@ -279,6 +285,10 @@ body.light .np-btn-back{color:rgba(0,0,0,.35);}
 .hist-src.web{background:rgba(59,130,246,.1);color:#60a5fa;border:1px solid rgba(59,130,246,.2);}
 .hist-src.sheet{background:rgba(251,191,36,.1);color:#fbbf24;border:1px solid rgba(251,191,36,.2);}
 .hist-src.mobile{background:rgba(16,185,129,.1);color:#10b981;border:1px solid rgba(16,185,129,.2);}
+/* ── FIX: Per-user history badge colours ── */
+.hist-src.Steve{background:rgba(16,185,129,.14);color:#10b981;border:1px solid rgba(16,185,129,.32);}
+.hist-src.Aswanth{background:rgba(129,140,248,.14);color:#818cf8;border:1px solid rgba(129,140,248,.32);}
+.hist-src.Fatima{background:rgba(244,114,182,.14);color:#f472b6;border:1px solid rgba(244,114,182,.32);}
 .hist-empty{text-align:center;padding:50px 20px;color:var(--text3);font-size:12px;font-weight:700;}
 
 /* ══════════════════════════════════════════════
@@ -417,14 +427,13 @@ body.light .qkb-key-space{color:rgba(0,0,0,.4);}
   box-shadow:0 1px 0 rgba(100,0,0,.3);
 }
 
-/* Done key — slightly inset from right edge to avoid accidental EXIT tap */
 .qkb-key-done{
   flex:0 0 68px;max-width:68px;height:46px;
   font-size:12px;font-weight:800;
   background:var(--brand);color:#020617;
   box-shadow:0 3px 0 rgba(5,100,60,.5),0 0 0 1px rgba(16,185,129,.4);
   letter-spacing:.3px;
-  margin-right:4px; /* gap so it's never right at the screen edge */
+  margin-right:4px;
 }
 .qkb-key-done.pressing{
   background:#0ea572;
@@ -604,8 +613,6 @@ body.light .fkb-btn-op{background:rgba(99,102,241,.10);color:#6366f1;}
 </div>
 
 <div id="lockOverlay"></div>
-
-<!-- Shield: blocks stray taps after keyboard close (prevents Done→EXIT bug) -->
 <div id="kbShield"></div>
 
 <nav class="nav">
@@ -814,7 +821,7 @@ const isAdmin=()=>currentUser&&currentUser.id==='steve';
 /* ════════════════════════════════════════
    OFFLINE / PENDING SYNC SYSTEM
    ════════════════════════════════════════ */
-let pendingSheetUpdates=[];   // queue for failed sheet writes
+let pendingSheetUpdates=[];
 let isOnline=navigator.onLine;
 
 function updateOfflineUI(){
@@ -822,97 +829,44 @@ function updateOfflineUI(){
   const badge=document.getElementById('pendingBadge');
   if(!isOnline){
     banner.classList.add('show');
-    if(pendingSheetUpdates.length>0){
-      badge.textContent=pendingSheetUpdates.length+' pending';
-      badge.classList.add('show');
-    }else{
-      badge.classList.remove('show');
-    }
-  }else{
-    banner.classList.remove('show');
-    badge.classList.remove('show');
-  }
+    if(pendingSheetUpdates.length>0){badge.textContent=pendingSheetUpdates.length+' pending';badge.classList.add('show');}
+    else{badge.classList.remove('show');}
+  }else{banner.classList.remove('show');badge.classList.remove('show');}
 }
 
-function savePendingUpdates(){
-  try{localStorage.setItem('c2c_pending',JSON.stringify(pendingSheetUpdates.slice(0,50)));}catch(e){}
-}
-function loadPendingUpdates(){
-  try{
-    const p=JSON.parse(localStorage.getItem('c2c_pending')||'[]');
-    if(Array.isArray(p))pendingSheetUpdates=p;
-  }catch(e){pendingSheetUpdates=[];}
-}
+function savePendingUpdates(){try{localStorage.setItem('c2c_pending',JSON.stringify(pendingSheetUpdates.slice(0,50)));}catch(e){}}
+function loadPendingUpdates(){try{const p=JSON.parse(localStorage.getItem('c2c_pending')||'[]');if(Array.isArray(p))pendingSheetUpdates=p;}catch(e){pendingSheetUpdates=[];}}
 
 function flushPendingUpdates(){
   if(!pendingSheetUpdates.length||!isOnline)return;
-  const batch=[...pendingSheetUpdates];
-  pendingSheetUpdates=[];
-  savePendingUpdates();
-  // Replay each with a small delay to avoid flooding
+  const batch=[...pendingSheetUpdates];pendingSheetUpdates=[];savePendingUpdates();
   batch.forEach((u,i)=>setTimeout(()=>updateSheetBackground(u.uid,u.qty,u.formula,u.added),i*200));
   showToast('↑ Syncing '+batch.length+' offline update'+(batch.length>1?'s':'')+'…','ok');
 }
 
-window.addEventListener('online',()=>{
-  isOnline=true;
-  setSync('ok','● LIVE');
-  updateOfflineUI();
-  flushPendingUpdates();
-  // Re-check Firebase connection
-  db.ref('.info/connected').once('value');
-});
-window.addEventListener('offline',()=>{
-  isOnline=false;
-  setSync('offline','◌ OFFLINE');
-  updateOfflineUI();
-});
+window.addEventListener('online',()=>{isOnline=true;setSync('ok','● LIVE');updateOfflineUI();flushPendingUpdates();db.ref('.info/connected').once('value');});
+window.addEventListener('offline',()=>{isOnline=false;setSync('offline','◌ OFFLINE');updateOfflineUI();});
 
-/* ════════════════════════════════════════
-   KB SHIELD — prevents Done→EXIT tap-through
-   ════════════════════════════════════════ */
+/* ── KB SHIELD ── */
 let kbJustClosed=false;
 const kbShieldEl=document.getElementById('kbShield');
+function activateKbShield(){kbJustClosed=true;kbShieldEl.classList.add('active');setTimeout(()=>{kbJustClosed=false;kbShieldEl.classList.remove('active');},450);}
 
-function activateKbShield(){
-  kbJustClosed=true;
-  kbShieldEl.classList.add('active');
-  // Shield stays up for 450ms — enough for any ghost touch to be absorbed
-  setTimeout(()=>{
-    kbJustClosed=false;
-    kbShieldEl.classList.remove('active');
-  },450);
-}
-
-/* ════════════════════════════════════════
-   EXIT — safe version with confirm + pending check
-   ════════════════════════════════════════ */
+/* ── EXIT ── */
 function exitApp(){
-  if(kbJustClosed)return; // absorb stray Done→EXIT tap-through
+  if(kbJustClosed)return;
   const pending=pendingSheetUpdates.length;
   let msg='Exit and reload the app?';
   if(pending>0)msg='You have '+pending+' unsynced update'+(pending>1?'s':'')+'. Exit anyway? They may be lost.';
-  if(!confirm(msg))return;
-  location.reload();
+  if(!confirm(msg))return;location.reload();
 }
 
-/* ════════════════════════════════════════
-   UTILS
-   ════════════════════════════════════════ */
+/* ── UTILS ── */
 function xe(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function cleanDesc(desc,id){let d=String(desc||'').trim();if(id&&d.startsWith(id)){d=d.slice(id.length).trim();d=d.replace(/^[\s\(\-\:\|]+/,'').replace(/\)\s*$/,'').trim();}return d||desc;}
-function setSync(state,msg){
-  ['syncBadge','syncBadgeMob'].forEach(id=>{
-    const el=document.getElementById(id);if(!el)return;
-    el.className='sync-badge'+(state==='ok'?'':' '+state);el.textContent=msg;
-  });
-}
+function setSync(state,msg){['syncBadge','syncBadgeMob'].forEach(id=>{const el=document.getElementById(id);if(!el)return;el.className='sync-badge'+(state==='ok'?'':' '+state);el.textContent=msg;});}
 function toggleMode(){const light=document.body.classList.toggle('light');document.getElementById('modeBtn').textContent=light?'☀️ LIGHT':'🌙 DARK';document.getElementById('modeBtnMob').textContent=light?'☀️':'🌙';localStorage.setItem('c2c_mode',light?'light':'dark');}
-function forceRefresh(){
-  if(pendingSheetUpdates.length>0&&!confirm('Force refresh will discard '+pendingSheetUpdates.length+' pending sync(s). Continue?'))return;
-  localStorage.removeItem('c2c_items');localStorage.removeItem('c2c_items_ts');
-  setSync('syncing','⟳ REFRESHING');location.reload();
-}
+function forceRefresh(){if(pendingSheetUpdates.length>0&&!confirm('Force refresh will discard '+pendingSheetUpdates.length+' pending sync(s). Continue?'))return;localStorage.removeItem('c2c_items');localStorage.removeItem('c2c_items_ts');setSync('syncing','⟳ REFRESHING');location.reload();}
 function saveLocal(){try{localStorage.setItem('c2c_stock',JSON.stringify({s:stockData,f:formulaData}));}catch(e){}}
 function loadLocal(){try{const d=JSON.parse(localStorage.getItem('c2c_stock')||'{}');if(d.s)Object.assign(stockData,d.s);if(d.f)Object.assign(formulaData,d.f);}catch(e){}}
 function saveHistory(){try{localStorage.setItem('c2c_history',JSON.stringify(historyLog.slice(0,500)));}catch(e){}}
@@ -924,20 +878,51 @@ function fetchHistory(){
   fetch(SHEETS_URL+'?action=getHistory&_t='+Date.now(),{cache:'no-store',redirect:'follow'})
     .then(r=>r.json()).then(d=>{if(d.ok&&d.history){d.history.forEach(e=>{if(!historyLog.some(l=>l.ts===e.ts&&l.uid===e.uid))historyLog.unshift(e);});historyLog=historyLog.slice(0,500);saveHistory();}renderHistory();}).catch(()=>renderHistory());
 }
+
+/* ══════════════════════════════════════════════
+   FIX 1: renderHistory — show user names with
+   colour-coded badges (Steve / Aswanth / Fatima)
+   instead of generic WEB / MOBILE labels
+══════════════════════════════════════════════ */
+// Known user names → CSS class suffix (must match .hist-src.X in CSS)
+const KNOWN_USERS={Steve:'Steve',Aswanth:'Aswanth',Fatima:'Fatima'};
+// User emoji avatars for a personal touch
+const USER_EMOJI={Steve:'🟢',Aswanth:'🟣',Fatima:'🩷'};
+
+function resolveHistSource(raw){
+  // raw can be: 'sheet' | 'mobile' | 'web' | 'Steve' | 'Aswanth' | 'Fatima'
+  if(raw==='sheet')    return{label:'📊 SHEET',cls:'sheet'};
+  if(raw==='mobile')   return{label:'📱 MOBILE',cls:'mobile'};
+  if(KNOWN_USERS[raw]) return{label:(USER_EMOJI[raw]||'👤')+' '+raw,cls:raw};
+  return{label:'🌐 WEB',cls:'web'};
+}
+
 function renderHistory(){
   const body=document.getElementById('histBody');
   if(!historyLog.length){body.innerHTML='<div class="hist-empty">No history yet</div>';return;}
   body.innerHTML=historyLog.map(e=>{
     const added=String(e.added||'');const isPos=!added.startsWith('-');
-    const src=e.source==='sheet'?'📊 SHEET':e.source==='mobile'?'📱 MOBILE':'🌐 WEB';
-    const srcCls=e.source==='sheet'?'sheet':e.source==='mobile'?'mobile':'web';
-    return`<div class="hist-row"><div class="hist-top"><span class="hist-uid">${xe(e.uid)}</span><span class="hist-ts">${xe(e.ts)}</span></div><div class="hist-desc">${xe(e.desc)}</div><div class="hist-vals"><span class="hist-old">${e.oldVal}</span><span class="hist-arr">→</span><span class="hist-new">${e.newVal}</span><span class="hist-chg ${isPos?'pos':'neg'}">${xe(added)}</span><span class="hist-src ${srcCls}">${src}</span></div>${e.formula?`<div style="margin-top:3px;font-family:monospace;font-size:9px;color:#fbbf24">=<span>${xe(normalizeFormula(e.formula))}</span></div>`:''}</div>`;
+    const {label:src,cls:srcCls}=resolveHistSource(e.source);
+    return`<div class="hist-row">
+      <div class="hist-top"><span class="hist-uid">${xe(e.uid)}</span><span class="hist-ts">${xe(e.ts)}</span></div>
+      <div class="hist-desc">${xe(e.desc)}</div>
+      <div class="hist-vals">
+        <span class="hist-old">${e.oldVal}</span>
+        <span class="hist-arr">→</span>
+        <span class="hist-new">${e.newVal}</span>
+        <span class="hist-chg ${isPos?'pos':'neg'}">${xe(added)}</span>
+        <span class="hist-src ${srcCls}">${src}</span>
+      </div>
+      ${e.formula?`<div style="margin-top:3px;font-family:monospace;font-size:9px;color:#fbbf24">=<span>${xe(normalizeFormula(e.formula))}</span></div>`:''}
+    </div>`;
   }).join('');
 }
+
 function addLocalHistory(uid,oldVal,newVal,added,formula,source){
   const item=ITEMS.find(r=>r.id===uid);
   const ts=new Date().toISOString().replace('T',' ').slice(0,19);
   const addStr=added>=0?'+'+parseFloat(added.toFixed(4)):String(parseFloat(added.toFixed(4)));
+  // Use currentUser.name so history stores 'Steve', 'Aswanth', etc.
   const who=currentUser?currentUser.name:(source||'web');
   historyLog.unshift({ts,uid,desc:item?item.desc:uid,oldVal,newVal,added:addStr,formula:formula||'',source:who});
   if(historyLog.length>500)historyLog.pop();
@@ -993,40 +978,26 @@ function lockWrite(uid){ownWrites[uid]=Date.now();}
 function isOwnEcho(uid){return ownWrites[uid]&&(Date.now()-ownWrites[uid])<8000;}
 setInterval(()=>{const now=Date.now();Object.keys(ownWrites).forEach(k=>{if(now-ownWrites[k]>10000)delete ownWrites[k];});},30000);
 
-/* ── Sheet update with offline queue ── */
 function updateSheetBackground(uid,qty,formula,added){
   if(!isOnline){
-    // Queue and dedupe: keep only latest update per uid
     pendingSheetUpdates=pendingSheetUpdates.filter(p=>p.uid!==uid);
     pendingSheetUpdates.push({uid,qty,formula:normalizeFormula(formula)||String(qty),added:added??0});
-    savePendingUpdates();
-    updateOfflineUI();
-    return;
+    savePendingUpdates();updateOfflineUI();return;
   }
   const params=new URLSearchParams({action:'updateRow',uid,qty,formula:normalizeFormula(formula)||'',added:added??0,_t:Date.now()});
   fetch(SHEETS_URL+'?'+params.toString(),{cache:'no-store',redirect:'follow',keepalive:true})
     .catch(()=>{
-      // Network error even though navigator.onLine is true — queue it
       pendingSheetUpdates=pendingSheetUpdates.filter(p=>p.uid!==uid);
       pendingSheetUpdates.push({uid,qty,formula:normalizeFormula(formula)||String(qty),added:added??0});
-      savePendingUpdates();
-      setSync('syncing','⚠ SHEET SYNC');
-      updateOfflineUI();
+      savePendingUpdates();setSync('syncing','⚠ SHEET SYNC');updateOfflineUI();
     });
 }
 
 function fbWrite(uid,qty,formula,added){
   lockWrite(uid);const k=uid.replace(/[.#$[\]]/g,'_');
   db.ref('stock/'+k).set({qty,formula:formula||String(qty),ts:Date.now(),added:added??0})
-    .then(()=>{
-      setSync('ok','● LIVE');
-      updateSheetBackground(uid,qty,formula||String(qty),added??0);
-    })
-    .catch(()=>{
-      // Firebase write failed (offline) — data is in localStorage, Firebase SDK will retry
-      setSync('offline','◌ OFFLINE');
-      updateSheetBackground(uid,qty,formula||String(qty),added??0);
-    });
+    .then(()=>{setSync('ok','● LIVE');updateSheetBackground(uid,qty,formula||String(qty),added??0);})
+    .catch(()=>{setSync('offline','◌ OFFLINE');updateSheetBackground(uid,qty,formula||String(qty),added??0);});
 }
 
 function startFirebaseListener(){
@@ -1043,13 +1014,7 @@ function startFirebaseListener(){
       saveLocal();setSync('ok','● LIVE');
     }
   });
-  // Monitor connection state
-  db.ref('.info/connected').on('value',snap=>{
-    if(snap.val()===true){
-      if(!isOnline){isOnline=true;updateOfflineUI();}
-      setSync('ok','● LIVE');
-    }
-  });
+  db.ref('.info/connected').on('value',snap=>{if(snap.val()===true){if(!isOnline){isOnline=true;updateOfflineUI();}setSync('ok','● LIVE');}});
 }
 
 function sendAdd(uid,addQty){
@@ -1258,9 +1223,13 @@ searchInEl.addEventListener('input',e=>{
 });
 searchInEl.addEventListener('keydown',e=>{if(e.key==='Escape'){searchInEl.value='';searchQuery='';renderTable();}});
 
+/* ══════════════════════════════════════════════
+   NUMPAD
+══════════════════════════════════════════════ */
 let np={id:null,val:'0',op:'+'};
 let npPos={x:window.innerWidth-190,y:70};
 let npDrg=false,npOX=0,npOY=0;
+
 function openNp(id){
   if(!canWrite())return;
   const item=ITEMS.find(r=>r.id===id);if(!item)return;
@@ -1274,11 +1243,8 @@ function openNp(id){
   document.getElementById('npExisting').innerHTML=ex>0?`Current: <span>${ex} ${item.um}</span>`:'No stock yet';
   const qbEl=document.getElementById('npQbInfo');
   const qb=qbData[id];
-  if(qb!==undefined&&qb!==null&&qb!==''){
-    const qbN=parseFloat(qb);
-    qbEl.textContent=isNaN(qbN)?'':'QB QTY: '+(qbN%1===0?qbN:qbN.toFixed(2))+(item.um?' '+item.um:'');
-    qbEl.style.display='block';
-  }else{qbEl.style.display='none';}
+  if(qb!==undefined&&qb!==null&&qb!==''){const qbN=parseFloat(qb);qbEl.textContent=isNaN(qbN)?'':'QB QTY: '+(qbN%1===0?qbN:qbN.toFixed(2))+(item.um?' '+item.um:'');qbEl.style.display='block';}
+  else{qbEl.style.display='none';}
   document.querySelectorAll('.np-op-tab').forEach(t=>t.classList.remove('active'));
   document.querySelector('.np-op-tab[data-op="+"]').classList.add('active');
   npDraw();popup.classList.add('open');
@@ -1293,10 +1259,32 @@ function npKey(k){
   else{np.val=np.val==='0'?k:np.val+k;}
   npDraw();
 }
+
+/* ══════════════════════════════════════════════
+   FIX 2: npDraw — show operator sign in the big
+   value display so the user can see −5, +5, etc.
+   Colour-coded: red for minus, amber for multiply,
+   indigo for divide, green for add/set (default).
+══════════════════════════════════════════════ */
 function npDraw(){
   const valEl=document.getElementById('npVal'),prevEl=document.getElementById('npPreview');
   const ex=stockData[np.id]||0,um=(ITEMS.find(r=>r.id===np.id)||{}).um||'';
-  valEl.textContent=np.val;valEl.className='np-value'+(np.val!=='0'?' active':'');
+
+  // Build display string with visible operator prefix
+  let dispStr=np.val;
+  let opClass='np-value';
+  if(np.val!=='0'){
+    opClass+=' active';
+    if(np.op==='-'){dispStr='−'+np.val;opClass+=' op-minus';}
+    else if(np.op==='+'){dispStr='+'+np.val;}
+    else if(np.op==='*'){dispStr='×'+np.val;opClass+=' op-times';}
+    else if(np.op==='/'){dispStr='÷'+np.val;opClass+=' op-divide';}
+    // op==='=' keeps plain number, no prefix
+  }
+  valEl.textContent=dispStr;
+  valEl.className=opClass;
+
+  // Calculation preview line
   if(np.val==='0'){prevEl.textContent='';return;}
   try{
     const ent=parseFloat(Function('return ('+np.val+')')());if(isNaN(ent)){prevEl.textContent='';return;}
@@ -1307,6 +1295,7 @@ function npDraw(){
     prevEl.textContent=ex+' '+(diff>=0?'+':'')+diff+' = '+nt+' '+um;
   }catch(e){prevEl.textContent='';}
 }
+
 function npConfirm(){
   if(np.val==='0'){closeNp();return;}
   const ex=stockData[np.id]||0;
@@ -1356,11 +1345,7 @@ document.getElementById('installBtn').addEventListener('click',()=>{if(dip){dip.
   window._navGoPage1=()=>setNavPage(0,true);
 })();
 
-/* ══════════════════════════════════════════════
-   MOBILE QWERTY KEYBOARD ENGINE
-   KEY FIX: Done key uses activateKbShield() so
-   the stray pointerup/click can't reach EXIT button
-══════════════════════════════════════════════ */
+/* ── MOBILE QWERTY ENGINE ── */
 (function(){
   let qkbQuery='',qkbCursorPos=0;
   let bsTimer=null,bsInterval=null,pressedKey=null;
@@ -1376,70 +1361,38 @@ document.getElementById('installBtn').addEventListener('click',()=>{if(dip){dip.
   const previewCh= document.getElementById('qkbPreviewChar');
 
   const SEARCH_TTL = 6 * 60 * 60 * 1000;
-  function saveSearchCache(q){
-    try{localStorage.setItem('c2c_search_q',q);localStorage.setItem('c2c_search_ts',String(Date.now()));}catch(e){}
-  }
-  function loadSearchCache(){
-    try{
-      const ts=parseInt(localStorage.getItem('c2c_search_ts')||'0');
-      if((Date.now()-ts)<SEARCH_TTL){return localStorage.getItem('c2c_search_q')||'';}
-    }catch(e){}
-    return '';
-  }
+  function saveSearchCache(q){try{localStorage.setItem('c2c_search_q',q);localStorage.setItem('c2c_search_ts',String(Date.now()));}catch(e){}}
+  function loadSearchCache(){try{const ts=parseInt(localStorage.getItem('c2c_search_ts')||'0');if((Date.now()-ts)<SEARCH_TTL){return localStorage.getItem('c2c_search_q')||'';}}catch(e){}return '';}
 
   function showPreview(keyEl,label){
     if(!keyEl||!label||label==='__done__'||label==='back'||label===' ')return;
     const rect=keyEl.getBoundingClientRect();
-    const cx=rect.left+rect.width/2;
-    const by=rect.top-6;
+    const cx=rect.left+rect.width/2;const by=rect.top-6;
     previewCh.textContent=label.toUpperCase();
-    previewEl.style.left=cx+'px';
-    previewEl.style.top=by+'px';
-    previewEl.classList.add('visible');
-    clearTimeout(previewHideTimer);
+    previewEl.style.left=cx+'px';previewEl.style.top=by+'px';
+    previewEl.classList.add('visible');clearTimeout(previewHideTimer);
   }
   function hidePreview(){previewEl.classList.remove('visible');}
 
   function updateDisplay(){
-    if(!qkbQuery){
-      dispEl.textContent='Search…';
-      dispEl.className='qkb-input-display empty';
-      return;
-    }
+    if(!qkbQuery){dispEl.textContent='Search…';dispEl.className='qkb-input-display empty';return;}
     dispEl.className='qkb-input-display';
     let bSpan=dispEl.querySelector('.qkb-text-before');
-    if(!bSpan){
-      dispEl.innerHTML='<span class="qkb-text-before"></span><span class="qkb-cursor"></span><span class="qkb-text-after"></span>';
-      bSpan=dispEl.querySelector('.qkb-text-before');
-    }
+    if(!bSpan){dispEl.innerHTML='<span class="qkb-text-before"></span><span class="qkb-cursor"></span><span class="qkb-text-after"></span>';bSpan=dispEl.querySelector('.qkb-text-before');}
     bSpan.textContent=qkbQuery.slice(0,qkbCursorPos);
     dispEl.querySelector('.qkb-text-after').textContent=qkbQuery.slice(qkbCursorPos);
   }
 
   function triggerSearch(){
     clearTimeout(searchDebounce);
-    searchDebounce=setTimeout(()=>{
-      searchQuery=qkbQuery.toLowerCase().trim();
-      searchInEl.value=qkbQuery;
-      renderTable();
-      saveSearchCache(qkbQuery);
-    },40);
+    searchDebounce=setTimeout(()=>{searchQuery=qkbQuery.toLowerCase().trim();searchInEl.value=qkbQuery;renderTable();saveSearchCache(qkbQuery);},40);
   }
 
   function handleKey(k){
     if(k==='__done__'){qkbDone();return;}
-    if(k==='back'){
-      if(qkbCursorPos>0){
-        qkbQuery=qkbQuery.slice(0,qkbCursorPos-1)+qkbQuery.slice(qkbCursorPos);
-        qkbCursorPos--;
-      }
-    }else{
-      const ch=k===' '?' ':k;
-      qkbQuery=qkbQuery.slice(0,qkbCursorPos)+ch+qkbQuery.slice(qkbCursorPos);
-      qkbCursorPos++;
-    }
-    updateDisplay();
-    triggerSearch();
+    if(k==='back'){if(qkbCursorPos>0){qkbQuery=qkbQuery.slice(0,qkbCursorPos-1)+qkbQuery.slice(qkbCursorPos);qkbCursorPos--;}}
+    else{const ch=k===' '?' ':k;qkbQuery=qkbQuery.slice(0,qkbCursorPos)+ch+qkbQuery.slice(qkbCursorPos);qkbCursorPos++;}
+    updateDisplay();triggerSearch();
   }
 
   function startBsRepeat(){
@@ -1448,10 +1401,8 @@ document.getElementById('installBtn').addEventListener('click',()=>{if(dip){dip.
       let speed=80;
       bsInterval=setInterval(()=>{
         if(qkbCursorPos>0){
-          qkbQuery=qkbQuery.slice(0,qkbCursorPos-1)+qkbQuery.slice(qkbCursorPos);
-          qkbCursorPos--;
-          updateDisplay();
-          triggerSearch();
+          qkbQuery=qkbQuery.slice(0,qkbCursorPos-1)+qkbQuery.slice(qkbCursorPos);qkbCursorPos--;
+          updateDisplay();triggerSearch();
           if(speed>30){speed=Math.max(30,speed-8);clearInterval(bsInterval);bsInterval=setInterval(arguments.callee,speed);}
         }else{stopBsRepeat();}
       },speed);
@@ -1460,114 +1411,50 @@ document.getElementById('installBtn').addEventListener('click',()=>{if(dip){dip.
   function stopBsRepeat(){clearTimeout(bsTimer);clearInterval(bsInterval);bsTimer=null;bsInterval=null;}
 
   qkbEl.addEventListener('pointerdown',e=>{
-    const keyEl=e.target.closest('[data-key]');
-    if(!keyEl)return;
-    e.preventDefault();
-
+    const keyEl=e.target.closest('[data-key]');if(!keyEl)return;e.preventDefault();
     if(pressedKey&&pressedKey!==keyEl){pressedKey.classList.remove('pressing');}
-    pressedKey=keyEl;
-    keyEl.classList.add('pressing');
-    keyEl.setPointerCapture(e.pointerId);
-
+    pressedKey=keyEl;keyEl.classList.add('pressing');keyEl.setPointerCapture(e.pointerId);
     if(navigator.vibrate)navigator.vibrate(5);
-
-    const k=keyEl.dataset.key;
-    showPreview(keyEl,k);
-    handleKey(k);
+    const k=keyEl.dataset.key;showPreview(keyEl,k);handleKey(k);
     if(k==='back')startBsRepeat();
   },{passive:false});
 
-  function releasePressed(e){
-    if(pressedKey){pressedKey.classList.remove('pressing');pressedKey=null;}
-    stopBsRepeat();
-    previewHideTimer=setTimeout(hidePreview,80);
-  }
+  function releasePressed(e){if(pressedKey){pressedKey.classList.remove('pressing');pressedKey=null;}stopBsRepeat();previewHideTimer=setTimeout(hidePreview,80);}
   qkbEl.addEventListener('pointerup',releasePressed,{passive:true});
   qkbEl.addEventListener('pointercancel',releasePressed,{passive:true});
 
   clearBtn.addEventListener('pointerdown',e=>{
-    e.preventDefault();
-    qkbQuery='';qkbCursorPos=0;
-    updateDisplay();triggerSearch();
-    saveSearchCache('');
+    e.preventDefault();qkbQuery='';qkbCursorPos=0;updateDisplay();triggerSearch();saveSearchCache('');
     if(navigator.vibrate)navigator.vibrate(10);
   },{passive:false});
 
   if(spaceEl){
-    spaceEl.addEventListener('pointerdown',e=>{
-      trackpadStartX=e.clientX;
-      trackpadCursorStart=qkbCursorPos;
-      trackpadMode=false;
-      spaceHoldTimer=setTimeout(()=>{
-        trackpadMode=true;
-        if(navigator.vibrate)navigator.vibrate([0,0,22]);
-        spaceEl.style.background='rgba(16,185,129,.42)';
-      },320);
-    },{passive:true});
-    spaceEl.addEventListener('pointermove',e=>{
-      if(!trackpadMode)return;
-      const steps=Math.round((e.clientX-trackpadStartX)/9);
-      const pos=Math.max(0,Math.min(qkbQuery.length,trackpadCursorStart+steps));
-      if(pos!==qkbCursorPos){qkbCursorPos=pos;updateDisplay();}
-    },{passive:true});
-    function endTrackpad(){
-      clearTimeout(spaceHoldTimer);
-      if(trackpadMode){trackpadMode=false;spaceEl.style.background='';}
-    }
+    spaceEl.addEventListener('pointerdown',e=>{trackpadStartX=e.clientX;trackpadCursorStart=qkbCursorPos;trackpadMode=false;spaceHoldTimer=setTimeout(()=>{trackpadMode=true;if(navigator.vibrate)navigator.vibrate([0,0,22]);spaceEl.style.background='rgba(16,185,129,.42)';},320);},{passive:true});
+    spaceEl.addEventListener('pointermove',e=>{if(!trackpadMode)return;const steps=Math.round((e.clientX-trackpadStartX)/9);const pos=Math.max(0,Math.min(qkbQuery.length,trackpadCursorStart+steps));if(pos!==qkbCursorPos){qkbCursorPos=pos;updateDisplay();}},{passive:true});
+    function endTrackpad(){clearTimeout(spaceHoldTimer);if(trackpadMode){trackpadMode=false;spaceEl.style.background='';}}
     spaceEl.addEventListener('pointerup',endTrackpad,{passive:true});
     spaceEl.addEventListener('pointercancel',endTrackpad,{passive:true});
   }
 
-  /* ── qkbDone: close keyboard + activate shield to block Done→EXIT tap-through ── */
   function qkbDone(){
-    qkbEl.classList.remove('open');
-    document.getElementById('tblArea').style.height='';
-    trackpadMode=false;
-    hidePreview();
-    // CRITICAL FIX: activate the transparent shield for 450ms
-    // This absorbs any stray pointerup/click that would otherwise
-    // hit the EXIT button which was sitting behind the Done key
-    activateKbShield();
+    qkbEl.classList.remove('open');document.getElementById('tblArea').style.height='';
+    trackpadMode=false;hidePreview();activateKbShield();
   }
 
   window.qkbOpen=function(){
-    if(isDesktop())return;
-    document.activeElement?.blur();
-    if(!searchQuery){
-      const cached=loadSearchCache();
-      if(cached){
-        qkbQuery=cached;
-        searchQuery=cached.toLowerCase().trim();
-        searchInEl.value=cached;
-        renderTable();
-      }else{qkbQuery='';}
-    }else{
-      qkbQuery=searchQuery;
-    }
-    qkbCursorPos=qkbQuery.length;
-    updateDisplay();
-    qkbEl.classList.add('open');
-    requestAnimationFrame(()=>{
-      const kh=qkbEl.offsetHeight;
-      document.getElementById('tblArea').style.height=(window.innerHeight-50-kh)+'px';
-    });
+    if(isDesktop())return;document.activeElement?.blur();
+    if(!searchQuery){const cached=loadSearchCache();if(cached){qkbQuery=cached;searchQuery=cached.toLowerCase().trim();searchInEl.value=cached;renderTable();}else{qkbQuery='';}}
+    else{qkbQuery=searchQuery;}
+    qkbCursorPos=qkbQuery.length;updateDisplay();qkbEl.classList.add('open');
+    requestAnimationFrame(()=>{const kh=qkbEl.offsetHeight;document.getElementById('tblArea').style.height=(window.innerHeight-50-kh)+'px';});
   };
   window.qkbClose=qkbDone;
 
   window.addEventListener('load',()=>{
     setTimeout(()=>{
-      if(!isDesktop()){
-        const cached=loadSearchCache();
-        if(cached){
-          qkbQuery=cached;
-          searchQuery=cached.toLowerCase().trim();
-          searchInEl.value=cached;
-          if(ITEMS.length)renderTable();
-        }
-      }
+      if(!isDesktop()){const cached=loadSearchCache();if(cached){qkbQuery=cached;searchQuery=cached.toLowerCase().trim();searchInEl.value=cached;if(ITEMS.length)renderTable();}}
     },400);
   });
-
 })();
 
 /* ── FORMULA KEYBOARD ── */
@@ -1579,12 +1466,7 @@ function fkbRefreshDisplay(){
   if(!bSpan){disp.innerHTML='<span class="fkb-text-part fkb-before"></span><span class="fkb-cursor-bar"></span><span class="fkb-text-part fkb-after"></span>';bSpan=disp.querySelector('.fkb-before');}
   bSpan.textContent='='+fkbVal.slice(0,fkbCursorPos);
   disp.querySelector('.fkb-after').textContent=fkbVal.slice(fkbCursorPos);
-  requestAnimationFrame(()=>{
-    const cursor=disp.querySelector('.fkb-cursor-bar');if(!cursor)return;
-    const cRight=cursor.offsetLeft+cursor.offsetWidth;
-    if(cRight>disp.scrollLeft+disp.clientWidth)disp.scrollLeft=cRight-disp.clientWidth+16;
-    else if(cursor.offsetLeft<disp.scrollLeft)disp.scrollLeft=Math.max(0,cursor.offsetLeft-16);
-  });
+  requestAnimationFrame(()=>{const cursor=disp.querySelector('.fkb-cursor-bar');if(!cursor)return;const cRight=cursor.offsetLeft+cursor.offsetWidth;if(cRight>disp.scrollLeft+disp.clientWidth)disp.scrollLeft=cRight-disp.clientWidth+16;else if(cursor.offsetLeft<disp.scrollLeft)disp.scrollLeft=Math.max(0,cursor.offsetLeft-16);});
 }
 function fkbOpen(id,sid){if(isDesktop())return;if(!canWrite())return;fkbTargetId=id;fkbTargetSid=sid;fkbVal=formulaData[id]||String(stockData[id]||0);fkbCursorPos=fkbVal.length;fkbRefreshDisplay();document.getElementById('fkbOverlay').classList.add('open');document.activeElement?.blur();}
 function fkbCancel(){document.getElementById('fkbOverlay').classList.remove('open');fkbTargetId=null;fkbTargetSid=null;fkbVal='';fkbCursorPos=0;}
@@ -1674,7 +1556,6 @@ window.addEventListener('load',()=>{
     document.getElementById('barCount').textContent=ITEMS.length.toLocaleString();
     setSync('ok','● LIVE');
     setTimeout(()=>{buildColHeads();renderTable();document.getElementById('loadScreen').style.display='none';startFirebaseListener();},200);
-    // Flush any pending sheet updates now that we're loaded
     setTimeout(flushPendingUpdates,1000);
   }
   function fetchFromSheet(){
@@ -1700,7 +1581,6 @@ window.addEventListener('load',()=>{
       .catch(()=>{
         if(attempt<3){txt.textContent='Retrying…';setTimeout(fetchFromSheet,2000);}
         else{
-          // Offline fallback: try loading items from cache even if expired
           const cachedItems=localStorage.getItem('c2c_items');
           if(cachedItems){
             try{

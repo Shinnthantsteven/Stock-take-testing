@@ -1426,13 +1426,17 @@ window.addEventListener('load',()=>{
   const iv=setInterval(()=>{p=Math.min(p+Math.random()*12,88);bar.style.width=p+'%';},60);
 
   function showApp(){
-    clearInterval(iv);bar.style.width='100%';
-    document.getElementById('barCount').textContent=ITEMS.length.toLocaleString();
-    buildColHeads();renderTable();
+    clearInterval(iv);
+    // Hide loading screen FIRST — instant
     document.getElementById('loadScreen').style.display='none';
     setSync('ok','● LIVE');
     startFirebaseListener();
     setTimeout(flushPendingUpdates,800);
+    // Render table in next frame so screen is already visible
+    requestAnimationFrame(()=>{
+      buildColHeads();renderTable();
+      document.getElementById('barCount').textContent=ITEMS.length.toLocaleString();
+    });
   }
 
   function applyFirebaseSnap(snap){
@@ -1501,10 +1505,12 @@ window.addEventListener('load',()=>{
     }catch(e){}
   }
 
-  // ── STEP 2: No cache — Firebase + Sheet in PARALLEL, 5 retries ──
+  // ── STEP 2: No cache — show skeleton instantly, load in background ──
   txt.textContent='Connecting…';
+  // Show empty app shell immediately so user sees UI not blank screen
+  buildColHeads();
+  document.getElementById('tbody').innerHTML='<div class="empty-state" style="padding:40px 20px"><div style="font-size:24px;margin-bottom:12px">⏳</div>Loading 13,577 items…</div>';
   let fbSnapResult=null;
-  // Start Firebase in background — don't wait for it
   db.ref('stock').once('value').then(snap=>{fbSnapResult=snap;}).catch(()=>{});
 
   function trySheet(n){

@@ -1473,50 +1473,35 @@ window.addEventListener('load',()=>{
     }catch(e){}
   }
 
-  // ── STEP 2: No cache — try Firebase snapshot first (faster than sheet) ──
+  // ── STEP 2: No cache — Firebase + Sheet in PARALLEL, 5 retries ──
   txt.textContent='Connecting…';
-  db.ref('stock').once('value').then(fbSnap=>{
-    // Firebase connected — now fetch sheet for item list
-    txt.textContent='Loading items…';
+  let fbSnapResult=null;
+  // Start Firebase in background — don't wait for it
+  db.ref('stock').once('value').then(snap=>{fbSnapResult=snap;}).catch(()=>{});
+
+  function trySheet(n){
+    txt.textContent=n>0?'Retrying ('+n+'/5)…':'Loading data…';
     fetch(SHEETS_URL+'?action=getAll&_t='+Date.now()+Math.random(),{cache:'no-store',redirect:'follow'})
-      .then(r=>r.json()).then(d=>{
+      .then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
+      .then(d=>{
         if(!d.ok||!d.items)throw new Error('No data');
         applySheetData(d.items);
-        applyFirebaseSnap(fbSnap);
+        if(fbSnapResult)applyFirebaseSnap(fbSnapResult);
         showApp();
       })
       .catch(()=>{
-        // Sheet failed — retry up to 2 more times
-        if(attempt<2){
-          attempt++;txt.textContent='Retrying ('+attempt+'/2)…';
-          setTimeout(()=>{
-            fetch(SHEETS_URL+'?action=getAll&_t='+Date.now()+Math.random(),{cache:'no-store',redirect:'follow'})
-              .then(r=>r.json()).then(d=>{
-                if(!d.ok||!d.items)throw new Error();
-                applySheetData(d.items);applyFirebaseSnap(fbSnap);showApp();
-              }).catch(()=>{
-                // Give up — show retry button
-                clearInterval(iv);bar.style.width='100%';
-                txt.textContent='✕ Failed — tap to retry';txt.style.cursor='pointer';
-                txt.onclick=()=>{location.reload();};
-                setSync('error','✕ ERROR');
-              });
-          },2500);
+        if(n<5){
+          setTimeout(()=>trySheet(n+1),3000);
+        }else{
+          clearInterval(iv);bar.style.width='100%';
+          txt.textContent='✕ No connection — tap to retry';
+          txt.style.cursor='pointer';
+          txt.onclick=()=>{location.reload();};
+          setSync('error','✕ ERROR');
         }
       });
-  }).catch(()=>{
-    // Firebase also failed — try sheet directly
-    fetch(SHEETS_URL+'?action=getAll&_t='+Date.now()+Math.random(),{cache:'no-store',redirect:'follow'})
-      .then(r=>r.json()).then(d=>{
-        if(!d.ok||!d.items)throw new Error();
-        applySheetData(d.items);showApp();
-      }).catch(()=>{
-        clearInterval(iv);bar.style.width='100%';
-        txt.textContent='✕ No connection — tap to retry';txt.style.cursor='pointer';
-        txt.onclick=()=>{location.reload();};
-        setSync('error','✕ ERROR');
-      });
-  });
+  }
+  trySheet(0);
 });
 </script>
 </body>

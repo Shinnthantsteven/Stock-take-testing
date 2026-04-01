@@ -144,7 +144,7 @@ body.light .item-row:hover{background:rgba(0,0,0,.02);}
 .pill-cat{background:rgba(251,191,36,.12);color:#fbbf24;border:1px solid rgba(251,191,36,.3);}
 .pill-brand{background:rgba(59,130,246,.10);color:#60a5fa;border:1px solid rgba(59,130,246,.22);}
 .pill-origin{background:rgba(16,185,129,.08);color:#10b981;border:1px solid rgba(16,185,129,.2);}
-.pill-qb{background:var(--qb-dim);color:var(--qb-clr);border:1px solid var(--qb-border);}
+.pill-qb{background:var(--qb-dim);color:var(--qb-clr);border:1px solid var(--qb-border);font-size:9.5px;padding:3px 9px;font-weight:800;}
 .cell-stock{display:flex;align-items:center;justify-content:center;}
 .stock-wrap{display:flex;flex-direction:column;align-items:center;gap:3px;}
 .stock-qty{font-size:17px;font-weight:800;color:var(--brand);line-height:1;cursor:pointer;display:inline-block;}
@@ -179,10 +179,10 @@ body.light .exp-desk-add{color:rgba(0,0,0,.2);border-color:rgba(0,0,0,.12);}
 body.light .exp-desk-add:hover{border-color:var(--exp-clr);color:var(--exp-clr);}
 
 /* ── EXPIRY MOBILE — now appears right after item name (middle position) ── */
-.mob-exp-wrap{margin-top:3px;margin-bottom:3px;display:flex;align-items:center;}
-.mob-exp-badge{font-size:9px;font-weight:800;padding:3px 9px;border-radius:20px;background:var(--exp-dim);border:1px solid var(--exp-border);color:var(--exp-clr);white-space:nowrap;cursor:pointer;}
-.mob-exp-add{font-size:8px;font-weight:700;color:rgba(255,255,255,.28);border:1px dashed rgba(255,255,255,.15);border-radius:10px;padding:2px 10px;cursor:pointer;}
-body.light .mob-exp-add{color:rgba(0,0,0,.25);border-color:rgba(0,0,0,.15);}
+.mob-exp-wrap{margin-top:5px;margin-bottom:5px;display:flex;align-items:center;justify-content:flex-end;}
+.mob-exp-badge{font-size:13px;font-weight:800;padding:5px 14px;border-radius:20px;background:var(--exp-dim);border:1.5px solid var(--exp-border);color:var(--exp-clr);white-space:nowrap;cursor:pointer;letter-spacing:.2px;}
+.mob-exp-add{font-size:9px;font-weight:700;color:rgba(255,255,255,.30);border:1px dashed rgba(255,255,255,.18);border-radius:20px;padding:4px 12px;cursor:pointer;}
+body.light .mob-exp-add{color:rgba(0,0,0,.28);border-color:rgba(0,0,0,.18);}
 
 /* EXPIRY EDIT POPUP */
 .exp-edit-overlay{position:fixed;inset:0;z-index:8500;background:rgba(0,0,0,.6);backdrop-filter:blur(6px);display:none;align-items:flex-end;justify-content:center;padding-bottom:calc(20px + var(--safe-bottom));}
@@ -1447,20 +1447,21 @@ window.addEventListener('load',()=>{
       });
   }
 
-  const CACHE_KEY='c2c_items',CACHE_TS='c2c_items_ts',CACHE_TTL=20*60*1000;
-  const cachedTs=parseInt(localStorage.getItem(CACHE_TS)||'0');
-  const cacheValid=(Date.now()-cachedTs)<CACHE_TTL;
+  const CACHE_KEY='c2c_items',CACHE_TS='c2c_items_ts';
   const cachedItems=localStorage.getItem(CACHE_KEY);
-  if(cachedItems&&cacheValid){
+
+  // ALWAYS load from cache instantly if available — no waiting
+  if(cachedItems){
     try{
       ITEMS=JSON.parse(cachedItems);
       if(ITEMS&&ITEMS.length>10){
-        txt.textContent='Loaded from cache ⚡';
+        txt.textContent='Loading… ⚡';
         ITEMS.forEach(item=>{
           if(item.qbQty!==undefined&&item.qbQty!==null)qbData[item.id]=item.qbQty;
           else if(item.qbStock!==undefined)qbData[item.id]=item.qbStock;
           if(item.expiry)expiryData[item.id]=item.expiry;
         });
+        // Pull latest stock values from Firebase immediately
         db.ref('stock').once('value').then(snap=>{
           const fb=snap.val();
           if(fb)Object.entries(fb).forEach(([k,v])=>{
@@ -1470,10 +1471,29 @@ window.addEventListener('load',()=>{
           });
           saveLocal();finishLoad();
         }).catch(()=>finishLoad());
+
+        // BACKGROUND REFRESH — silently update cache from sheet after showing UI
+        setTimeout(()=>{
+          fetch(SHEETS_URL+'?action=getAll&_t='+Date.now()+Math.random(),{cache:'no-store',redirect:'follow'})
+            .then(r=>r.json()).then(d=>{
+              if(!d.ok||!d.items)return;
+              try{localStorage.setItem(CACHE_KEY,JSON.stringify(d.items));localStorage.setItem(CACHE_TS,String(Date.now()));}catch(e){}
+              // Update QB and expiry data silently
+              d.items.forEach(item=>{
+                if(item.qbQty!==undefined&&item.qbQty!==null)qbData[item.id]=item.qbQty;
+                if(item.expiry&&item.expiry!==expiryData[item.id]){
+                  expiryData[item.id]=item.expiry;
+                  updateExpiryDisplay(item.id);
+                }
+              });
+            }).catch(()=>{}); // silent fail — offline is fine
+        },2000); // 2 sec after UI shows
+
         return;
       }
     }catch(e){ITEMS=[];}
   }
+  // No cache at all — fetch fresh (first ever open)
   fetchFromSheet();
 });
 </script>

@@ -15,7 +15,7 @@
 const _m={name:"Chef2Chef Stock",short_name:"C2C Stock",description:"Physical Stock Count Module",start_url:"./",display:"standalone",background_color:"#020617",theme_color:"#020617",orientation:"any",icons:[{src:"data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='100' fill='%23020617'/><text y='.85em' font-size='384' x='50%' text-anchor='middle'>🥩</text></svg>",sizes:"512x512",type:"image/svg+xml"}]};
 const _b=new Blob([JSON.stringify(_m)],{type:'application/json'});
 const _l=document.createElement('link');_l.rel='manifest';_l.href=URL.createObjectURL(_b);document.head.appendChild(_l);
-if('serviceWorker'in navigator){const sw=`const C='c2c-v7';self.addEventListener('install',e=>self.skipWaiting());self.addEventListener('activate',e=>e.waitUntil(clients.claim()));self.addEventListener('fetch',e=>{const u=e.request.url;if(u.includes('script.google.com')||u.includes('firebaseio.com'))return;if(u.includes('fonts.gstatic')||u.includes('gstatic.com/firebasejs')||u.includes('fonts.googleapis')){e.respondWith(caches.open(C).then(c=>c.match(e.request).then(r=>r||fetch(e.request).then(res=>{c.put(e.request,res.clone());return res;}))));}});`;navigator.serviceWorker.register(URL.createObjectURL(new Blob([sw],{type:'text/javascript'}))).catch(()=>{});}
+if('serviceWorker'in navigator){const sw=`const C='c2c-v8';self.addEventListener('install',e=>self.skipWaiting());self.addEventListener('activate',e=>e.waitUntil(clients.claim()));self.addEventListener('fetch',e=>{const u=e.request.url;if(u.includes('script.google.com')||u.includes('firebaseio.com'))return;if(u.includes('fonts.gstatic')||u.includes('gstatic.com/firebasejs')||u.includes('fonts.googleapis')){e.respondWith(caches.open(C).then(c=>c.match(e.request).then(r=>r||fetch(e.request).then(res=>{c.put(e.request,res.clone());return res;}))));}});`;navigator.serviceWorker.register(URL.createObjectURL(new Blob([sw],{type:'text/javascript'}))).catch(()=>{});}
 </script>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -136,7 +136,6 @@ body.light .item-row:hover{background:rgba(0,0,0,.02);}
 .cell{padding:8px 10px;overflow:hidden;}
 .cell:first-child{padding-left:18px;}
 .cell:last-child{padding-right:18px;}
-/* ── FIX: UID no longer wraps ── */
 .cell-uid{font-family:monospace;font-size:10px;font-weight:700;color:var(--uid-clr);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .desc-name{font-weight:700;font-size:14px;color:var(--text);line-height:1.4;margin-bottom:3px;}
 .desc-meta{display:flex;flex-wrap:wrap;gap:3px;margin-top:2px;}
@@ -169,7 +168,6 @@ body.light .stock-empty-btn{border-color:rgba(0,0,0,.13);color:rgba(0,0,0,.15);}
 .qb-val-num{font-size:20px;font-weight:800;color:var(--qb-clr);line-height:1;}
 .qb-zero{color:var(--text3);font-size:13px;font-weight:700;opacity:.35;}
 
-/* EXPIRY DESKTOP */
 .cell-exp{display:none;flex-direction:column;align-items:center;justify-content:center;gap:4px;}
 .exp-desk-label{font-size:7px;font-weight:800;letter-spacing:.8px;color:var(--exp-clr);opacity:.6;text-transform:uppercase;}
 .exp-desk-val{font-size:13px;font-weight:800;color:var(--exp-clr);line-height:1;cursor:pointer;}
@@ -178,13 +176,11 @@ body.light .stock-empty-btn{border-color:rgba(0,0,0,.13);color:rgba(0,0,0,.15);}
 body.light .exp-desk-add{color:rgba(0,0,0,.2);border-color:rgba(0,0,0,.12);}
 body.light .exp-desk-add:hover{border-color:var(--exp-clr);color:var(--exp-clr);}
 
-/* ── EXPIRY MOBILE — now appears right after item name (middle position) ── */
 .mob-exp-wrap{margin-top:0;margin-bottom:0;display:flex;align-items:center;justify-content:flex-end;}
 .mob-exp-badge{font-size:11px;font-weight:800;padding:4px 12px;border-radius:20px;background:var(--exp-dim);border:1.5px solid var(--exp-border);color:var(--exp-clr);white-space:nowrap;cursor:pointer;letter-spacing:.2px;}
 .mob-exp-add{font-size:9px;font-weight:700;color:rgba(255,255,255,.30);border:1px dashed rgba(255,255,255,.18);border-radius:20px;padding:3px 11px;cursor:pointer;}
 body.light .mob-exp-add{color:rgba(0,0,0,.28);border-color:rgba(0,0,0,.18);}
 
-/* EXPIRY EDIT POPUP */
 .exp-edit-overlay{position:fixed;inset:0;z-index:8500;background:rgba(0,0,0,.6);backdrop-filter:blur(6px);display:none;align-items:flex-end;justify-content:center;padding-bottom:calc(20px + var(--safe-bottom));}
 .exp-edit-overlay.open{display:flex;}
 .exp-edit-box{background:var(--bg2);border:1px solid var(--border);border-radius:20px;width:min(340px,92%);padding:20px;display:flex;flex-direction:column;gap:14px;box-shadow:0 8px 40px rgba(0,0,0,.5);}
@@ -389,7 +385,7 @@ body.light .fkb-btn-op{background:rgba(99,102,241,.10);color:#6366f1;}
 .fkb-btn-ok{background:var(--brand);border-color:var(--brand);color:#020617;font-weight:800;font-size:13px;box-shadow:0 2px 10px rgba(16,185,129,.3);}
 .fkb-btn-ok:active{background:#0ea572;}
 
-/* ════ DESKTOP ════ */
+/* DESKTOP */
 @media(min-width:768px){
   :root{--row-h:auto;}
   html,body{overflow:hidden;}
@@ -398,8 +394,6 @@ body.light .fkb-btn-op{background:rgba(99,102,241,.10);color:#6366f1;}
   .nav-label{display:inline;font-size:10px;}
   .hist-btn{display:inline-flex;}
   .tbl-area{height:calc(100dvh - 56px - 68px);mask-image:linear-gradient(to bottom,black 85%,transparent 100%);-webkit-mask-image:linear-gradient(to bottom,black 85%,transparent 100%);padding:0 24px 20px;}
-
-  /* ── FIX: wider UID col + pack col, nowrap UID ── */
   .col-heads{display:grid;grid-template-columns:112px 1fr 90px 155px 100px 52px 120px 165px 115px;padding:0;border-radius:12px;border:1px solid var(--border);margin-bottom:4px;}
   .col-h{padding:11px 10px;font-size:9px;letter-spacing:.6px;}
   .col-h:first-child{border-radius:12px 0 0 12px;padding-left:18px;}
@@ -409,11 +403,9 @@ body.light .fkb-btn-op{background:rgba(99,102,241,.10);color:#6366f1;}
   .cell{padding:12px 10px;display:flex;align-items:center;}
   .cell:first-child{padding-left:18px;border-radius:8px 0 0 8px;}
   .cell:last-child{padding-right:18px;border-radius:0 8px 8px 0;}
-  /* UID: nowrap, single line always */
   .cell-uid{display:flex;font-family:monospace;font-size:10.5px;font-weight:700;color:var(--uid-clr);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.4;}
   .cell-um{display:flex;font-size:13px;font-weight:700;color:var(--text2);justify-content:center;text-align:center;}
   .cell-sup{display:flex;font-size:13px;font-weight:600;color:var(--text2);align-items:center;line-height:1.4;}
-  /* Pack: wider col, smaller font to fit */
   .cell-pack-col{display:flex;font-size:11.5px;font-weight:700;color:var(--pack-clr);align-items:center;line-height:1.3;}
   .cell-brand-col{display:flex;flex-direction:column;justify-content:center;gap:3px;}
   .cell-cost{display:none;}
@@ -658,12 +650,16 @@ let isLocked=false;
 const isDesktop=()=>window.innerWidth>=768;
 const isAdmin=()=>currentUser&&currentUser.id==='steve';
 
+// ─── OFFLINE / PENDING ───────────────────────────────────────────────────────
 let pendingSheetUpdates=[],isOnline=navigator.onLine;
 
 function updateOfflineUI(){
   const banner=document.getElementById('offlineBanner'),badge=document.getElementById('pendingBadge');
-  if(!isOnline){banner.classList.add('show');if(pendingSheetUpdates.length>0){badge.textContent=pendingSheetUpdates.length+' pending';badge.classList.add('show');}else badge.classList.remove('show');}
-  else{banner.classList.remove('show');badge.classList.remove('show');}
+  if(!isOnline){
+    banner.classList.add('show');
+    if(pendingSheetUpdates.length>0){badge.textContent=pendingSheetUpdates.length+' pending';badge.classList.add('show');}
+    else badge.classList.remove('show');
+  }else{banner.classList.remove('show');badge.classList.remove('show');}
 }
 function savePendingUpdates(){try{localStorage.setItem('c2c_pending',JSON.stringify(pendingSheetUpdates.slice(0,50)));}catch(e){}}
 function loadPendingUpdates(){try{const p=JSON.parse(localStorage.getItem('c2c_pending')||'[]');if(Array.isArray(p))pendingSheetUpdates=p;}catch(e){pendingSheetUpdates=[];}}
@@ -673,9 +669,10 @@ function flushPendingUpdates(){
   batch.forEach((u,i)=>setTimeout(()=>updateSheetBackground(u.uid,u.qty,u.formula,u.added),i*200));
   showToast('↑ Syncing '+batch.length+' offline update'+(batch.length>1?'s':'')+'…','ok');
 }
-window.addEventListener('online',()=>{isOnline=true;setSync('ok','● LIVE');updateOfflineUI();flushPendingUpdates();db.ref('.info/connected').once('value');});
+window.addEventListener('online',()=>{isOnline=true;setSync('ok','● LIVE');updateOfflineUI();flushPendingUpdates();});
 window.addEventListener('offline',()=>{isOnline=false;setSync('offline','◌ OFFLINE');updateOfflineUI();});
 
+// ─── KB SHIELD ───────────────────────────────────────────────────────────────
 let kbJustClosed=false;
 const kbShieldEl=document.getElementById('kbShield');
 function activateKbShield(){kbJustClosed=true;kbShieldEl.classList.add('active');setTimeout(()=>{kbJustClosed=false;kbShieldEl.classList.remove('active');},450);}
@@ -688,6 +685,7 @@ function exitApp(){
   if(!confirm(msg))return;location.reload();
 }
 
+// ─── HELPERS ─────────────────────────────────────────────────────────────────
 function xe(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function cleanDesc(desc,id){let d=String(desc||'').trim();if(id&&d.startsWith(id)){d=d.slice(id.length).trim();d=d.replace(/^[\s\(\-\:\|]+/,'').replace(/\)\s*$/,'').trim();}return d||desc;}
 function setSync(state,msg){['syncBadge','syncBadgeMob'].forEach(id=>{const el=document.getElementById(id);if(!el)return;el.className='sync-badge'+(state==='ok'?'':' '+state);el.textContent=msg;});}
@@ -697,54 +695,18 @@ function saveLocal(){try{localStorage.setItem('c2c_stock',JSON.stringify({s:stoc
 function loadLocal(){try{const d=JSON.parse(localStorage.getItem('c2c_stock')||'{}');if(d.s)Object.assign(stockData,d.s);if(d.f)Object.assign(formulaData,d.f);}catch(e){}}
 function saveHistory(){try{localStorage.setItem('c2c_history',JSON.stringify(historyLog.slice(0,500)));}catch(e){}}
 function loadHistory(){try{historyLog=JSON.parse(localStorage.getItem('c2c_history')||'[]');}catch(e){}}
-function openHistory(){document.getElementById('histDrawer').classList.add('open');document.getElementById('histOverlay').classList.add('open');fetchHistory();}
-function closeHistory(){document.getElementById('histDrawer').classList.remove('open');document.getElementById('histOverlay').classList.remove('open');}
-function fetchHistory(){
-  document.getElementById('histBody').innerHTML='<div class="hist-empty">Loading…</div>';
-  fetch(SHEETS_URL+'?action=getHistory&_t='+Date.now(),{cache:'no-store',redirect:'follow'})
-    .then(r=>r.json()).then(d=>{if(d.ok&&d.history){d.history.forEach(e=>{if(!historyLog.some(l=>l.ts===e.ts&&l.uid===e.uid))historyLog.unshift(e);});historyLog=historyLog.slice(0,500);saveHistory();}renderHistory();}).catch(()=>renderHistory());
+function showToast(msg,type){
+  let t=document.getElementById('sysToast');
+  if(!t){t=document.createElement('div');t.id='sysToast';t.style.cssText='position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(12px);z-index:99999;padding:8px 18px;border-radius:30px;font-size:11px;font-weight:800;font-family:"Plus Jakarta Sans",sans-serif;opacity:0;transition:all .3s;pointer-events:none;white-space:nowrap;';document.body.appendChild(t);}
+  const isErr=type==='error';
+  t.style.background=isErr?'rgba(239,68,68,.18)':'rgba(16,185,129,.18)';
+  t.style.border='1px solid '+(isErr?'rgba(239,68,68,.4)':'rgba(16,185,129,.4)');
+  t.style.color=isErr?'#ef4444':'#10b981';
+  t.textContent=msg;t.style.opacity='1';t.style.transform='translateX(-50%) translateY(0)';
+  clearTimeout(t._tid);t._tid=setTimeout(()=>{t.style.opacity='0';t.style.transform='translateX(-50%) translateY(12px)';},2400);
 }
 
-const KNOWN_USERS={Steve:'Steve',Aswanth:'Aswanth',Fatima:'Fatima'};
-const USER_EMOJI={Steve:'🟢',Aswanth:'🟣',Fatima:'🩷'};
-
-function resolveHistSource(raw){
-  if(raw==='sheet')return{label:'📊 Sheet',cls:'sheet'};
-  if(KNOWN_USERS[raw])return{label:(USER_EMOJI[raw]||'👤')+' '+raw,cls:raw};
-  return{label:'🌐 Web',cls:'web'};
-}
-
-function renderHistory(){
-  const body=document.getElementById('histBody');
-  if(!historyLog.length){body.innerHTML='<div class="hist-empty">No history yet</div>';return;}
-  body.innerHTML=historyLog.map(e=>{
-    const added=String(e.added||'');const isPos=!added.startsWith('-');
-    const {label:src,cls:srcCls}=resolveHistSource(e.source);
-    return`<div class="hist-row">
-      <div class="hist-top"><span class="hist-uid">${xe(e.uid)}</span><span class="hist-ts">${xe(e.ts)}</span></div>
-      <div class="hist-desc">${xe(e.desc)}</div>
-      <div class="hist-vals">
-        <span class="hist-old">${e.oldVal}</span><span class="hist-arr">→</span>
-        <span class="hist-new">${e.newVal}</span>
-        <span class="hist-chg ${isPos?'pos':'neg'}">${xe(added)}</span>
-        <span class="hist-src ${srcCls}">${src}</span>
-      </div>
-      ${e.formula?`<div style="margin-top:3px;font-family:monospace;font-size:9px;color:#fbbf24">=<span>${xe(normalizeFormula(e.formula))}</span></div>`:''}
-    </div>`;
-  }).join('');
-}
-
-function addLocalHistory(uid,oldVal,newVal,added,formula,source){
-  const item=ITEMS.find(r=>r.id===uid);
-  const ts=new Date().toISOString().replace('T',' ').slice(0,19);
-  const addStr=added>=0?'+'+parseFloat(added.toFixed(4)):String(parseFloat(added.toFixed(4)));
-  const who=currentUser?currentUser.name:(source||'web');
-  historyLog.unshift({ts,uid,desc:item?item.desc:uid,oldVal,newVal,added:addStr,formula:formula||'',source:who});
-  if(historyLog.length>500)historyLog.pop();
-  saveHistory();
-  if(document.getElementById('histDrawer').classList.contains('open'))renderHistory();
-}
-
+// ─── LOCK ─────────────────────────────────────────────────────────────────────
 function applyLockState(locked){
   isLocked=locked;
   const banner=document.getElementById('lockBanner'),overlay=document.getElementById('lockOverlay');
@@ -759,16 +721,6 @@ function applyLockState(locked){
     if(lockBtn){lockBtn.textContent='🔓 UNLOCKED';lockBtn.classList.remove('locked');}
     if(lockBtnMob){lockBtnMob.textContent='🔓';lockBtnMob.classList.remove('locked');}
   }
-}
-function showToast(msg,type){
-  let t=document.getElementById('sysToast');
-  if(!t){t=document.createElement('div');t.id='sysToast';t.style.cssText='position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(12px);z-index:99999;padding:8px 18px;border-radius:30px;font-size:11px;font-weight:800;font-family:"Plus Jakarta Sans",sans-serif;opacity:0;transition:all .3s;pointer-events:none;white-space:nowrap;';document.body.appendChild(t);}
-  const isErr=type==='error';
-  t.style.background=isErr?'rgba(239,68,68,.18)':'rgba(16,185,129,.18)';
-  t.style.border='1px solid '+(isErr?'rgba(239,68,68,.4)':'rgba(16,185,129,.4)');
-  t.style.color=isErr?'#ef4444':'#10b981';
-  t.textContent=msg;t.style.opacity='1';t.style.transform='translateX(-50%) translateY(0)';
-  clearTimeout(t._tid);t._tid=setTimeout(()=>{t.style.opacity='0';t.style.transform='translateX(-50%) translateY(12px)';},2400);
 }
 function toggleSystemLock(){
   if(!isAdmin()){showToast('Only Steve (admin) can lock/unlock.','error');return;}
@@ -787,11 +739,13 @@ function canWrite(){
   return true;
 }
 
+// ─── OWN-WRITE ECHO GUARD ────────────────────────────────────────────────────
 const ownWrites={};
 function lockWrite(uid){ownWrites[uid]=Date.now();}
 function isOwnEcho(uid){return ownWrites[uid]&&(Date.now()-ownWrites[uid])<3000;}
 setInterval(()=>{const now=Date.now();Object.keys(ownWrites).forEach(k=>{if(now-ownWrites[k]>5000)delete ownWrites[k];});},15000);
 
+// ─── SHEET BACKGROUND WRITE ──────────────────────────────────────────────────
 function updateSheetBackground(uid,qty,formula,added){
   if(!isOnline){
     pendingSheetUpdates=pendingSheetUpdates.filter(p=>p.uid!==uid);
@@ -805,35 +759,44 @@ function updateSheetBackground(uid,qty,formula,added){
     savePendingUpdates();setSync('syncing','⚠ SHEET SYNC');updateOfflineUI();
   });
 }
+
+// ─── FIREBASE WRITE ──────────────────────────────────────────────────────────
 function fbWrite(uid,qty,formula,added){
-  lockWrite(uid);const k=uid.replace(/[.#$[\]]/g,'_');
+  lockWrite(uid);
+  const k=uid.replace(/[.#$[\]]/g,'_');
   db.ref('stock/'+k).set({qty,formula:formula||String(qty),ts:Date.now(),added:added??0,source:currentUser?currentUser.name:'web'})
     .then(()=>{setSync('ok','● LIVE');updateSheetBackground(uid,qty,formula||String(qty),added??0);})
     .catch(()=>{setSync('offline','◌ OFFLINE');updateSheetBackground(uid,qty,formula||String(qty),added??0);});
 }
 
+// ─── FIREBASE LISTENER ───────────────────────────────────────────────────────
+// child_changed ONLY — fires only when data actually changes after we subscribe.
+// child_added is NOT used here because it fires for every existing item on first
+// connect, creating O(n²) startup work. Initial stock snapshot is loaded via
+// once('value') in the boot sequence below.
 function startFirebaseListener(){
   if(fbListening)return;fbListening=true;
-  const handleFbUpdate=(snap)=>{
+  db.ref('stock').on('child_changed',(snap)=>{
     const k=snap.key,val=snap.val();
     if(!val||!ITEMS.length)return;
     if(k==='__SYSLOCK__')return;
     const item=ITEMS.find(r=>r.id.replace(/[.#$[\]]/g,'_')===k);if(!item)return;
     const uid=item.id;if(isOwnEcho(uid))return;
-    const newQty=parseFloat(val.qty)||0;const newForm=normalizeFormula(val.formula||String(newQty));
+    const newQty=parseFloat(val.qty)||0;
+    const newForm=normalizeFormula(val.formula||String(newQty));
     const locForm=normalizeFormula(formulaData[uid]||'');
     if(Math.abs(newQty-(stockData[uid]||0))>0.0001||newForm!==locForm){
-      const oldVal=stockData[uid]||0;stockData[uid]=newQty;formulaData[uid]=newForm;
+      const oldVal=stockData[uid]||0;
+      stockData[uid]=newQty;formulaData[uid]=newForm;
       updateRowDisplay(uid);
       addLocalHistory(uid,oldVal,newQty,val.added||(newQty-oldVal),newForm,val.source||'sheet');
       saveLocal();setSync('ok','● LIVE');
     }
-  };
-  db.ref('stock').on('child_changed',handleFbUpdate);
-  db.ref('stock').on('child_added',handleFbUpdate);
+  });
   db.ref('.info/connected').on('value',snap=>{if(snap.val()===true){if(!isOnline){isOnline=true;updateOfflineUI();}setSync('ok','● LIVE');}});
 }
 
+// ─── STOCK WRITE HELPERS ─────────────────────────────────────────────────────
 function sendAdd(uid,addQty){
   if(!canWrite())return;
   const oldVal=stockData[uid]||0;const newVal=parseFloat((oldVal+addQty).toFixed(4));
@@ -858,7 +821,7 @@ function sendSetFormula(uid,formula,qty){
   setSync('syncing','⟳ SAVING');fbWrite(uid,qty,clean,qty-oldVal);
 }
 
-/* EXPIRY */
+// ─── EXPIRY ──────────────────────────────────────────────────────────────────
 let expEditUid=null;
 function openExpiryEdit(uid){
   if(!canWrite())return;
@@ -874,14 +837,11 @@ function clearExpiryEdit(){document.getElementById('expEditInput').value='';}
 function confirmExpiryEdit(){
   if(!expEditUid)return;
   const raw=document.getElementById('expEditInput').value.trim();
-  const uid=expEditUid;
-  closeExpiryEdit();
-  expiryData[uid]=raw;
-  updateExpiryDisplay(uid);
+  const uid=expEditUid;closeExpiryEdit();
+  expiryData[uid]=raw;updateExpiryDisplay(uid);
   const params=new URLSearchParams({action:'updateExpiry',uid,expiry:raw,_t:Date.now()});
   fetch(SHEETS_URL+'?'+params.toString(),{cache:'no-store',redirect:'follow',keepalive:true})
-    .then(r=>r.json())
-    .then(d=>{if(d.ok)showToast('📅 Expiry saved','ok');else showToast('Expiry save failed','error');})
+    .then(r=>r.json()).then(d=>{if(d.ok)showToast('📅 Expiry saved','ok');else showToast('Expiry save failed','error');})
     .catch(()=>showToast('Expiry save failed','error'));
   if(navigator.vibrate)navigator.vibrate(20);
 }
@@ -892,43 +852,69 @@ document.getElementById('expEditInput').addEventListener('keydown',e=>{
 document.getElementById('expEditOverlay').addEventListener('pointerdown',e=>{
   if(e.target===document.getElementById('expEditOverlay'))closeExpiryEdit();
 });
-
 function updateExpiryDisplay(uid){
   const sid=uid.replace(/[^a-zA-Z0-9_-]/g,'_');
   const val=expiryData[uid]||'';
   const expDeskEl=document.getElementById('expd-'+sid);
-  if(expDeskEl){
-    expDeskEl.innerHTML=val
-      ?`<span class="exp-desk-label">EXP</span><span class="exp-desk-val" onclick="openExpiryEdit('${uid}')">${xe(val)}</span>`
-      :`<span class="exp-desk-add" onclick="openExpiryEdit('${uid}')">＋ DATE</span>`;
-  }
+  if(expDeskEl){expDeskEl.innerHTML=val?`<span class="exp-desk-label">EXP</span><span class="exp-desk-val" onclick="openExpiryEdit('${uid}')">${xe(val)}</span>`:`<span class="exp-desk-add" onclick="openExpiryEdit('${uid}')">＋ DATE</span>`;}
   const expMobEl=document.getElementById('expm-'+sid);
-  if(expMobEl){
-    expMobEl.innerHTML=val
-      ?`<span class="mob-exp-badge" onclick="openExpiryEdit('${uid}')">📅 ${xe(val)}</span>`
-      :`<span class="mob-exp-add" onclick="openExpiryEdit('${uid}')">＋ EXP DATE</span>`;
-  }
+  if(expMobEl){expMobEl.innerHTML=val?`<span class="mob-exp-badge" onclick="openExpiryEdit('${uid}')">📅 ${xe(val)}</span>`:`<span class="mob-exp-add" onclick="openExpiryEdit('${uid}')">＋ EXP DATE</span>`;}
 }
-
 function expiryDeskHtml(id){
-  const sid=id.replace(/[^a-zA-Z0-9_-]/g,'_');
-  const val=expiryData[id]||'';
-  return`<div class="cell-exp-inner" id="expd-${sid}">`+(val
-    ?`<span class="exp-desk-label">EXP</span><span class="exp-desk-val" onclick="openExpiryEdit('${id}')">${xe(val)}</span>`
-    :`<span class="exp-desk-add" onclick="openExpiryEdit('${id}')">＋ DATE</span>`
-  )+`</div>`;
+  const sid=id.replace(/[^a-zA-Z0-9_-]/g,'_');const val=expiryData[id]||'';
+  return`<div class="cell-exp-inner" id="expd-${sid}">`+(val?`<span class="exp-desk-label">EXP</span><span class="exp-desk-val" onclick="openExpiryEdit('${id}')">${xe(val)}</span>`:`<span class="exp-desk-add" onclick="openExpiryEdit('${id}')">＋ DATE</span>`)+`</div>`;
 }
-
-/* ── FIX: expiry now shows right after item name (middle position) ── */
 function expiryMobHtml(id){
-  const sid=id.replace(/[^a-zA-Z0-9_-]/g,'_');
-  const val=expiryData[id]||'';
-  return`<div class="mob-exp-wrap" id="expm-${sid}">`+(val
-    ?`<span class="mob-exp-badge" onclick="openExpiryEdit('${id}')">📅 ${xe(val)}</span>`
-    :`<span class="mob-exp-add" onclick="openExpiryEdit('${id}')">＋ EXP DATE</span>`
-  )+`</div>`;
+  const sid=id.replace(/[^a-zA-Z0-9_-]/g,'_');const val=expiryData[id]||'';
+  return`<div class="mob-exp-wrap" id="expm-${sid}">`+(val?`<span class="mob-exp-badge" onclick="openExpiryEdit('${id}')">📅 ${xe(val)}</span>`:`<span class="mob-exp-add" onclick="openExpiryEdit('${id}')">＋ EXP DATE</span>`)+`</div>`;
 }
 
+// ─── HISTORY ─────────────────────────────────────────────────────────────────
+function openHistory(){document.getElementById('histDrawer').classList.add('open');document.getElementById('histOverlay').classList.add('open');fetchHistory();}
+function closeHistory(){document.getElementById('histDrawer').classList.remove('open');document.getElementById('histOverlay').classList.remove('open');}
+function fetchHistory(){
+  document.getElementById('histBody').innerHTML='<div class="hist-empty">Loading…</div>';
+  fetch(SHEETS_URL+'?action=getHistory&_t='+Date.now(),{cache:'no-store',redirect:'follow'})
+    .then(r=>r.json()).then(d=>{if(d.ok&&d.history){d.history.forEach(e=>{if(!historyLog.some(l=>l.ts===e.ts&&l.uid===e.uid))historyLog.unshift(e);});historyLog=historyLog.slice(0,500);saveHistory();}renderHistory();}).catch(()=>renderHistory());
+}
+const KNOWN_USERS={Steve:'Steve',Aswanth:'Aswanth',Fatima:'Fatima'};
+const USER_EMOJI={Steve:'🟢',Aswanth:'🟣',Fatima:'🩷'};
+function resolveHistSource(raw){
+  if(raw==='sheet')return{label:'📊 Sheet',cls:'sheet'};
+  if(KNOWN_USERS[raw])return{label:(USER_EMOJI[raw]||'👤')+' '+raw,cls:raw};
+  return{label:'🌐 Web',cls:'web'};
+}
+function renderHistory(){
+  const body=document.getElementById('histBody');
+  if(!historyLog.length){body.innerHTML='<div class="hist-empty">No history yet</div>';return;}
+  body.innerHTML=historyLog.map(e=>{
+    const added=String(e.added||'');const isPos=!added.startsWith('-');
+    const {label:src,cls:srcCls}=resolveHistSource(e.source);
+    return`<div class="hist-row">
+      <div class="hist-top"><span class="hist-uid">${xe(e.uid)}</span><span class="hist-ts">${xe(e.ts)}</span></div>
+      <div class="hist-desc">${xe(e.desc)}</div>
+      <div class="hist-vals">
+        <span class="hist-old">${e.oldVal}</span><span class="hist-arr">→</span>
+        <span class="hist-new">${e.newVal}</span>
+        <span class="hist-chg ${isPos?'pos':'neg'}">${xe(added)}</span>
+        <span class="hist-src ${srcCls}">${src}</span>
+      </div>
+      ${e.formula?`<div style="margin-top:3px;font-family:monospace;font-size:9px;color:#fbbf24">=<span>${xe(normalizeFormula(e.formula))}</span></div>`:''}
+    </div>`;
+  }).join('');
+}
+function addLocalHistory(uid,oldVal,newVal,added,formula,source){
+  const item=ITEMS.find(r=>r.id===uid);
+  const ts=new Date().toISOString().replace('T',' ').slice(0,19);
+  const addStr=added>=0?'+'+parseFloat(added.toFixed(4)):String(parseFloat(added.toFixed(4)));
+  const who=currentUser?currentUser.name:(source||'web');
+  historyLog.unshift({ts,uid,desc:item?item.desc:uid,oldVal,newVal,added:addStr,formula:formula||'',source:who});
+  if(historyLog.length>500)historyLog.pop();
+  saveHistory();
+  if(document.getElementById('histDrawer').classList.contains('open'))renderHistory();
+}
+
+// ─── FORMULA EQ INPUT ────────────────────────────────────────────────────────
 function onEqIn(id,sid){document.getElementById('eqok-'+sid)?.classList.add('on');}
 function onEqKd(e,id,sid){
   if(e.key==='Enter'){e.preventDefault();confirmEq(id,sid);}
@@ -945,6 +931,7 @@ function confirmEq(id,sid){
   sendSetFormula(id,clean,qty);
 }
 
+// ─── QB / EXPIRY CELLS ───────────────────────────────────────────────────────
 function qbCellHtml(id){
   const qty=qbData[id];
   if(qty===undefined||qty===null||qty===''){return`<div class="cell-qb-inner"><span class="qb-label-tag">QB QTY</span><span class="qb-zero">—</span></div>`;}
@@ -959,6 +946,7 @@ function qbPill(id,um){
   return`<span class="pill pill-qb">QB:${disp}${um?xe(um):''}</span>`;
 }
 
+// ─── STOCK CELL RENDERERS ────────────────────────────────────────────────────
 function stockCellHtmlMobile(id,um){
   const qty=stockData[id]||0;const sid=id.replace(/[^a-zA-Z0-9_-]/g,'_');const formula=formulaData[id]||'';
   if(qty>0){
@@ -990,9 +978,9 @@ function stockCellHtml(id){
   return`<div class="stock-empty-btn" onclick="openNp('${id}')">＋</div>`;
 }
 
+// ─── TABLE HEADERS ───────────────────────────────────────────────────────────
 function buildColHeads(){
-  const desktop=isDesktop();
-  document.getElementById('colHeads').innerHTML=desktop
+  document.getElementById('colHeads').innerHTML=isDesktop()
     ?`<div class="col-h">UID</div>
       <div class="col-h">Item Description</div>
       <div class="col-h qb-head">📦 QB QTY</div>
@@ -1005,19 +993,20 @@ function buildColHeads(){
     :`<div class="col-h">Item Description</div><div class="col-h">📦 Stock</div>`;
 }
 
+// ─── SEARCH / FILTER ─────────────────────────────────────────────────────────
 function getFiltered(){
   let items=ITEMS;
   if(searchQuery){const terms=searchQuery.split(/\s+/).filter(Boolean);items=items.filter(r=>{const t=(r.id+' '+r.desc+' '+r.pack+' '+r.sup+' '+r.cat+' '+r.brand+' '+r.origin).toLowerCase();return terms.every(w=>t.includes(w));});}
   return items;
 }
 
+// ─── VIRTUAL SCROLL ──────────────────────────────────────────────────────────
 let vsItems=[],vsRowH=0,vsStart=0,vsEnd=0;
 const VS_BUF=5;
 function vsRowHeight(){if(vsRowH>0)return vsRowH;vsRowH=isDesktop()?76:Math.round((window.innerHeight-132)/7);return vsRowH;}
-
 function rowHtml(r){
-  const sid=r.id.replace(/[^a-zA-Z0-9_-]/g,'_');const desktop=isDesktop();
-  if(desktop){
+  const sid=r.id.replace(/[^a-zA-Z0-9_-]/g,'_');
+  if(isDesktop()){
     const dDesc=cleanDesc(r.desc,r.id);
     return`<div class="item-row" id="row-${sid}">
       <div class="cell cell-uid">${xe(r.id)}</div>
@@ -1038,7 +1027,6 @@ function rowHtml(r){
     </div>`;
   }else{
     const mDesc=cleanDesc(r.desc,r.id);
-    /* ── FIX: expiry placed RIGHT AFTER item name, before UID/supplier ── */
     return`<div class="item-row" id="row-${sid}" style="min-height:${vsRowH}px">
       <div class="cell">
         <div class="desc-name">${xe(mDesc)} <span style="color:var(--pack-clr);font-size:10px">(${xe(r.pack)})</span></div>
@@ -1057,7 +1045,6 @@ function rowHtml(r){
     </div>`;
   }
 }
-
 function vsRender(scrollTop){
   const tbody=document.getElementById('tbody'),wrap=document.getElementById('tblArea');
   const rh=vsRowHeight(),total=vsItems.length;
@@ -1079,7 +1066,6 @@ let vsTicking=false;
 document.getElementById('tblArea').addEventListener('scroll',function(){
   if(!vsTicking){requestAnimationFrame(()=>{vsRender(this.scrollTop);vsTicking=false;});vsTicking=true;}
 },{passive:true});
-
 function updateRowDisplay(uid){
   const sid=uid.replace(/[^a-zA-Z0-9_-]/g,'_');const row=document.getElementById('row-'+sid);
   if(row){
@@ -1095,10 +1081,10 @@ function updateRowDisplay(uid){
     row.classList.remove('updated');void row.offsetWidth;row.classList.add('updated');
   }
 }
-
 let resizeTimer;
 window.addEventListener('resize',()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(()=>{vsRowH=0;buildColHeads();renderTable();initSearchMode();},200);});
 
+// ─── SEARCH BAR ──────────────────────────────────────────────────────────────
 const searchInEl=document.getElementById('searchIn');
 const barInnerEl=document.getElementById('barInner');
 function initSearchMode(){
@@ -1115,14 +1101,14 @@ let sT;
 searchInEl.addEventListener('input',e=>{if(!isDesktop())return;clearTimeout(sT);sT=setTimeout(()=>{searchQuery=e.target.value.toLowerCase().trim();renderTable();},120);});
 searchInEl.addEventListener('keydown',e=>{if(e.key==='Escape'){searchInEl.value='';searchQuery='';renderTable();}});
 
+// ─── NUMPAD POPUP ────────────────────────────────────────────────────────────
 let np={id:null,val:'0',op:'+'};
 let npPos={x:window.innerWidth-190,y:70};
 let npDrg=false,npOX=0,npOY=0;
-
 function openNp(id){
   if(!canWrite())return;
   const item=ITEMS.find(r=>r.id===id);if(!item)return;
-  np.id=id;np.val='0';np.op='+';
+  np.id=id;np.val='0';np.op='+';np._syncBase=null;
   const popup=document.getElementById('npPopup');
   npPos.x=Math.min(npPos.x,window.innerWidth-186);npPos.y=Math.max(10,Math.min(npPos.y,window.innerHeight-400));
   popup.style.left=npPos.x+'px';popup.style.top=npPos.y+'px';
@@ -1141,7 +1127,6 @@ function openNp(id){
 function closeNp(){
   document.getElementById('npPopup').classList.remove('open');
   document.removeEventListener('pointerdown',npOutside);
-  // Flush any pending sync immediately on close
   if(npSyncTimer&&np.id){clearTimeout(npSyncTimer);npSyncTimer=null;npFlushSync(np.id);}
   np._syncBase=null;
 }
@@ -1158,14 +1143,12 @@ function npDraw(){
   const ex=stockData[np.id]||0,um=(ITEMS.find(r=>r.id===np.id)||{}).um||'';
   let dispStr=np.val,opClass='np-value';
   if(np.val==='0'){
-    // Show operator immediately even before number typed
     if(np.op==='-'){dispStr='−';opClass+=' op-minus';}
     else if(np.op==='*'){dispStr='×';opClass+=' op-times';}
     else if(np.op==='/'){dispStr='÷';opClass+=' op-divide';}
     else if(np.op==='='){dispStr='＝';opClass+=' active';}
     else{dispStr='0';}
-    valEl.textContent=dispStr;valEl.className=opClass;
-    prevEl.textContent='';return;
+    valEl.textContent=dispStr;valEl.className=opClass;prevEl.textContent='';return;
   }
   opClass+=' active';
   if(np.op==='-'){dispStr='−'+np.val;opClass+=' op-minus';}
@@ -1185,16 +1168,14 @@ function npDraw(){
 }
 let npSyncTimer=null;
 function npFlushSync(uid){
-  // Called after user stops tapping — fires one Firebase+sheet write
   const qty=stockData[uid]||0;
   const formula=formulaData[uid]||String(qty);
-  const oldQty=np._syncBase||0;
+  const oldQty=np._syncBase!=null?np._syncBase:qty;
   const added=parseFloat((qty-oldQty).toFixed(4));
   setSync('syncing','⟳ SAVING');
   fbWrite(uid,qty,formula,added);
   np._syncBase=qty;
 }
-
 function npConfirm(){
   if(np.val==='0'){closeNp();return;}
   const ex=stockData[np.id]||0;let nt,ent;
@@ -1207,22 +1188,17 @@ function npConfirm(){
   if(navigator.vibrate)navigator.vibrate(25);
   const diff=parseFloat((nt-ex).toFixed(4));
   if(diff===0&&np.op!=='='){np.val='0';npDraw();return;}
-  // Update locally INSTANT — no Firebase wait
-  if(!np._syncBase&&np._syncBase!==0)np._syncBase=ex;
+  if(np._syncBase==null)np._syncBase=ex;
   const formula=np.op==='='?String(nt):(formulaData[np.id]||String(ex))+(diff>=0?'+':'')+Math.abs(diff);
-  stockData[np.id]=nt;
-  formulaData[np.id]=np.op==='='?String(nt):formula;
-  saveLocal();
-  updateRowDisplay(np.id);
+  stockData[np.id]=nt;formulaData[np.id]=np.op==='='?String(nt):formula;
+  saveLocal();updateRowDisplay(np.id);
   addLocalHistory(np.id,ex,nt,diff,formula,isDesktop()?'website':'mobile');
-  // Reset for next entry
   np.val='0';np.op='+';
   document.querySelectorAll('.np-op-tab').forEach(t=>t.classList.remove('active'));
   document.querySelector('.np-op-tab[data-op="+"]').classList.add('active');
   const item=ITEMS.find(r=>r.id===np.id);
   document.getElementById('npExisting').innerHTML=`Current: <span>${nt} ${item?.um||''}</span>`;
   npDraw();
-  // Debounce Firebase write — capture uid NOW not later
   const syncUid=np.id;
   clearTimeout(npSyncTimer);
   npSyncTimer=setTimeout(()=>npFlushSync(syncUid),1500);
@@ -1238,10 +1214,12 @@ function dS(e){npDrg=true;const r=document.getElementById('npPopup').getBounding
 function dM(e){if(!npDrg)return;const cx=e.touches?e.touches[0].clientX:e.clientX,cy=e.touches?e.touches[0].clientY:e.clientY;const p=document.getElementById('npPopup');const nx=Math.max(0,Math.min(window.innerWidth-p.offsetWidth,cx-npOX)),ny=Math.max(0,Math.min(window.innerHeight-p.offsetHeight,cy-npOY));npPos.x=nx;npPos.y=ny;p.style.left=nx+'px';p.style.top=ny+'px';}
 function dE(){npDrg=false;document.removeEventListener('mousemove',dM);document.removeEventListener('mouseup',dE);document.removeEventListener('touchmove',dM);document.removeEventListener('touchend',dE);}
 
+// ─── PWA INSTALL ─────────────────────────────────────────────────────────────
 let dip=null;
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();dip=e;if(!localStorage.getItem('c2c_nodismiss'))document.getElementById('installBanner').classList.add('show');});
 document.getElementById('installBtn').addEventListener('click',()=>{if(dip){dip.prompt();dip.userChoice.then(()=>{dip=null;document.getElementById('installBanner').classList.remove('show');});}});
 
+// ─── NAV SWIPE (MOBILE) ──────────────────────────────────────────────────────
 (function(){
   let navPage=0,swipeStartX=0,swipeStartY=0,swipeDragging=false,swipeDx=0;
   const track=document.getElementById('navSwipeTrack');
@@ -1261,6 +1239,7 @@ document.getElementById('installBtn').addEventListener('click',()=>{if(dip){dip.
   window._navGoPage1=()=>setNavPage(0,true);
 })();
 
+// ─── QKB (MOBILE KEYBOARD) ───────────────────────────────────────────────────
 (function(){
   let qkbQuery='',qkbCursorPos=0;
   let bsTimer=null,bsInterval=null,pressedKey=null;
@@ -1337,6 +1316,7 @@ document.getElementById('installBtn').addEventListener('click',()=>{if(dip){dip.
   window.addEventListener('load',()=>{setTimeout(()=>{if(!isDesktop()){const cached=loadSearchCache();if(cached){qkbQuery=cached;searchQuery=cached.toLowerCase().trim();searchInEl.value=cached;if(ITEMS.length)renderTable();}}},400);});
 })();
 
+// ─── FKB (FORMULA KEYBOARD MOBILE) ───────────────────────────────────────────
 let fkbTargetId=null,fkbTargetSid=null,fkbVal='',fkbCursorPos=0;
 let fkbNavTimer=null,fkbNavInterval=null;
 function fkbRefreshDisplay(){
@@ -1377,6 +1357,7 @@ function fkbConfirm(){
   fkbCancel();sendSetFormula(id,clean,qty);
 }
 
+// ─── AUTH ─────────────────────────────────────────────────────────────────────
 const USERS={
   'steve':  {password:'1964',name:'Steve',  color:'#10b981'},
   'aswanth':{password:'2026',name:'Aswanth',color:'#818cf8'},
@@ -1414,101 +1395,207 @@ function lockApp(){
   updateAdminUI();showLoginScreen();
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// BOOT SEQUENCE
+// Architecture: Firebase = primary source of truth for stock quantities.
+//               Sheet   = source of truth for item metadata (desc, sup, pack, QB, expiry).
+//               Cache   = offline backup only. Used to show app instantly while
+//                         Firebase loads in background.
+//
+// Flow A (cache exists — 2nd+ open):
+//   1. Show app immediately from cache (stock from localStorage)
+//   2. Firebase once('value') → overwrite stock with live values (~200-500ms)
+//   3. child_changed listener → real-time updates from other users
+//   4. After 4s: quietly refresh sheet metadata (QB/expiry only, no stock)
+//   5. Flush any pending offline sheet writes
+//
+// Flow B (no cache — first ever open):
+//   1. Show loading bar
+//   2. Firebase once('value') + Sheet getAll fire in parallel
+//   3. Sheet finishes first (usually): render table with sheet stock
+//      Firebase finishes: overwrite stock values with Firebase data
+//      (Either order: _applyFb() is safe to call in any sequence)
+//   4. child_changed listener → real-time updates
+//   5. Flush pending
+//
+// Flow C (offline):
+//   If cache: show from cache. If no cache: show error.
+// ═══════════════════════════════════════════════════════════════════════════════
 window.addEventListener('load',()=>{
-  if(localStorage.getItem('c2c_mode')==='light'){document.body.classList.add('light');document.getElementById('modeBtn').textContent='☀️ LIGHT';document.getElementById('modeBtnMob').textContent='☀️';}
+  // Init UI state
+  if(localStorage.getItem('c2c_mode')==='light'){
+    document.body.classList.add('light');
+    document.getElementById('modeBtn').textContent='☀️ LIGHT';
+    document.getElementById('modeBtnMob').textContent='☀️';
+  }
   loadLocal();loadHistory();loadPendingUpdates();initSearchMode();updateOfflineUI();
+
+  // Auth
   const savedUser=localStorage.getItem('c2c_user');
   if(savedUser&&USERS[savedUser]){currentUser={id:savedUser,...USERS[savedUser]};updateNavUser();hideLoginScreen();updateAdminUI();}
   else showLoginScreen();
 
-  // ── Cache path runs IMMEDIATELY — no Firebase needed ──
-  const cachedRaw=localStorage.getItem('c2c_items');
-  if(cachedRaw){
-    try{
-      const cached=JSON.parse(cachedRaw);
-      if(cached&&cached.length>0){
-        cached.forEach(item=>{
-          if(item.qbQty!==undefined&&item.qbQty!==null)qbData[item.id]=item.qbQty;
-          else if(item.qbStock!==undefined)qbData[item.id]=item.qbStock;
-          if(item.expiry)expiryData[item.id]=item.expiry;
-          if(!stockData[item.id]&&item.stock)stockData[item.id]=parseFloat(item.stock)||0;
-        });
-        ITEMS=cached;
-        // Show app instantly from cache
-        document.getElementById('loadScreen').style.display='none';
-        setSync('ok','● LIVE');
-        requestAnimationFrame(()=>{buildColHeads();renderTable();document.getElementById('barCount').textContent=ITEMS.length.toLocaleString();});
-        // Firebase + sheet connect in background
-        startLockListener();
-        startFirebaseListener();
-        setTimeout(flushPendingUpdates,800);
-        db.ref('stock').once('value').then(snap=>{
-            const fb=snap.val();if(!fb)return;
-            Object.entries(fb).forEach(([k,v])=>{
-              if(k==='__SYSLOCK__')return;
-              const item=ITEMS.find(r=>r.id.replace(/[.#$[\]]/g,'_')===k);if(!item)return;
-              stockData[item.id]=parseFloat(v.qty)||0;formulaData[item.id]=String(v.formula||v.qty||0);
-              updateRowDisplay(item.id);
-            });
-            saveLocal();
-          }).catch(()=>{});
-          setTimeout(()=>{
-            fetch(SHEETS_URL+'?action=getAll&_t='+Date.now()+Math.random(),{cache:'no-store',redirect:'follow'})
-              .then(r=>r.json()).then(d=>{
-                if(!d.ok||!d.items)return;
-                d.items.forEach(item=>{
-                  if(item.qbQty!==undefined&&item.qbQty!==null)qbData[item.id]=item.qbQty;
-                  if(item.expiry&&item.expiry!==expiryData[item.id]){expiryData[item.id]=item.expiry;updateExpiryDisplay(item.id);}
-                });
-                try{localStorage.setItem('c2c_items',JSON.stringify(d.items));localStorage.setItem('c2c_items_ts',String(Date.now()));}catch(e){}
-              }).catch(()=>{});
-          },4000);
-        });
-        return;
-      }
-    }catch(e){}
+  startLockListener();
+
+  const bar=document.getElementById('loadBar'),txt=document.getElementById('loadTxt');
+  function showApp(){
+    clearInterval(loadIv);bar.style.width='100%';
+    document.getElementById('loadScreen').style.display='none';
+    setSync('ok','● LIVE');
+    buildColHeads();renderTable();
+    document.getElementById('barCount').textContent=ITEMS.length.toLocaleString();
+  }
+  const loadIv=setInterval(()=>{
+    const p=parseFloat(bar.style.width||'0');
+    bar.style.width=Math.min(p+Math.random()*12,88)+'%';
+  },60);
+
+  // ── Apply Firebase snapshot to stockData (safe to call in any order) ──────
+  function _applyFb(snap){
+    const fb=snap.val();if(!fb||!ITEMS.length)return;
+    let changed=false;
+    Object.entries(fb).forEach(([k,v])=>{
+      if(k==='__SYSLOCK__')return;
+      const item=ITEMS.find(r=>r.id.replace(/[.#$[\]]/g,'_')===k);if(!item)return;
+      const newQty=parseFloat(v.qty)||0;
+      const newForm=normalizeFormula(v.formula||String(newQty));
+      stockData[item.id]=newQty;formulaData[item.id]=newForm;
+      changed=true;
+    });
+    if(changed)saveLocal();
   }
 
-  // ── No cache — load sheet ──
-  startLockListener();
-  const bar=document.getElementById('loadBar'),txt=document.getElementById('loadTxt');
-  const iv=setInterval(()=>{const p=parseFloat(bar.style.width||'0');bar.style.width=Math.min(p+Math.random()*12,88)+'%';},60);
-  buildColHeads();
-  document.getElementById('tbody').innerHTML='<div class="empty-state"><div style="font-size:24px;margin-bottom:12px">⏳</div>Loading items…</div>';
-  let fbSnap=null;
-  db.ref('stock').once('value').then(s=>{fbSnap=s;}).catch(()=>{});
-  function trySheet(n){
-    txt.textContent=n>0?'Retrying ('+n+'/5)…':'Loading data…';
-    fetch(SHEETS_URL+'?action=getAll&_t='+Date.now()+Math.random(),{cache:'no-store',redirect:'follow'})
+  // ── Try to fetch items from sheet (with retry) ────────────────────────────
+  function fetchSheet(attempt){
+    txt.textContent=attempt>0?`Retrying (${attempt}/5)…`:'Loading items…';
+    return fetch(SHEETS_URL+'?action=getAll&_t='+Date.now()+Math.random(),{cache:'no-store',redirect:'follow'})
       .then(r=>{if(!r.ok)throw new Error();return r.json();})
       .then(d=>{
         if(!d.ok||!d.items)throw new Error();
-        ITEMS=d.items;
-        ITEMS.forEach(item=>{
-          stockData[item.id]=parseFloat(item.stock)||0;
-          if(item.formula)formulaData[item.id]=item.formula;
-          if(item.qbQty!==undefined&&item.qbQty!==null)qbData[item.id]=item.qbQty;
-          if(item.expiry)expiryData[item.id]=item.expiry;
-        });
-        if(fbSnap){const fb=fbSnap.val();if(fb)Object.entries(fb).forEach(([k,v])=>{if(k==='__SYSLOCK__')return;const item=ITEMS.find(r=>r.id.replace(/[.#$[\]]/g,'_')===k);if(!item)return;stockData[item.id]=parseFloat(v.qty)||0;formulaData[item.id]=String(v.formula||v.qty||0);});}
-        saveLocal();
-        try{localStorage.setItem('c2c_items',JSON.stringify(ITEMS));localStorage.setItem('c2c_items_ts',String(Date.now()));}catch(e){}
-        clearInterval(iv);bar.style.width='100%';
-        document.getElementById('loadScreen').style.display='none';
-        setSync('ok','● LIVE');
-        startLockListener();startFirebaseListener();
-        setTimeout(flushPendingUpdates,800);
-        requestAnimationFrame(()=>{buildColHeads();renderTable();document.getElementById('barCount').textContent=ITEMS.length.toLocaleString();});
+        return d.items;
       })
-      .catch(()=>{
-        if(n<5)setTimeout(()=>trySheet(n+1),3000);
-        else{clearInterval(iv);bar.style.width='100%';txt.textContent='✕ Tap to retry';txt.style.cursor='pointer';txt.onclick=()=>location.reload();setSync('error','✕ ERROR');}
+      .catch(err=>{
+        if(attempt<5)return new Promise(res=>setTimeout(()=>res(fetchSheet(attempt+1)),3000));
+        throw err;
       });
   }
-  trySheet(0);
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Check for cached items
+  // -────────────────────────────────────────────────────────────────────────
+  let cachedItems=null;
+  try{
+    const raw=localStorage.getItem('c2c_items');
+    if(raw){const parsed=JSON.parse(raw);if(Array.isArray(parsed)&&parsed.length>0)cachedItems=parsed;}
+  }catch(e){}
+
+  if(cachedItems){
+    // ── FLOW A: Cache hit — show instantly ───────────────────────────────────
+    ITEMS=cachedItems;
+    // Load QB + expiry from cache
+    ITEMS.forEach(item=>{
+      if(item.qbQty!=null)qbData[item.id]=item.qbQty;
+      if(item.expiry)expiryData[item.id]=item.expiry;
+    });
+    showApp();
+
+    if(isOnline){
+      // Step 1: Firebase → update stock values (fast, ~200-500ms)
+      txt.textContent='';
+      db.ref('stock').once('value').then(snap=>{
+        _applyFb(snap);
+        // Re-render only visible rows after Firebase lands
+        vsItems.forEach(r=>updateRowDisplay(r.id));
+      }).catch(()=>{});
+
+      // Step 2: Start live listener for real-time changes from other users
+      setTimeout(()=>{
+        startFirebaseListener();
+        flushPendingUpdates();
+      },800);
+
+      // Step 3: After 4s, quietly refresh QB/expiry metadata from sheet
+      // (does NOT touch stock — Firebase owns stock)
+      setTimeout(()=>{
+        fetchSheet(0).then(freshItems=>{
+          let metaChanged=false;
+          freshItems.forEach(item=>{
+            if(item.qbQty!=null&&item.qbQty!==qbData[item.id]){qbData[item.id]=item.qbQty;metaChanged=true;}
+            if(item.expiry&&item.expiry!==expiryData[item.id]){expiryData[item.id]=item.expiry;updateExpiryDisplay(item.id);metaChanged=true;}
+          });
+          // Save refreshed items to cache so next open is up-to-date
+          try{localStorage.setItem('c2c_items',JSON.stringify(freshItems));localStorage.setItem('c2c_items_ts',String(Date.now()));}catch(e){}
+          if(metaChanged)renderTable();
+        }).catch(()=>{}); // silent fail — not critical
+      },4000);
+
+    }else{
+      // Offline with cache — show what we have, writes will queue
+      setSync('offline','◌ OFFLINE');
+      startFirebaseListener(); // will activate when back online
+    }
+
+  }else{
+    // ── FLOW B: No cache — first ever open ──────────────────────────────────
+    buildColHeads();
+    document.getElementById('tbody').innerHTML='<div class="empty-state"><div style="font-size:24px;margin-bottom:12px">⏳</div>Loading items…</div>';
+
+    if(!isOnline){
+      // Offline with no cache — nothing we can show
+      clearInterval(loadIv);bar.style.width='100%';
+      document.getElementById('loadScreen').style.display='none';
+      setSync('offline','◌ OFFLINE');
+      document.getElementById('tbody').innerHTML='<div class="empty-state">📶 Offline — No cached data.<br><br>Connect to internet and reload.</div>';
+      return;
+    }
+
+    // Firebase and Sheet load in parallel.
+    // _applyFb() needs ITEMS to exist, so it's called after sheet loads.
+    // We hold the Firebase snapshot until sheet is ready, then apply it.
+    let fbSnap=null,sheetReady=false;
+
+    function applyFbWhenReady(){
+      // Called by whichever finishes last (Firebase or sheet)
+      if(!fbSnap||!sheetReady)return;
+      _applyFb(fbSnap);
+      // Re-render all rows with Firebase stock values
+      ITEMS.forEach(r=>updateRowDisplay(r.id));
+    }
+
+    // Fire Firebase once() immediately — usually resolves in ~200-500ms
+    db.ref('stock').once('value').then(snap=>{
+      fbSnap=snap;
+      applyFbWhenReady(); // if sheet already done, apply now
+    }).catch(()=>{fbSnap={val:()=>null};applyFbWhenReady();});
+
+    // Fire sheet fetch — first time is slow (Apps Script cold start)
+    fetchSheet(0).then(items=>{
+      ITEMS=items;
+      // Seed stockData from sheet (Firebase will overwrite with live values)
+      ITEMS.forEach(item=>{
+        if(!stockData[item.id])stockData[item.id]=parseFloat(item.stock)||0;
+        if(!formulaData[item.id]&&item.formula)formulaData[item.id]=normalizeFormula(item.formula);
+        if(item.qbQty!=null)qbData[item.id]=item.qbQty;
+        if(item.expiry)expiryData[item.id]=item.expiry;
+      });
+      // Save to cache
+      try{localStorage.setItem('c2c_items',JSON.stringify(ITEMS));localStorage.setItem('c2c_items_ts',String(Date.now()));}catch(e){}
+      // Show the app
+      sheetReady=true;
+      showApp();
+      applyFbWhenReady(); // if Firebase already done, apply now
+      // Start live listener
+      startFirebaseListener();
+      setTimeout(flushPendingUpdates,800);
+    }).catch(()=>{
+      // Sheet totally failed after all retries
+      clearInterval(loadIv);bar.style.width='100%';
+      txt.textContent='✕ Tap to retry';txt.style.cursor='pointer';
+      txt.onclick=()=>location.reload();
+      setSync('error','✕ ERROR');
+    });
+  }
 });
-
-
 </script>
 </body>
 </html>

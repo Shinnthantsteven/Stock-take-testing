@@ -1456,34 +1456,21 @@ window.addEventListener('load',()=>{
     try{
       ITEMS=JSON.parse(cachedItems);
       if(ITEMS&&ITEMS.length>10){
-        // Load expiry/QB from cache instantly
+        // Load QB + expiry from cache
         ITEMS.forEach(item=>{
           if(item.qbQty!==undefined&&item.qbQty!==null)qbData[item.id]=item.qbQty;
           else if(item.qbStock!==undefined)qbData[item.id]=item.qbStock;
           if(item.expiry)expiryData[item.id]=item.expiry;
         });
-        // Show UI IMMEDIATELY from cache — no loading screen wait
-        clearInterval(iv);bar.style.width='100%';
-        txt.textContent='⚡ Ready';
+        // stockData already loaded by loadLocal() above from c2c_stock
+        // Show UI INSTANTLY — no waiting for anything
+        clearInterval(iv);
         buildColHeads();renderTable();
         document.getElementById('loadScreen').style.display='none';
-        startFirebaseListener();
-        setTimeout(flushPendingUpdates,500);
-        // Pull stock values from Firebase in background
-        db.ref('stock').once('value').then(snap=>{
-          const fb=snap.val();
-          if(fb)Object.entries(fb).forEach(([k,v])=>{
-            if(k==='__SYSLOCK__')return;
-            const item=ITEMS.find(r=>r.id.replace(/[.#$[\]]/g,'_')===k);if(!item)return;
-            const newQty=parseFloat(v.qty)||0;
-            if(Math.abs(newQty-(stockData[item.id]||0))>0.0001){
-              stockData[item.id]=newQty;formulaData[item.id]=String(v.formula||v.qty||0);
-              updateRowDisplay(item.id);
-            }
-          });
-          saveLocal();setSync('ok','● LIVE');
-        }).catch(()=>{});
-        // Silent background sheet refresh after 3 sec
+        setSync('ok','● LIVE');
+        startFirebaseListener(); // connects in background, updates rows as values arrive
+        setTimeout(flushPendingUpdates,800);
+        // Silent sheet refresh after 4 sec — updates cache, expiry, QB
         setTimeout(()=>{
           fetch(SHEETS_URL+'?action=getAll&_t='+Date.now()+Math.random(),{cache:'no-store',redirect:'follow'})
             .then(r=>r.json()).then(d=>{
@@ -1494,13 +1481,22 @@ window.addEventListener('load',()=>{
                 if(item.expiry&&item.expiry!==expiryData[item.id]){
                   expiryData[item.id]=item.expiry;updateExpiryDisplay(item.id);
                 }
+                // Update stock if Firebase hasn't already
+                const cached=parseFloat(item.stock)||0;
+                if(!stockData[item.id]&&cached>0){
+                  stockData[item.id]=cached;
+                  if(item.formula)formulaData[item.id]=item.formula;
+                  updateRowDisplay(item.id);
+                }
               });
+              saveLocal();
             }).catch(()=>{});
-        },3000);
+        },4000);
         return;
       }
     }catch(e){ITEMS=[];}
   }
+  // No cache — first ever open, fetch from sheet
   fetchFromSheet();
 });
 </script>

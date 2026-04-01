@@ -15,7 +15,7 @@
 const _m={name:"Chef2Chef Stock",short_name:"C2C Stock",description:"Physical Stock Count Module",start_url:"./",display:"standalone",background_color:"#020617",theme_color:"#020617",orientation:"any",icons:[{src:"data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='100' fill='%23020617'/><text y='.85em' font-size='384' x='50%' text-anchor='middle'>🥩</text></svg>",sizes:"512x512",type:"image/svg+xml"}]};
 const _b=new Blob([JSON.stringify(_m)],{type:'application/json'});
 const _l=document.createElement('link');_l.rel='manifest';_l.href=URL.createObjectURL(_b);document.head.appendChild(_l);
-if('serviceWorker'in navigator){const sw=`const C='c2c-v2';self.addEventListener('install',e=>self.skipWaiting());self.addEventListener('activate',e=>e.waitUntil(clients.claim()));self.addEventListener('fetch',e=>{const u=e.request.url;if(u.includes('script.google.com')||u.includes('firebaseio.com'))return;if(u.includes('fonts.gstatic')||u.includes('gstatic.com/firebasejs')||u.includes('fonts.googleapis')){e.respondWith(caches.open(C).then(c=>c.match(e.request).then(r=>r||fetch(e.request).then(res=>{c.put(e.request,res.clone());return res;}))));}});`;navigator.serviceWorker.register(URL.createObjectURL(new Blob([sw],{type:'text/javascript'}))).catch(()=>{});}
+if('serviceWorker'in navigator){const sw=`const C='c2c-v3';self.addEventListener('install',e=>self.skipWaiting());self.addEventListener('activate',e=>e.waitUntil(clients.claim()));self.addEventListener('fetch',e=>{const u=e.request.url;if(u.includes('script.google.com')||u.includes('firebaseio.com'))return;if(u.includes('fonts.gstatic')||u.includes('gstatic.com/firebasejs')||u.includes('fonts.googleapis')){e.respondWith(caches.open(C).then(c=>c.match(e.request).then(r=>r||fetch(e.request).then(res=>{c.put(e.request,res.clone());return res;}))));}});`;navigator.serviceWorker.register(URL.createObjectURL(new Blob([sw],{type:'text/javascript'}))).catch(()=>{});}
 </script>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -153,7 +153,6 @@ body.light .item-row:hover{background:rgba(0,0,0,.02);}
 .pill-cat{background:rgba(251,191,36,.12);color:#fbbf24;border:1px solid rgba(251,191,36,.3);}
 .pill-brand{background:rgba(59,130,246,.10);color:#60a5fa;border:1px solid rgba(59,130,246,.22);}
 .pill-origin{background:rgba(16,185,129,.08);color:#10b981;border:1px solid rgba(16,185,129,.2);}
-/* ── QB PILL — mobile inline tag ── */
 .pill-qb{background:var(--qb-dim);color:var(--qb-clr);border:1px solid var(--qb-border);}
 .cell-stock{display:flex;align-items:center;justify-content:center;}
 .stock-wrap{display:flex;flex-direction:column;align-items:center;gap:3px;}
@@ -303,39 +302,174 @@ body.light .np-btn-back{color:rgba(0,0,0,.35);}
 /* ── CURSOR BLINK ── */
 @keyframes qkbBlink{0%,100%{opacity:1;}50%{opacity:0;}}
 
-/* ── MOBILE QWERTY SEARCH ── */
-.qkb{position:fixed;bottom:0;left:0;right:0;z-index:5000;background:var(--kb-bg);border-top:1px solid rgba(255,255,255,.07);padding:4px 3px 0;display:none;flex-direction:column;gap:0;will-change:transform;transform:translateZ(0);}
+/* ══════════════════════════════════════════════
+   MOBILE QWERTY KEYBOARD — IMPROVED
+   • Larger keys (46px tall) with more spacing
+   • iOS-style key preview bubble on press
+   • Search query cached for 6 hours
+   • Instant pointer response (no delay)
+══════════════════════════════════════════════ */
+.qkb{
+  position:fixed;bottom:0;left:0;right:0;z-index:5000;
+  background:var(--kb-bg);
+  border-top:1px solid rgba(255,255,255,.07);
+  padding:5px 3px 0;
+  display:none;flex-direction:column;gap:0;
+  will-change:transform;transform:translateZ(0);
+}
 .qkb.open{display:flex;}
 body.light .qkb{border-top-color:rgba(0,0,0,.10);}
-.qkb-bar{display:flex;align-items:center;gap:6px;padding:2px 6px env(safe-area-inset-bottom,0px);background:var(--kb-bg);}
-.qkb-input-display{flex:1;font-size:15px;font-weight:600;color:var(--text);background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.13);border-radius:10px;padding:6px 12px;min-height:34px;white-space:pre;overflow:hidden;display:flex;align-items:center;position:relative;}
+
+/* Search bar inside keyboard */
+.qkb-bar{
+  display:flex;align-items:center;gap:6px;
+  padding:5px 6px calc(env(safe-area-inset-bottom,0px) + 6px);
+  background:var(--kb-bg);
+}
+.qkb-input-display{
+  flex:1;font-size:15px;font-weight:600;color:var(--text);
+  background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.13);
+  border-radius:10px;padding:7px 12px;min-height:36px;
+  white-space:pre;overflow:hidden;display:flex;align-items:center;position:relative;
+}
 body.light .qkb-input-display{background:rgba(255,255,255,.7);border-color:rgba(0,0,0,.14);color:#0f172a;}
 .qkb-text-before,.qkb-text-after{color:inherit;font-size:15px;font-weight:600;white-space:pre;}
 .qkb-cursor{display:inline-block;width:2px;height:1.1em;background:var(--brand);border-radius:1px;vertical-align:middle;margin:0 1px;animation:qkbBlink .9s step-end infinite;flex-shrink:0;}
 .qkb-input-display.empty{color:var(--text3);font-weight:500;}
-.qkb-clear{background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.28);color:#ef4444;border-radius:9px;padding:6px 13px;font-size:11px;font-weight:800;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;white-space:nowrap;flex-shrink:0;touch-action:manipulation;-webkit-tap-highlight-color:transparent;height:34px;display:flex;align-items:center;}
+.qkb-clear{
+  background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.28);color:#ef4444;
+  border-radius:9px;padding:0 13px;font-size:11px;font-weight:800;cursor:pointer;
+  font-family:'Plus Jakarta Sans',sans-serif;white-space:nowrap;flex-shrink:0;
+  touch-action:manipulation;-webkit-tap-highlight-color:transparent;
+  height:36px;display:flex;align-items:center;
+}
 body.light .qkb-clear{background:rgba(239,68,68,.10);}
-.qkb-done{background:var(--brand);border:none;color:#020617;border-radius:9px;padding:6px 15px;font-size:11px;font-weight:800;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;white-space:nowrap;flex-shrink:0;touch-action:manipulation;-webkit-tap-highlight-color:transparent;height:34px;display:flex;align-items:center;}
-.qkb-row{display:flex;justify-content:center;gap:4px;padding:0 3px 3px;}
-.qkb-row:first-child{padding-top:2px;}
-.qkb-key{height:42px;min-width:30px;flex:1;max-width:46px;background:var(--kb-key);border:none;border-radius:8px;box-shadow:0 1px 0 rgba(0,0,0,.4);font-size:17px;font-weight:500;color:var(--kb-key-text);font-family:'Plus Jakarta Sans',sans-serif;letter-spacing:-.2px;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;transition:background 40ms,transform 40ms,box-shadow 40ms;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;}
-.qkb-key.pressing{background:var(--kb-key-press);transform:scale(0.90);box-shadow:0 0 0 rgba(0,0,0,.4);transition:none;}
-.qkb-key-num{background:var(--kb-number);color:var(--kb-number-text);font-size:16px;font-weight:600;max-width:38px;height:40px;}
-.qkb-key-num.pressing{background:color-mix(in srgb,var(--kb-number) 60%,white 40%);}
-body.light .qkb-key-num.pressing{background:color-mix(in srgb,var(--kb-number) 60%,black 15%);}
-.qkb-key-space{flex:5;max-width:none;background:var(--kb-key);font-size:13px;font-weight:700;letter-spacing:1px;color:rgba(255,255,255,.5);height:44px;}
-.qkb-key-space.pressing{background:var(--kb-key-press);}
+
+/* Number row */
+.qkb-row{display:flex;justify-content:center;gap:5px;padding:0 3px 4px;}
+.qkb-row:first-child{padding-top:3px;}
+
+/* ── KEY BASE ── */
+.qkb-key{
+  height:46px;min-width:30px;flex:1;max-width:48px;
+  background:var(--kb-key);
+  border:none;
+  border-radius:9px;
+  box-shadow:0 3px 0 rgba(0,0,0,.45);
+  font-size:17px;font-weight:500;
+  color:var(--kb-key-text);
+  font-family:'Plus Jakarta Sans',sans-serif;
+  letter-spacing:-.2px;
+  cursor:pointer;
+  touch-action:manipulation;
+  -webkit-tap-highlight-color:transparent;
+  user-select:none;-webkit-user-select:none;
+  /* instant: no transition on normal state */
+  position:relative;overflow:visible;
+  display:flex;align-items:center;justify-content:center;
+}
+/* pressed state — no transition so it's instant */
+.qkb-key.pressing{
+  background:var(--kb-key-press);
+  box-shadow:0 1px 0 rgba(0,0,0,.45);
+  transform:translateY(2px);
+}
+body.light .qkb-key{background:var(--kb-key);box-shadow:0 3px 0 rgba(0,0,0,.25);color:var(--kb-key-text);}
+body.light .qkb-key.pressing{background:var(--kb-key-press);box-shadow:0 1px 0 rgba(0,0,0,.25);}
+
+/* ── NUMBER KEY ── */
+.qkb-key-num{
+  background:var(--kb-number);color:var(--kb-number-text);
+  font-size:16px;font-weight:600;
+  max-width:36px;height:44px;
+  box-shadow:0 3px 0 rgba(0,0,0,.5);
+}
+.qkb-key-num.pressing{
+  background:color-mix(in srgb,var(--kb-number) 70%,white 30%);
+  box-shadow:0 1px 0 rgba(0,0,0,.5);
+  transform:translateY(2px);
+}
+body.light .qkb-key-num.pressing{background:color-mix(in srgb,var(--kb-number) 70%,black 10%);}
+
+/* ── SPACE KEY ── */
+.qkb-key-space{
+  flex:5;max-width:none;
+  background:var(--kb-key);
+  font-size:13px;font-weight:700;letter-spacing:1px;
+  color:rgba(255,255,255,.45);height:46px;
+}
+.qkb-key-space.pressing{background:var(--kb-key-press);transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.45);}
 body.light .qkb-key-space{color:rgba(0,0,0,.4);}
-.qkb-key-back{flex:0 0 52px;max-width:52px;height:44px;font-size:18px;background:var(--kb-delete);color:var(--kb-delete-text);font-weight:700;}
-.qkb-key-back.pressing{background:rgba(239,68,68,.35);transform:scale(0.88);}
-.qkb-key-done{flex:0 0 72px;max-width:72px;height:44px;font-size:12px;font-weight:800;background:var(--brand);color:#020617;box-shadow:0 1px 0 rgba(0,0,0,.25),0 0 0 1px rgba(16,185,129,.4);letter-spacing:.3px;}
-.qkb-key-done.pressing{background:#0ea572;transform:scale(0.93);}
-body.light .qkb-key{background:var(--kb-key);box-shadow:0 1px 0 rgba(0,0,0,.25);color:var(--kb-key-text);}
-body.light .qkb-key.pressing{background:var(--kb-key-press);}
-body.light .qkb-key-back{background:var(--kb-delete);}
-body.light .qkb-key-back.pressing{background:rgba(239,68,68,.2);}
-.qkb-row-bottom{padding:0 3px 0;gap:4px;}
-.qkb-row-bottom .qkb-key{height:44px;}
+
+/* ── BACKSPACE KEY ── */
+.qkb-key-back{
+  flex:0 0 52px;max-width:52px;height:46px;
+  font-size:16px;
+  background:var(--kb-delete);color:var(--kb-delete-text);font-weight:700;
+  box-shadow:0 3px 0 rgba(100,0,0,.3);
+}
+.qkb-key-back.pressing{
+  background:rgba(239,68,68,.35);
+  transform:translateY(2px);
+  box-shadow:0 1px 0 rgba(100,0,0,.3);
+}
+
+/* ── DONE KEY ── */
+.qkb-key-done{
+  flex:0 0 72px;max-width:72px;height:46px;
+  font-size:12px;font-weight:800;
+  background:var(--brand);color:#020617;
+  box-shadow:0 3px 0 rgba(5,100,60,.5),0 0 0 1px rgba(16,185,129,.4);
+  letter-spacing:.3px;
+}
+.qkb-key-done.pressing{
+  background:#0ea572;
+  transform:translateY(2px);
+  box-shadow:0 1px 0 rgba(5,100,60,.5),0 0 0 1px rgba(16,185,129,.4);
+}
+
+.qkb-row-bottom{padding:0 3px 0;gap:5px;}
+.qkb-row-bottom .qkb-key{height:46px;}
+
+/* ══ KEY PREVIEW BUBBLE (iOS-style) ══
+   Floats above the pressed key so your finger doesn't hide what you typed */
+.qkb-preview{
+  position:fixed;
+  z-index:6000;
+  pointer-events:none;
+  display:none;
+  flex-direction:column;
+  align-items:center;
+  /* offset so bubble appears above finger */
+  transform:translateX(-50%) translateY(-8px);
+}
+.qkb-preview.visible{display:flex;}
+.qkb-preview-char{
+  background:var(--kb-key);
+  color:var(--kb-key-text);
+  font-size:28px;
+  font-weight:500;
+  font-family:'Plus Jakarta Sans',sans-serif;
+  min-width:48px;height:56px;
+  border-radius:10px 10px 10px 2px; /* iOS teardrop shape */
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 4px 16px rgba(0,0,0,.5);
+  border:1px solid rgba(255,255,255,.15);
+}
+body.light .qkb-preview-char{
+  background:#fff;color:#000;
+  box-shadow:0 4px 16px rgba(0,0,0,.2);
+  border-color:rgba(0,0,0,.1);
+}
+/* little tail triangle */
+.qkb-preview-tail{
+  width:0;height:0;
+  border-left:8px solid transparent;
+  border-right:8px solid transparent;
+  border-top:8px solid var(--kb-key);
+  margin-top:-1px;
+}
+body.light .qkb-preview-tail{border-top-color:#fff;}
 
 /* ── MOBILE FORMULA KEYBOARD ── */
 .fkb-overlay{position:fixed;bottom:0;left:0;right:0;z-index:8000;background:rgba(13,24,41,.97);border-top:1px solid rgba(255,255,255,.10);padding:8px 8px calc(8px + var(--safe-bottom));display:none;flex-direction:column;gap:6px;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);}
@@ -426,8 +560,6 @@ body.light .fkb-btn-op{background:rgba(99,102,241,.10);color:#6366f1;}
   .qb-label-tag{font-size:7px;font-weight:800;letter-spacing:.8px;color:var(--qb-clr);opacity:.55;text-transform:uppercase;}
   .qb-val-num{font-size:22px;font-weight:800;color:var(--qb-clr);line-height:1;}
   .qb-zero{color:var(--text3);font-size:13px;font-weight:700;opacity:.35;}
-
-  /* pill-qb hidden on desktop (QB has its own column) */
   .pill-qb{display:none;}
 }
 </style>
@@ -560,8 +692,15 @@ body.light .fkb-btn-op{background:rgba(99,102,241,.10);color:#6366f1;}
   <div class="hist-body" id="histBody"><div class="hist-empty">Loading…</div></div>
 </div>
 
+<!-- KEY PREVIEW BUBBLE (floats above pressed key) -->
+<div class="qkb-preview" id="qkbPreview">
+  <div class="qkb-preview-char" id="qkbPreviewChar"></div>
+  <div class="qkb-preview-tail"></div>
+</div>
+
 <!-- MOBILE QWERTY -->
 <div class="qkb" id="qkb">
+  <!-- Number row -->
   <div class="qkb-row">
     <div class="qkb-key qkb-key-num" data-key="1">1</div>
     <div class="qkb-key qkb-key-num" data-key="2">2</div>
@@ -574,6 +713,7 @@ body.light .fkb-btn-op{background:rgba(99,102,241,.10);color:#6366f1;}
     <div class="qkb-key qkb-key-num" data-key="9">9</div>
     <div class="qkb-key qkb-key-num" data-key="0">0</div>
   </div>
+  <!-- Q row -->
   <div class="qkb-row">
     <div class="qkb-key" data-key="q">Q</div><div class="qkb-key" data-key="w">W</div>
     <div class="qkb-key" data-key="e">E</div><div class="qkb-key" data-key="r">R</div>
@@ -581,13 +721,15 @@ body.light .fkb-btn-op{background:rgba(99,102,241,.10);color:#6366f1;}
     <div class="qkb-key" data-key="u">U</div><div class="qkb-key" data-key="i">I</div>
     <div class="qkb-key" data-key="o">O</div><div class="qkb-key" data-key="p">P</div>
   </div>
-  <div class="qkb-row" style="padding-left:5%;padding-right:5%;">
+  <!-- A row (inset) -->
+  <div class="qkb-row" style="padding-left:6%;padding-right:6%;">
     <div class="qkb-key" data-key="a">A</div><div class="qkb-key" data-key="s">S</div>
     <div class="qkb-key" data-key="d">D</div><div class="qkb-key" data-key="f">F</div>
     <div class="qkb-key" data-key="g">G</div><div class="qkb-key" data-key="h">H</div>
     <div class="qkb-key" data-key="j">J</div><div class="qkb-key" data-key="k">K</div>
     <div class="qkb-key" data-key="l">L</div>
   </div>
+  <!-- Z row -->
   <div class="qkb-row">
     <div class="qkb-key" data-key="z">Z</div><div class="qkb-key" data-key="x">X</div>
     <div class="qkb-key" data-key="c">C</div><div class="qkb-key" data-key="v">V</div>
@@ -595,10 +737,12 @@ body.light .fkb-btn-op{background:rgba(99,102,241,.10);color:#6366f1;}
     <div class="qkb-key" data-key="m">M</div>
     <div class="qkb-key qkb-key-back" data-key="back">⌫</div>
   </div>
+  <!-- Bottom row: space + done -->
   <div class="qkb-row qkb-row-bottom">
     <div class="qkb-key qkb-key-space" data-key=" ">SPACE</div>
     <div class="qkb-key qkb-key-done" data-key="__done__">Done ✓</div>
   </div>
+  <!-- Search bar -->
   <div class="qkb-bar">
     <div class="qkb-input-display empty" id="qkbDisplay">Search…</div>
     <button class="qkb-clear" id="qkbClearBtn">✕ Clear</button>
@@ -822,8 +966,6 @@ function qbCellHtml(id){
   const disp=n%1===0?n:n.toFixed(2);
   return`<div class="cell-qb-inner"><span class="qb-label-tag">QB QTY</span><span class="qb-val-num">${disp}</span></div>`;
 }
-
-/* ── QB PILL (mobile inline) ── */
 function qbPill(id,um){
   const q=qbData[id];
   if(q===undefined||q===null||q==='')return'';
@@ -1082,63 +1224,256 @@ document.getElementById('installBtn').addEventListener('click',()=>{if(dip){dip.
   window._navGoPage1=()=>setNavPage(0,true);
 })();
 
+/* ══════════════════════════════════════════════
+   MOBILE QWERTY KEYBOARD — IMPROVED ENGINE
+   Features:
+   • iOS-style floating preview bubble above pressed key
+   • Larger key hit targets (46px) with proper 3px depth shadow
+   • No CSS transition on press = instant visual response
+   • 6-hour search query cache in localStorage
+   • Backspace repeat acceleration (faster after 380ms)
+   • Trackpad cursor on space long-press
+══════════════════════════════════════════════ */
 (function(){
+  /* ── State ── */
   let qkbQuery='',qkbCursorPos=0;
   let bsTimer=null,bsInterval=null,pressedKey=null;
   let trackpadMode=false,trackpadStartX=0,trackpadCursorStart=0;
   let spaceHoldTimer=null,searchDebounce=null;
-  const qkbEl=document.getElementById('qkb');
-  const dispEl=document.getElementById('qkbDisplay');
-  const clearBtn=document.getElementById('qkbClearBtn');
-  const spaceEl=qkbEl.querySelector('[data-key=" "]');
+  let previewHideTimer=null;
+
+  /* ── Elements ── */
+  const qkbEl    = document.getElementById('qkb');
+  const dispEl   = document.getElementById('qkbDisplay');
+  const clearBtn = document.getElementById('qkbClearBtn');
+  const spaceEl  = qkbEl.querySelector('[data-key=" "]');
+  const previewEl= document.getElementById('qkbPreview');
+  const previewCh= document.getElementById('qkbPreviewChar');
+
+  /* ── Search cache: 6-hour TTL ── */
+  const SEARCH_TTL = 6 * 60 * 60 * 1000;
+  function saveSearchCache(q){
+    try{localStorage.setItem('c2c_search_q',q);localStorage.setItem('c2c_search_ts',String(Date.now()));}catch(e){}
+  }
+  function loadSearchCache(){
+    try{
+      const ts=parseInt(localStorage.getItem('c2c_search_ts')||'0');
+      if((Date.now()-ts)<SEARCH_TTL){return localStorage.getItem('c2c_search_q')||'';}
+    }catch(e){}
+    return '';
+  }
+
+  /* ── Key preview bubble ── */
+  function showPreview(keyEl,label){
+    if(!keyEl||!label||label==='__done__'||label==='back'||label===' ')return;
+    const rect=keyEl.getBoundingClientRect();
+    const cx=rect.left+rect.width/2;
+    const by=rect.top-6; // just above key
+    previewCh.textContent=label.toUpperCase();
+    previewEl.style.left=cx+'px';
+    previewEl.style.top=by+'px';
+    previewEl.classList.add('visible');
+    clearTimeout(previewHideTimer);
+  }
+  function hidePreview(){
+    previewEl.classList.remove('visible');
+  }
+
+  /* ── Display update ── */
   function updateDisplay(){
-    if(!qkbQuery){dispEl.textContent='Search…';dispEl.className='qkb-input-display empty';return;}
+    if(!qkbQuery){
+      dispEl.textContent='Search…';
+      dispEl.className='qkb-input-display empty';
+      return;
+    }
     dispEl.className='qkb-input-display';
     let bSpan=dispEl.querySelector('.qkb-text-before');
-    if(!bSpan){dispEl.innerHTML='<span class="qkb-text-before"></span><span class="qkb-cursor"></span><span class="qkb-text-after"></span>';bSpan=dispEl.querySelector('.qkb-text-before');}
+    if(!bSpan){
+      dispEl.innerHTML='<span class="qkb-text-before"></span><span class="qkb-cursor"></span><span class="qkb-text-after"></span>';
+      bSpan=dispEl.querySelector('.qkb-text-before');
+    }
     bSpan.textContent=qkbQuery.slice(0,qkbCursorPos);
     dispEl.querySelector('.qkb-text-after').textContent=qkbQuery.slice(qkbCursorPos);
   }
+
+  /* ── Search trigger ── */
   function triggerSearch(){
     clearTimeout(searchDebounce);
-    searchDebounce=setTimeout(()=>{searchQuery=qkbQuery.toLowerCase().trim();searchInEl.value=qkbQuery;renderTable();},45);
+    searchDebounce=setTimeout(()=>{
+      searchQuery=qkbQuery.toLowerCase().trim();
+      searchInEl.value=qkbQuery;
+      renderTable();
+      saveSearchCache(qkbQuery);
+    },40); // 40ms — fast but avoids re-render on every key
   }
+
+  /* ── Key handler ── */
   function handleKey(k){
     if(k==='__done__'){qkbDone();return;}
-    if(k==='back'){if(qkbCursorPos>0){qkbQuery=qkbQuery.slice(0,qkbCursorPos-1)+qkbQuery.slice(qkbCursorPos);qkbCursorPos--;}}
-    else{const ch=k===' '?' ':k;qkbQuery=qkbQuery.slice(0,qkbCursorPos)+ch+qkbQuery.slice(qkbCursorPos);qkbCursorPos++;}
-    updateDisplay();triggerSearch();
+    if(k==='back'){
+      if(qkbCursorPos>0){
+        qkbQuery=qkbQuery.slice(0,qkbCursorPos-1)+qkbQuery.slice(qkbCursorPos);
+        qkbCursorPos--;
+      }
+    }else{
+      const ch=k===' '?' ':k;
+      qkbQuery=qkbQuery.slice(0,qkbCursorPos)+ch+qkbQuery.slice(qkbCursorPos);
+      qkbCursorPos++;
+    }
+    updateDisplay();
+    triggerSearch();
   }
-  function startBsRepeat(){stopBsRepeat();bsTimer=setTimeout(()=>{bsInterval=setInterval(()=>{if(qkbCursorPos>0){qkbQuery=qkbQuery.slice(0,qkbCursorPos-1)+qkbQuery.slice(qkbCursorPos);qkbCursorPos--;updateDisplay();triggerSearch();}else stopBsRepeat();},40);},380);}
+
+  /* ── Backspace repeat (accelerates) ── */
+  function startBsRepeat(){
+    stopBsRepeat();
+    bsTimer=setTimeout(()=>{
+      let speed=80;
+      bsInterval=setInterval(()=>{
+        if(qkbCursorPos>0){
+          qkbQuery=qkbQuery.slice(0,qkbCursorPos-1)+qkbQuery.slice(qkbCursorPos);
+          qkbCursorPos--;
+          updateDisplay();
+          triggerSearch();
+          // accelerate: reduce interval down to 30ms
+          if(speed>30){speed=Math.max(30,speed-8);clearInterval(bsInterval);bsInterval=setInterval(arguments.callee,speed);}
+        }else{
+          stopBsRepeat();
+        }
+      },speed);
+    },360);
+  }
   function stopBsRepeat(){clearTimeout(bsTimer);clearInterval(bsInterval);bsTimer=null;bsInterval=null;}
+
+  /* ── Pointer events ── */
   qkbEl.addEventListener('pointerdown',e=>{
-    const keyEl=e.target.closest('[data-key]');if(!keyEl)return;
-    e.preventDefault();
-    if(pressedKey&&pressedKey!==keyEl)pressedKey.classList.remove('pressing');
-    pressedKey=keyEl;keyEl.classList.add('pressing');keyEl.setPointerCapture(e.pointerId);
-    if(navigator.vibrate)navigator.vibrate(6);
-    const k=keyEl.dataset.key;handleKey(k);
+    const keyEl=e.target.closest('[data-key]');
+    if(!keyEl)return;
+    e.preventDefault(); // critical: stops any focus/scroll side-effects
+
+    // Release previous key if still held
+    if(pressedKey&&pressedKey!==keyEl){
+      pressedKey.classList.remove('pressing');
+    }
+    pressedKey=keyEl;
+    keyEl.classList.add('pressing');   // instant — no CSS transition
+    keyEl.setPointerCapture(e.pointerId);
+
+    // Haptic
+    if(navigator.vibrate)navigator.vibrate(5);
+
+    const k=keyEl.dataset.key;
+
+    // Show preview bubble for letter/number keys
+    showPreview(keyEl,k);
+
+    handleKey(k);
     if(k==='back')startBsRepeat();
   },{passive:false});
-  function releasePressed(){if(pressedKey){pressedKey.classList.remove('pressing');pressedKey=null;}stopBsRepeat();}
+
+  function releasePressed(e){
+    if(pressedKey){
+      pressedKey.classList.remove('pressing');
+      pressedKey=null;
+    }
+    stopBsRepeat();
+    // Hide preview after a short delay so it's still visible
+    previewHideTimer=setTimeout(hidePreview,80);
+  }
   qkbEl.addEventListener('pointerup',releasePressed,{passive:true});
   qkbEl.addEventListener('pointercancel',releasePressed,{passive:true});
-  clearBtn.addEventListener('pointerdown',e=>{e.preventDefault();qkbQuery='';qkbCursorPos=0;updateDisplay();triggerSearch();if(navigator.vibrate)navigator.vibrate(10);},{passive:false});
+
+  /* ── Clear button ── */
+  clearBtn.addEventListener('pointerdown',e=>{
+    e.preventDefault();
+    qkbQuery='';qkbCursorPos=0;
+    updateDisplay();triggerSearch();
+    saveSearchCache('');
+    if(navigator.vibrate)navigator.vibrate(10);
+  },{passive:false});
+
+  /* ── Space long-press → trackpad cursor ── */
   if(spaceEl){
-    spaceEl.addEventListener('pointerdown',e=>{trackpadStartX=e.clientX;trackpadCursorStart=qkbCursorPos;trackpadMode=false;spaceHoldTimer=setTimeout(()=>{trackpadMode=true;if(navigator.vibrate)navigator.vibrate([0,0,25]);spaceEl.style.background='rgba(16,185,129,.42)';},320);},{passive:true});
-    spaceEl.addEventListener('pointermove',e=>{if(!trackpadMode)return;const steps=Math.round((e.clientX-trackpadStartX)/9);const pos=Math.max(0,Math.min(qkbQuery.length,trackpadCursorStart+steps));if(pos!==qkbCursorPos){qkbCursorPos=pos;updateDisplay();}},{passive:true});
-    function endTrackpad(){clearTimeout(spaceHoldTimer);if(trackpadMode){trackpadMode=false;spaceEl.style.background='';}}
-    spaceEl.addEventListener('pointerup',endTrackpad,{passive:true});spaceEl.addEventListener('pointercancel',endTrackpad,{passive:true});
+    spaceEl.addEventListener('pointerdown',e=>{
+      trackpadStartX=e.clientX;
+      trackpadCursorStart=qkbCursorPos;
+      trackpadMode=false;
+      spaceHoldTimer=setTimeout(()=>{
+        trackpadMode=true;
+        if(navigator.vibrate)navigator.vibrate([0,0,22]);
+        spaceEl.style.background='rgba(16,185,129,.42)';
+      },320);
+    },{passive:true});
+    spaceEl.addEventListener('pointermove',e=>{
+      if(!trackpadMode)return;
+      const steps=Math.round((e.clientX-trackpadStartX)/9);
+      const pos=Math.max(0,Math.min(qkbQuery.length,trackpadCursorStart+steps));
+      if(pos!==qkbCursorPos){qkbCursorPos=pos;updateDisplay();}
+    },{passive:true});
+    function endTrackpad(){
+      clearTimeout(spaceHoldTimer);
+      if(trackpadMode){trackpadMode=false;spaceEl.style.background='';}
+    }
+    spaceEl.addEventListener('pointerup',endTrackpad,{passive:true});
+    spaceEl.addEventListener('pointercancel',endTrackpad,{passive:true});
   }
-  function qkbDone(){qkbEl.classList.remove('open');document.getElementById('tblArea').style.height='';trackpadMode=false;}
+
+  /* ── Open / Close ── */
+  function qkbDone(){
+    qkbEl.classList.remove('open');
+    document.getElementById('tblArea').style.height='';
+    trackpadMode=false;
+    hidePreview();
+  }
+
   window.qkbOpen=function(){
-    if(isDesktop())return;document.activeElement?.blur();
-    qkbQuery=searchQuery;qkbCursorPos=qkbQuery.length;updateDisplay();qkbEl.classList.add('open');
-    requestAnimationFrame(()=>{const kh=qkbEl.offsetHeight;document.getElementById('tblArea').style.height=(window.innerHeight-50-kh)+'px';});
+    if(isDesktop())return;
+    document.activeElement?.blur();
+
+    // Restore from cache on first open if current searchQuery is empty
+    if(!searchQuery){
+      const cached=loadSearchCache();
+      if(cached){
+        qkbQuery=cached;
+        searchQuery=cached.toLowerCase().trim();
+        searchInEl.value=cached;
+        renderTable();
+      }else{
+        qkbQuery='';
+      }
+    }else{
+      qkbQuery=searchQuery; // sync to current search
+    }
+
+    qkbCursorPos=qkbQuery.length;
+    updateDisplay();
+    qkbEl.classList.add('open');
+    requestAnimationFrame(()=>{
+      const kh=qkbEl.offsetHeight;
+      document.getElementById('tblArea').style.height=(window.innerHeight-50-kh)+'px';
+    });
   };
   window.qkbClose=qkbDone;
+
+  /* ── Restore cached search on page load ── */
+  window.addEventListener('load',()=>{
+    setTimeout(()=>{
+      // Only restore if we're on mobile and there's a recent cache
+      if(!isDesktop()){
+        const cached=loadSearchCache();
+        if(cached){
+          qkbQuery=cached;
+          searchQuery=cached.toLowerCase().trim();
+          searchInEl.value=cached;
+          if(ITEMS.length)renderTable();
+        }
+      }
+    },400); // after items load
+  });
+
 })();
 
+/* ── FORMULA KEYBOARD (mobile) ── */
 let fkbTargetId=null,fkbTargetSid=null,fkbVal='',fkbCursorPos=0;
 let fkbNavTimer=null,fkbNavInterval=null;
 function fkbRefreshDisplay(){
@@ -1184,6 +1519,7 @@ function fkbConfirm(){
   fkbCancel();sendSetFormula(id,clean,qty);
 }
 
+/* ── AUTH ── */
 const USERS={
   'steve':   {password:'1964',name:'Steve',  color:'#10b981'},
   'aswanth': {password:'2026',name:'Aswanth',color:'#818cf8'},
@@ -1221,6 +1557,7 @@ function lockApp(){
   updateAdminUI();showLoginScreen();
 }
 
+/* ── APP INIT ── */
 window.addEventListener('load',()=>{
   if(localStorage.getItem('c2c_mode')==='light'){document.body.classList.add('light');document.getElementById('modeBtn').textContent='☀️ LIGHT';document.getElementById('modeBtnMob').textContent='☀️';}
   loadLocal();loadHistory();initSearchMode();

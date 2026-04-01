@@ -972,7 +972,7 @@ function stockCellHtmlMobile(id,um){
         <button class="eq-ok" id="eqok-${sid}" onclick="fkbOpen('${id}','${sid}')">✎</button>
       </div>`;
   }
-  return`<div class="stock-empty-btn" onclick="openNp('${id}')">＋ ${um?`<span style="font-size:9px;opacity:.5;margin-left:3px">${xe(um)}</span>`:''}</div>`;
+  return`<div class="stock-empty-btn" onclick="openNp('${id}')">＋ ${um?`<span style="font-size:11px;font-weight:800;color:#059669;margin-left:3px">${xe(um)}</span>`:''}</div>`;
 }
 function stockCellHtml(id){
   const qty=stockData[id]||0;const sid=id.replace(/[^a-zA-Z0-9_-]/g,'_');const formula=formulaData[id]||'';
@@ -1222,9 +1222,10 @@ function npConfirm(){
   const item=ITEMS.find(r=>r.id===np.id);
   document.getElementById('npExisting').innerHTML=`Current: <span>${nt} ${item?.um||''}</span>`;
   npDraw();
-  // Debounce Firebase write — fires 1.5s after last tap
+  // Debounce Firebase write — capture uid NOW not later
+  const syncUid=np.id;
   clearTimeout(npSyncTimer);
-  npSyncTimer=setTimeout(()=>npFlushSync(np.id),1500);
+  npSyncTimer=setTimeout(()=>npFlushSync(syncUid),1500);
 }
 document.addEventListener('keydown',e=>{
   if(!document.getElementById('npPopup').classList.contains('open'))return;
@@ -1419,74 +1420,13 @@ window.addEventListener('load',()=>{
   const savedUser=localStorage.getItem('c2c_user');
   if(savedUser&&USERS[savedUser]){currentUser={id:savedUser,...USERS[savedUser]};updateNavUser();hideLoginScreen();updateAdminUI();}
   else showLoginScreen();
-  startLockListener();
 
-  let p=0,attempt=0;
-  const bar=document.getElementById('loadBar'),txt=document.getElementById('loadTxt');
-  const iv=setInterval(()=>{p=Math.min(p+Math.random()*12,88);bar.style.width=p+'%';},60);
-
-  function showApp(){
-    clearInterval(iv);
-    // Hide loading screen FIRST — instant
-    document.getElementById('loadScreen').style.display='none';
-    setSync('ok','● LIVE');
-    startFirebaseListener();
-    setTimeout(flushPendingUpdates,800);
-    // Render table in next frame so screen is already visible
-    requestAnimationFrame(()=>{
-      buildColHeads();renderTable();
-      document.getElementById('barCount').textContent=ITEMS.length.toLocaleString();
-    });
-  }
-
-  function applyFirebaseSnap(snap){
-    const fb=snap.val();
-    if(!fb)return;
-    Object.entries(fb).forEach(([k,v])=>{
-      if(k==='__SYSLOCK__')return;
-      const item=ITEMS.find(r=>r.id.replace(/[.#$[\]]/g,'_')===k);if(!item)return;
-      stockData[item.id]=parseFloat(v.qty)||0;
-      formulaData[item.id]=String(v.formula||v.qty||0);
-    });
-    saveLocal();
-  }
-
-  function applySheetData(items){
-    ITEMS=items;
-    ITEMS.forEach(item=>{
-      if(!stockData[item.id])stockData[item.id]=parseFloat(item.stock)||0;
-      if(item.formula&&!formulaData[item.id])formulaData[item.id]=item.formula;
-      if(item.qbQty!==undefined&&item.qbQty!==null)qbData[item.id]=item.qbQty;
-      else if(item.qbStock!==undefined)qbData[item.id]=item.qbStock;
-      if(item.expiry)expiryData[item.id]=item.expiry;
-    });
-    try{localStorage.setItem('c2c_items',JSON.stringify(ITEMS));localStorage.setItem('c2c_items_ts',String(Date.now()));}catch(e){}
-    saveLocal();
-  }
-
-  function backgroundSheetRefresh(){
-    setTimeout(()=>{
-      fetch(SHEETS_URL+'?action=getAll&_t='+Date.now()+Math.random(),{cache:'no-store',redirect:'follow'})
-        .then(r=>r.json()).then(d=>{
-          if(!d.ok||!d.items)return;
-          d.items.forEach(item=>{
-            if(item.qbQty!==undefined&&item.qbQty!==null)qbData[item.id]=item.qbQty;
-            if(item.expiry&&item.expiry!==expiryData[item.id]){
-              expiryData[item.id]=item.expiry;updateExpiryDisplay(item.id);
-            }
-          });
-          try{localStorage.setItem('c2c_items',JSON.stringify(d.items));localStorage.setItem('c2c_items_ts',String(Date.now()));}catch(e){}
-        }).catch(()=>{});
-    },4000);
-  }
-
-  // ── STEP 1: Try cache — show UI instantly ──
+  // ── Cache path runs IMMEDIATELY — no Firebase needed ──
   const cachedRaw=localStorage.getItem('c2c_items');
   if(cachedRaw){
     try{
       const cached=JSON.parse(cachedRaw);
       if(cached&&cached.length>0){
-        txt.textContent='⚡ Loading…';
         cached.forEach(item=>{
           if(item.qbQty!==undefined&&item.qbQty!==null)qbData[item.id]=item.qbQty;
           else if(item.qbStock!==undefined)qbData[item.id]=item.qbStock;
@@ -1494,49 +1434,81 @@ window.addEventListener('load',()=>{
           if(!stockData[item.id]&&item.stock)stockData[item.id]=parseFloat(item.stock)||0;
         });
         ITEMS=cached;
-        // Show app immediately
-        showApp();
-        // Background: update stock from Firebase silently
-        db.ref('stock').once('value').then(snap=>{applyFirebaseSnap(snap);ITEMS.forEach(r=>updateRowDisplay(r.id));}).catch(()=>{});
-        // Background: refresh full data from sheet
-        backgroundSheetRefresh();
+        // Show app instantly from cache
+        document.getElementById('loadScreen').style.display='none';
+        setSync('ok','● LIVE');
+        requestAnimationFrame(()=>{buildColHeads();renderTable();document.getElementById('barCount').textContent=ITEMS.length.toLocaleString();});
+        // Firebase + sheet connect in background
+        startLockListener();
+        startFirebaseListener();
+        setTimeout(flushPendingUpdates,800);
+        db.ref('stock').once('value').then(snap=>{
+            const fb=snap.val();if(!fb)return;
+            Object.entries(fb).forEach(([k,v])=>{
+              if(k==='__SYSLOCK__')return;
+              const item=ITEMS.find(r=>r.id.replace(/[.#$[\]]/g,'_')===k);if(!item)return;
+              stockData[item.id]=parseFloat(v.qty)||0;formulaData[item.id]=String(v.formula||v.qty||0);
+              updateRowDisplay(item.id);
+            });
+            saveLocal();
+          }).catch(()=>{});
+          setTimeout(()=>{
+            fetch(SHEETS_URL+'?action=getAll&_t='+Date.now()+Math.random(),{cache:'no-store',redirect:'follow'})
+              .then(r=>r.json()).then(d=>{
+                if(!d.ok||!d.items)return;
+                d.items.forEach(item=>{
+                  if(item.qbQty!==undefined&&item.qbQty!==null)qbData[item.id]=item.qbQty;
+                  if(item.expiry&&item.expiry!==expiryData[item.id]){expiryData[item.id]=item.expiry;updateExpiryDisplay(item.id);}
+                });
+                try{localStorage.setItem('c2c_items',JSON.stringify(d.items));localStorage.setItem('c2c_items_ts',String(Date.now()));}catch(e){}
+              }).catch(()=>{});
+          },4000);
+        });
         return;
       }
     }catch(e){}
   }
 
-  // ── STEP 2: No cache — show skeleton instantly, load in background ──
-  txt.textContent='Connecting…';
-  // Show empty app shell immediately so user sees UI not blank screen
+  // ── No cache — load sheet ──
+  startLockListener();
+  const bar=document.getElementById('loadBar'),txt=document.getElementById('loadTxt');
+  const iv=setInterval(()=>{const p=parseFloat(bar.style.width||'0');bar.style.width=Math.min(p+Math.random()*12,88)+'%';},60);
   buildColHeads();
-  document.getElementById('tbody').innerHTML='<div class="empty-state" style="padding:40px 20px"><div style="font-size:24px;margin-bottom:12px">⏳</div>Loading 13,577 items…</div>';
-  let fbSnapResult=null;
-  db.ref('stock').once('value').then(snap=>{fbSnapResult=snap;}).catch(()=>{});
-
+  document.getElementById('tbody').innerHTML='<div class="empty-state"><div style="font-size:24px;margin-bottom:12px">⏳</div>Loading items…</div>';
+  let fbSnap=null;
+  db.ref('stock').once('value').then(s=>{fbSnap=s;}).catch(()=>{});
   function trySheet(n){
     txt.textContent=n>0?'Retrying ('+n+'/5)…':'Loading data…';
     fetch(SHEETS_URL+'?action=getAll&_t='+Date.now()+Math.random(),{cache:'no-store',redirect:'follow'})
-      .then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
+      .then(r=>{if(!r.ok)throw new Error();return r.json();})
       .then(d=>{
-        if(!d.ok||!d.items)throw new Error('No data');
-        applySheetData(d.items);
-        if(fbSnapResult)applyFirebaseSnap(fbSnapResult);
-        showApp();
+        if(!d.ok||!d.items)throw new Error();
+        ITEMS=d.items;
+        ITEMS.forEach(item=>{
+          stockData[item.id]=parseFloat(item.stock)||0;
+          if(item.formula)formulaData[item.id]=item.formula;
+          if(item.qbQty!==undefined&&item.qbQty!==null)qbData[item.id]=item.qbQty;
+          if(item.expiry)expiryData[item.id]=item.expiry;
+        });
+        if(fbSnap){const fb=fbSnap.val();if(fb)Object.entries(fb).forEach(([k,v])=>{if(k==='__SYSLOCK__')return;const item=ITEMS.find(r=>r.id.replace(/[.#$[\]]/g,'_')===k);if(!item)return;stockData[item.id]=parseFloat(v.qty)||0;formulaData[item.id]=String(v.formula||v.qty||0);});}
+        saveLocal();
+        try{localStorage.setItem('c2c_items',JSON.stringify(ITEMS));localStorage.setItem('c2c_items_ts',String(Date.now()));}catch(e){}
+        clearInterval(iv);bar.style.width='100%';
+        document.getElementById('loadScreen').style.display='none';
+        setSync('ok','● LIVE');
+        startLockListener();startFirebaseListener();
+        setTimeout(flushPendingUpdates,800);
+        requestAnimationFrame(()=>{buildColHeads();renderTable();document.getElementById('barCount').textContent=ITEMS.length.toLocaleString();});
       })
       .catch(()=>{
-        if(n<5){
-          setTimeout(()=>trySheet(n+1),3000);
-        }else{
-          clearInterval(iv);bar.style.width='100%';
-          txt.textContent='✕ No connection — tap to retry';
-          txt.style.cursor='pointer';
-          txt.onclick=()=>{location.reload();};
-          setSync('error','✕ ERROR');
-        }
+        if(n<5)setTimeout(()=>trySheet(n+1),3000);
+        else{clearInterval(iv);bar.style.width='100%';txt.textContent='✕ Tap to retry';txt.style.cursor='pointer';txt.onclick=()=>location.reload();setSync('error','✕ ERROR');}
       });
   }
   trySheet(0);
 });
+
+
 </script>
 </body>
 </html>

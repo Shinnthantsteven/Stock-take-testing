@@ -1138,7 +1138,13 @@ function openNp(id){
   npDraw();popup.classList.add('open');
   setTimeout(()=>document.addEventListener('pointerdown',npOutside),50);
 }
-function closeNp(){document.getElementById('npPopup').classList.remove('open');document.removeEventListener('pointerdown',npOutside);}
+function closeNp(){
+  document.getElementById('npPopup').classList.remove('open');
+  document.removeEventListener('pointerdown',npOutside);
+  // Flush any pending sync immediately on close
+  if(npSyncTimer&&np.id){clearTimeout(npSyncTimer);npSyncTimer=null;npFlushSync(np.id);}
+  np._syncBase=null;
+}
 function npOutside(e){if(!document.getElementById('npPopup').contains(e.target)&&!e.target.closest('.stock-empty-btn')&&!e.target.closest('.stock-qty')&&!e.target.closest('.eq-input'))closeNp();}
 function setOp(el){np.op=el.dataset.op;np.val='0';document.querySelectorAll('.np-op-tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');npDraw();}
 function npKey(k){
@@ -1177,6 +1183,18 @@ function npDraw(){
     prevEl.textContent=ex+' '+(diff>=0?'+':'')+diff+' = '+nt+' '+um;
   }catch(e){prevEl.textContent='';}
 }
+let npSyncTimer=null;
+function npFlushSync(uid){
+  // Called after user stops tapping — fires one Firebase+sheet write
+  const qty=stockData[uid]||0;
+  const formula=formulaData[uid]||String(qty);
+  const oldQty=np._syncBase||0;
+  const added=parseFloat((qty-oldQty).toFixed(4));
+  setSync('syncing','⟳ SAVING');
+  fbWrite(uid,qty,formula,added);
+  np._syncBase=qty;
+}
+
 function npConfirm(){
   if(np.val==='0'){closeNp();return;}
   const ex=stockData[np.id]||0;let nt,ent;
@@ -1186,17 +1204,27 @@ function npConfirm(){
     else if(np.op==='*')nt=ex*ent;else if(np.op==='/')nt=ent!==0?ex/ent:ex;
     nt=Math.max(0,parseFloat(nt.toFixed(4)));
   }catch(e){closeNp();return;}
-  if(navigator.vibrate)navigator.vibrate(35);
+  if(navigator.vibrate)navigator.vibrate(25);
   const diff=parseFloat((nt-ex).toFixed(4));
-  if(np.op==='=')sendSet(np.id,nt);else if(diff!==0)sendAdd(np.id,diff);
-  // Stay open — reset to 0 for next entry (running tally)
+  if(diff===0&&np.op!=='='){np.val='0';npDraw();return;}
+  // Update locally INSTANT — no Firebase wait
+  if(!np._syncBase&&np._syncBase!==0)np._syncBase=ex;
+  const formula=np.op==='='?String(nt):(formulaData[np.id]||String(ex))+(diff>=0?'+':'')+Math.abs(diff);
+  stockData[np.id]=nt;
+  formulaData[np.id]=np.op==='='?String(nt):formula;
+  saveLocal();
+  updateRowDisplay(np.id);
+  addLocalHistory(np.id,ex,nt,diff,formula,isDesktop()?'website':'mobile');
+  // Reset for next entry
   np.val='0';np.op='+';
   document.querySelectorAll('.np-op-tab').forEach(t=>t.classList.remove('active'));
   document.querySelector('.np-op-tab[data-op="+"]').classList.add('active');
-  const newEx=stockData[np.id]||0;
   const item=ITEMS.find(r=>r.id===np.id);
-  document.getElementById('npExisting').innerHTML=`Current: <span>${newEx} ${item?.um||''}</span>`;
+  document.getElementById('npExisting').innerHTML=`Current: <span>${nt} ${item?.um||''}</span>`;
   npDraw();
+  // Debounce Firebase write — fires 1.5s after last tap
+  clearTimeout(npSyncTimer);
+  npSyncTimer=setTimeout(()=>npFlushSync(np.id),1500);
 }
 document.addEventListener('keydown',e=>{
   if(!document.getElementById('npPopup').classList.contains('open'))return;

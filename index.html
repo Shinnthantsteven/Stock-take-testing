@@ -312,8 +312,8 @@ body.light .np-btn-back{color:rgba(0,0,0,.35);}
 .desc-meta{display:flex;flex-wrap:wrap;gap:3px;margin-top:3px;}
 .cell-mob-right{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;}
 .stock-qty{font-size:20px;font-weight:800;color:var(--brand);line-height:1;cursor:pointer;}
-.mob-um{font-size:12px;font-weight:900;padding:4px 12px;border-radius:20px;background:rgba(16,185,129,.22);border:2px solid rgba(16,185,129,.55);color:#065f46;white-space:nowrap;letter-spacing:.3px;}
-body.light .mob-um{color:#064e3b;background:rgba(16,185,129,.18);border-color:rgba(16,185,129,.5);}
+.mob-um{font-size:13px;font-weight:900;padding:4px 12px;border-radius:20px;background:#d1fae5;border:2px solid #10b981;color:#000000;white-space:nowrap;letter-spacing:.3px;}
+body.light .mob-um{background:#d1fae5;border-color:#10b981;color:#000000;}
 .eq-input{width:90px;font-size:8px;}
 .stock-empty-btn{width:90px;height:32px;}
 .cell-uid{display:none;}.cell-um{display:none;}.cell-sup{display:none;}.cell-pack-col{display:none;}.cell-brand-col{display:none;}.cell-cost{display:none;}.cell-qb{display:none;}.cell-exp{display:none;}
@@ -1151,15 +1151,23 @@ function npDraw(){
   const valEl=document.getElementById('npVal'),prevEl=document.getElementById('npPreview');
   const ex=stockData[np.id]||0,um=(ITEMS.find(r=>r.id===np.id)||{}).um||'';
   let dispStr=np.val,opClass='np-value';
-  if(np.val!=='0'){
-    opClass+=' active';
-    if(np.op==='-'){dispStr='−'+np.val;opClass+=' op-minus';}
-    else if(np.op==='+'){dispStr='+'+np.val;}
-    else if(np.op==='*'){dispStr='×'+np.val;opClass+=' op-times';}
-    else if(np.op==='/'){dispStr='÷'+np.val;opClass+=' op-divide';}
+  if(np.val==='0'){
+    // Show operator immediately even before number typed
+    if(np.op==='-'){dispStr='−';opClass+=' op-minus';}
+    else if(np.op==='*'){dispStr='×';opClass+=' op-times';}
+    else if(np.op==='/'){dispStr='÷';opClass+=' op-divide';}
+    else if(np.op==='='){dispStr='＝';opClass+=' active';}
+    else{dispStr='0';}
+    valEl.textContent=dispStr;valEl.className=opClass;
+    prevEl.textContent='';return;
   }
+  opClass+=' active';
+  if(np.op==='-'){dispStr='−'+np.val;opClass+=' op-minus';}
+  else if(np.op==='+'){dispStr='+'+np.val;}
+  else if(np.op==='*'){dispStr='×'+np.val;opClass+=' op-times';}
+  else if(np.op==='/'){dispStr='÷'+np.val;opClass+=' op-divide';}
+  else if(np.op==='='){dispStr=np.val;}
   valEl.textContent=dispStr;valEl.className=opClass;
-  if(np.val==='0'){prevEl.textContent='';return;}
   try{
     const ent=parseFloat(Function('return ('+np.val+')')());if(isNaN(ent)){prevEl.textContent='';return;}
     let nt;
@@ -1181,7 +1189,14 @@ function npConfirm(){
   if(navigator.vibrate)navigator.vibrate(35);
   const diff=parseFloat((nt-ex).toFixed(4));
   if(np.op==='=')sendSet(np.id,nt);else if(diff!==0)sendAdd(np.id,diff);
-  closeNp();
+  // Stay open — reset to 0 for next entry (running tally)
+  np.val='0';np.op='+';
+  document.querySelectorAll('.np-op-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelector('.np-op-tab[data-op="+"]').classList.add('active');
+  const newEx=stockData[np.id]||0;
+  const item=ITEMS.find(r=>r.id===np.id);
+  document.getElementById('npExisting').innerHTML=`Current: <span>${newEx} ${item?.um||''}</span>`;
+  npDraw();
 }
 document.addEventListener('keydown',e=>{
   if(!document.getElementById('npPopup').classList.contains('open'))return;

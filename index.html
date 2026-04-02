@@ -690,7 +690,7 @@ function normalizeFormula(f){if(!f)return '';return String(f).replace(/\s/g,'').
 const SHEETS_URL='https://script.google.com/macros/s/AKfycbxupmUR8epitUm-cK5PDq58QxruyYBdsnEtdp9NM5Fd0yEMkL7r67n_Dua1FhD62237/exec';
 
 let ITEMS=[],historyLog=[];
-const stockData={},formulaData={},qbData={};
+const stockData={},formulaData={},qbData={},expiryData={};
 let fbListening=false,searchQuery='';
 let isLocked=false;
 const isDesktop=()=>window.innerWidth>=768;

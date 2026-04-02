@@ -123,7 +123,7 @@ body.light .nav-dot{background:rgba(0,0,0,.12);}
 body.light .nav-dot.active{background:var(--brand);}
 
 /* TABLE */
-.tbl-area{overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;}
+.tbl-area{overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;will-change:transform;transform:translateZ(0);}
 .tbl-area::-webkit-scrollbar{width:3px;}
 .tbl-area::-webkit-scrollbar-thumb{background:rgba(255,255,255,.06);border-radius:2px;}
 body.light .tbl-area::-webkit-scrollbar-thumb{background:rgba(0,0,0,.08);}
@@ -1065,14 +1065,16 @@ function rowHtml(r){
     return`<div class="item-row" id="row-${sid}" style="min-height:${vsRowH}px">
       <div class="cell">
         <div class="desc-name">${xe(mDesc)} <span style="color:var(--pack-clr);font-size:10px">(${xe(r.pack)})</span></div>
-        <span class="mob-uid">${xe(r.id)}</span>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1px;">
+          <span class="mob-uid">${xe(r.id)}</span>
+          ${expiryMobHtml(r.id)}
+        </div>
         <span class="mob-sup">(${xe(r.sup)})</span>
         <div class="desc-meta">
           ${r.brand?`<span class="pill pill-brand">${xe(r.brand)}</span>`:''}
           ${r.origin?`<span class="pill pill-origin">${xe(r.origin)}</span>`:''}
           ${qbPill(r.id,r.um)}
         </div>
-        ${expiryMobHtml(r.id)}
       </div>
       <div class="cell cell-mob-right" id="cmr-${sid}">${stockCellHtmlMobile(r.id,r.um)}</div>
     </div>`;
@@ -1098,7 +1100,8 @@ function renderTable(){
 }
 let vsTicking=false;
 document.getElementById('tblArea').addEventListener('scroll',function(){
-  if(!vsTicking){requestAnimationFrame(()=>{vsRender(this.scrollTop);vsTicking=false;});vsTicking=true;}
+  const st=this.scrollTop;
+  if(!vsTicking){requestAnimationFrame(()=>{vsRender(st);vsTicking=false;});vsTicking=true;}
 },{passive:true});
 
 function updateRowDisplay(uid){

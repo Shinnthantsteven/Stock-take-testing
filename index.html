@@ -170,6 +170,42 @@ body.light .stock-empty-btn{border-color:rgba(0,0,0,.13);color:rgba(0,0,0,.15);}
 .qb-label-tag{font-size:7px;font-weight:800;letter-spacing:.8px;color:var(--qb-clr);opacity:.55;text-transform:uppercase;}
 .qb-val-num{font-size:20px;font-weight:800;color:var(--qb-clr);line-height:1;}
 .qb-zero{color:var(--text3);font-size:13px;font-weight:700;opacity:.35;}
+.cell-exp{display:none;flex-direction:column;align-items:center;justify-content:center;gap:4px;}
+.exp-desk-label{font-size:7px;font-weight:800;letter-spacing:.8px;color:var(--exp-clr);opacity:.6;text-transform:uppercase;}
+.exp-desk-val{font-size:13px;font-weight:800;color:var(--exp-clr);line-height:1;cursor:pointer;}
+.exp-desk-add{font-size:10px;font-weight:700;color:rgba(255,255,255,.2);cursor:pointer;border:1px dashed rgba(255,255,255,.12);border-radius:6px;padding:3px 8px;transition:all .2s;}
+.exp-desk-add:hover{border-color:var(--exp-clr);color:var(--exp-clr);}
+body.light .exp-desk-add{color:rgba(0,0,0,.2);border-color:rgba(0,0,0,.12);}
+body.light .exp-desk-add:hover{border-color:var(--exp-clr);color:var(--exp-clr);}
+
+/* EXPIRY MOBILE */
+.mob-exp-wrap{margin-top:4px;display:flex;align-items:center;gap:5px;cursor:pointer;}
+.mob-exp-badge{font-size:8px;font-weight:800;padding:2px 8px;border-radius:20px;background:var(--exp-dim);border:1px solid var(--exp-border);color:var(--exp-clr);white-space:nowrap;}
+.mob-exp-add{font-size:8px;font-weight:700;color:rgba(255,255,255,.22);border:1px dashed rgba(255,255,255,.12);border-radius:10px;padding:2px 8px;}
+body.light .mob-exp-add{color:rgba(0,0,0,.2);border-color:rgba(0,0,0,.12);}
+
+/* EXPIRY EDIT POPUP */
+.exp-edit-overlay{position:fixed;inset:0;z-index:8500;background:rgba(0,0,0,.6);backdrop-filter:blur(6px);display:none;align-items:flex-end;justify-content:center;padding-bottom:calc(20px + var(--safe-bottom));}
+.exp-edit-overlay.open{display:flex;}
+.exp-edit-box{background:var(--bg2);border:1px solid var(--border);border-radius:20px;width:min(340px,92%);padding:20px;display:flex;flex-direction:column;gap:14px;box-shadow:0 8px 40px rgba(0,0,0,.5);}
+body.light .exp-edit-box{background:#fff;border-color:rgba(0,0,0,.10);}
+.exp-edit-title{font-size:13px;font-weight:800;color:var(--text);}
+.exp-edit-desc{font-size:10px;font-weight:700;color:var(--text3);}
+.exp-edit-name{font-size:11px;font-weight:700;color:var(--brand);margin-top:-6px;}
+.exp-edit-input{width:100%;padding:14px 16px;background:rgba(255,255,255,.07);border:1.5px solid var(--exp-border);border-radius:12px;color:var(--text);font-size:18px;font-weight:700;font-family:'Plus Jakarta Sans',sans-serif;outline:none;text-align:center;letter-spacing:2px;}
+.exp-edit-input:focus{border-color:var(--exp-clr);background:var(--exp-dim);}
+.exp-edit-input::placeholder{color:var(--text3);font-size:15px;letter-spacing:0;}
+body.light .exp-edit-input{background:rgba(0,0,0,.04);color:#0f172a;}
+.exp-edit-hint{font-size:9px;font-weight:700;color:var(--text3);text-align:center;}
+.exp-edit-btns{display:flex;gap:10px;}
+.exp-edit-cancel{flex:1;padding:12px;background:rgba(255,255,255,.07);border:1px solid var(--border);border-radius:12px;color:var(--text2);font-size:13px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;}
+.exp-edit-cancel:active{opacity:.7;}
+.exp-edit-clear{padding:12px 16px;background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.28);border-radius:12px;color:#ef4444;font-size:12px;font-weight:800;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;}
+.exp-edit-clear:active{opacity:.7;}
+.exp-edit-save{flex:2;padding:12px;background:var(--exp-clr);border:none;border-radius:12px;color:#fff;font-size:13px;font-weight:800;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;}
+.exp-edit-save:active{opacity:.8;}
+
+/* PORTAL BAR */
 .portal-bar{position:fixed;bottom:calc(14px + var(--safe-bottom));left:50%;transform:translateX(-50%);border-radius:100px;border:1.5px solid rgba(255,255,255,.22);display:flex;align-items:center;z-index:1000;overflow:hidden;background:rgba(2,6,23,.7);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);}
 body.light .portal-bar{border-color:rgba(0,0,0,.18);background:rgba(248,250,252,.88);}
 .portal-bar::before{content:'';position:absolute;top:-1.5px;left:12%;right:12%;height:3px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.85) 40%,white 50%,rgba(255,255,255,.85) 60%,transparent);border-radius:999px;pointer-events:none;z-index:2;}
@@ -405,6 +441,8 @@ body.light .fkb-btn-op{background:rgba(99,102,241,.10);color:#6366f1;}
   .qb-val-num{font-size:22px;font-weight:800;color:var(--qb-clr);line-height:1;}
   .qb-zero{color:var(--text3);font-size:13px;font-weight:700;opacity:.35;}
   .pill-qb{display:none;}
+  .cell-exp{display:flex;justify-content:center;align-items:center;background:var(--exp-dim);border-right:1px solid var(--exp-border);}
+  .mob-exp-wrap{display:none;}
 }
 </style>
 </head>
@@ -448,6 +486,21 @@ body.light .fkb-btn-op{background:rgba(99,102,241,.10);color:#6366f1;}
 
 <div id="lockOverlay"></div>
 <div id="kbShield"></div>
+
+<div class="exp-edit-overlay" id="expEditOverlay">
+  <div class="exp-edit-box">
+    <div class="exp-edit-title">📅 Set Expiry Date</div>
+    <div class="exp-edit-name" id="expEditName">—</div>
+    <div class="exp-edit-desc">Enter date as: Day.Month.Year</div>
+    <input class="exp-edit-input" id="expEditInput" type="text" placeholder="e.g. 29.3.27" maxlength="10" autocomplete="off" inputmode="decimal">
+    <div class="exp-edit-hint">Examples: 29.3.27 · 1.12.26 · 15.06.2027</div>
+    <div class="exp-edit-btns">
+      <button class="exp-edit-cancel" onclick="closeExpiryEdit()">Cancel</button>
+      <button class="exp-edit-clear" onclick="clearExpiryEdit()">✕ Clear</button>
+      <button class="exp-edit-save" onclick="confirmExpiryEdit()">✓ Save</button>
+    </div>
+  </div>
+</div>
 
 <nav class="nav">
   <a class="nav-logo" href="#"><span style="font-size:22px">🥩</span> CHEF2CHEF <span>STOCK</span></a>
@@ -634,7 +687,7 @@ const db=firebase.database();
 
 function normalizeFormula(f){if(!f)return '';return String(f).replace(/\s/g,'').replace(/^=/,'');}
 
-const SHEETS_URL='https://script.google.com/macros/s/AKfycbxSJ8ICQZ-DQBrJ1Mel_VLW2kP7waByQYPhGwWfMAgIoXeVOsJA3BwVeiC6T1B_IIgT/exec';
+const SHEETS_URL='https://script.google.com/macros/s/AKfycbxupmUR8epitUm-cK5PDq58QxruyYBdsnEtdp9NM5Fd0yEMkL7r67n_Dua1FhD62237/exec';
 
 let ITEMS=[],historyLog=[];
 const stockData={},formulaData={},qbData={};
@@ -690,6 +743,7 @@ function saveLocal(){try{localStorage.setItem('c2c_stock',JSON.stringify({s:stoc
 function loadLocal(){try{const d=JSON.parse(localStorage.getItem('c2c_stock')||'{}');if(d.s)Object.assign(stockData,d.s);if(d.f)Object.assign(formulaData,d.f);}catch(e){}}
 function saveHistory(){try{localStorage.setItem('c2c_history',JSON.stringify(historyLog.slice(0,500)));}catch(e){}}
 function loadHistory(){try{historyLog=JSON.parse(localStorage.getItem('c2c_history')||'[]');}catch(e){}}
+
 function openHistory(){document.getElementById('histDrawer').classList.add('open');document.getElementById('histOverlay').classList.add('open');fetchHistory();}
 function closeHistory(){document.getElementById('histDrawer').classList.remove('open');document.getElementById('histOverlay').classList.remove('open');}
 function fetchHistory(){
@@ -868,6 +922,82 @@ function sendSetFormula(uid,formula,qty){
   setSync('syncing','⟳ SAVING');fbWrite(uid,qty,clean,qty-oldVal);
 }
 
+let expEditUid=null;
+function openExpiryEdit(uid){
+  if(!canWrite())return;
+  expEditUid=uid;
+  const item=ITEMS.find(r=>r.id===uid);
+  document.getElementById('expEditName').textContent=item?cleanDesc(item.desc,item.id):uid;
+  document.getElementById('expEditInput').value=expiryData[uid]||'';
+  document.getElementById('expEditOverlay').classList.add('open');
+  setTimeout(()=>document.getElementById('expEditInput').focus(),100);
+}
+function closeExpiryEdit(){
+  document.getElementById('expEditOverlay').classList.remove('open');
+  expEditUid=null;
+}
+function clearExpiryEdit(){
+  document.getElementById('expEditInput').value='';
+}
+function confirmExpiryEdit(){
+  if(!expEditUid)return;
+  const raw=document.getElementById('expEditInput').value.trim();
+  const uid=expEditUid;
+  closeExpiryEdit();
+  expiryData[uid]=raw;
+  updateExpiryDisplay(uid);
+  // Save to sheet
+  const params=new URLSearchParams({action:'updateExpiry',uid,expiry:raw,_t:Date.now()});
+  fetch(SHEETS_URL+'?'+params.toString(),{cache:'no-store',redirect:'follow',keepalive:true})
+    .then(r=>r.json())
+    .then(d=>{if(d.ok)showToast('📅 Expiry saved','ok');else showToast('Expiry save failed','error');})
+    .catch(()=>showToast('Expiry save failed','error'));
+  if(navigator.vibrate)navigator.vibrate(20);
+}
+document.getElementById('expEditInput').addEventListener('keydown',e=>{
+  if(e.key==='Enter'){e.preventDefault();confirmExpiryEdit();}
+  if(e.key==='Escape'){closeExpiryEdit();}
+});
+document.getElementById('expEditOverlay').addEventListener('pointerdown',e=>{
+  if(e.target===document.getElementById('expEditOverlay'))closeExpiryEdit();
+});
+
+function updateExpiryDisplay(uid){
+  const sid=uid.replace(/[^a-zA-Z0-9_-]/g,'_');
+  const val=expiryData[uid]||'';
+  // Desktop
+  const expDeskEl=document.getElementById('expd-'+sid);
+  if(expDeskEl){
+    expDeskEl.innerHTML=val
+      ?`<span class="exp-desk-label">EXP</span><span class="exp-desk-val" onclick="openExpiryEdit('${uid}')">${xe(val)}</span>`
+      :`<span class="exp-desk-add" onclick="openExpiryEdit('${uid}')">＋ DATE</span>`;
+  }
+  // Mobile
+  const expMobEl=document.getElementById('expm-'+sid);
+  if(expMobEl){
+    expMobEl.innerHTML=val
+      ?`<span class="mob-exp-badge" onclick="openExpiryEdit('${uid}')">📅 EXP ${xe(val)}</span>`
+      :`<span class="mob-exp-add" onclick="openExpiryEdit('${uid}')">＋ EXP DATE</span>`;
+  }
+}
+
+function expiryDeskHtml(id){
+  const sid=id.replace(/[^a-zA-Z0-9_-]/g,'_');
+  const val=expiryData[id]||'';
+  return`<div class="cell-exp-inner" id="expd-${sid}">`+(val
+    ?`<span class="exp-desk-label">EXP</span><span class="exp-desk-val" onclick="openExpiryEdit('${id}')">${xe(val)}</span>`
+    :`<span class="exp-desk-add" onclick="openExpiryEdit('${id}')">＋ DATE</span>`
+  )+`</div>`;
+}
+function expiryMobHtml(id){
+  const sid=id.replace(/[^a-zA-Z0-9_-]/g,'_');
+  const val=expiryData[id]||'';
+  return`<div class="mob-exp-wrap" id="expm-${sid}">`+(val
+    ?`<span class="mob-exp-badge" onclick="openExpiryEdit('${id}')">📅 EXP ${xe(val)}</span>`
+    :`<span class="mob-exp-add" onclick="openExpiryEdit('${id}')">＋ EXP DATE</span>`
+  )+`</div>`;
+}
+
 function onEqIn(id,sid){document.getElementById('eqok-'+sid)?.classList.add('on');}
 function onEqKd(e,id,sid){
   if(e.key==='Enter'){e.preventDefault();confirmEq(id,sid);}
@@ -912,7 +1042,7 @@ function stockCellHtmlMobile(id,um){
         <button class="eq-ok" id="eqok-${sid}" onclick="fkbOpen('${id}','${sid}')">✎</button>
       </div>`;
   }
-  return`<div class="stock-empty-btn" onclick="openNp('${id}')">＋ ${um?`<span style="font-size:9px;opacity:.5;margin-left:3px">${xe(um)}</span>`:''}</div>`;
+  return`<div class="stock-empty-btn" onclick="openNp('${id}')">＋ ${um?`<span style="font-size:12px;font-weight:900;color:#059669;margin-left:3px">${xe(um)}</span>`:''}</div>`;
 }
 function stockCellHtml(id){
   const qty=stockData[id]||0;const sid=id.replace(/[^a-zA-Z0-9_-]/g,'_');const formula=formulaData[id]||'';
@@ -962,6 +1092,7 @@ function rowHtml(r){
       </div>
       <div class="cell cell-qb">${qbCellHtml(r.id)}</div>
       <div class="cell cell-stock">${stockCellHtml(r.id)}</div>
+      <div class="cell cell-exp">${expiryDeskHtml(r.id)}</div>
       <div class="cell cell-um">${xe(r.um)}</div>
       <div class="cell cell-pack-col">${xe(r.pack)}</div>
       <div class="cell cell-sup">${xe(r.sup)}</div>
@@ -982,6 +1113,7 @@ function rowHtml(r){
           ${r.origin?`<span class="pill pill-origin">${xe(r.origin)}</span>`:''}
           ${qbPill(r.id,r.um)}
         </div>
+        ${expiryMobHtml(r.id)}
       </div>
       <div class="cell cell-mob-right" id="cmr-${sid}">${stockCellHtmlMobile(r.id,r.um)}</div>
     </div>`;

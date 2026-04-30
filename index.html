@@ -226,7 +226,7 @@ body.light .portal-bar::before{background:linear-gradient(90deg,transparent,rgba
 
 /* NUMPAD */
 @keyframes popIn{from{transform:scale(0.86);opacity:0;}to{transform:scale(1);opacity:1;}}
-.np-popup{position:fixed;z-index:9000;display:none;flex-direction:column;width:184px;border-radius:22px;background:rgba(8,16,32,.38);backdrop-filter:blur(28px);-webkit-backdrop-filter:blur(28px);border:1px solid rgba(255,255,255,.18);box-shadow:0 16px 48px rgba(0,0,0,.55),0 2px 8px rgba(0,0,0,.30);overflow:hidden;user-select:none;touch-action:none;}
+.np-popup{position:fixed;z-index:9000;display:none;flex-direction:column;width:184px;border-radius:22px;background:rgba(255,255,255,.07);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);border:1px solid rgba(255,255,255,.22);box-shadow:0 12px 40px rgba(0,0,0,.40),0 2px 6px rgba(0,0,0,.20);overflow:hidden;user-select:none;touch-action:none;}
 .np-popup.open{display:flex;animation:popIn .2s cubic-bezier(.16,1,.3,1);}
 .np-popup::before{content:'';position:absolute;top:0;left:10%;right:10%;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.50) 50%,transparent);pointer-events:none;z-index:10;}
 body.light .np-popup{background:rgba(255,255,255,.45);border-color:rgba(255,255,255,.70);box-shadow:0 16px 48px rgba(0,0,0,.14),0 2px 8px rgba(0,0,0,.08);}
@@ -323,7 +323,7 @@ body.light .np-btn-back{color:rgba(0,0,0,.40);}
 .desc-meta{display:flex;flex-wrap:wrap;gap:3px;margin-top:4px;}
 .cell-mob-right{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;}
 .stock-qty{font-size:20px;font-weight:800;color:var(--brand);line-height:1;cursor:pointer;}
-.mob-um{font-size:9px;font-weight:900;padding:2px 7px;border-radius:20px;background:var(--brand-dim);border:1px solid var(--brand-border);color:#000000;white-space:nowrap;}
+.mob-um{font-size:9px;font-weight:900;padding:2px 7px;border-radius:20px;background:var(--brand-dim);border:1px solid var(--brand-border);color:var(--brand);white-space:nowrap;}
 .eq-input{width:90px;font-size:8px;}
 .stock-empty-btn{width:90px;height:32px;}
 .cell-uid{display:none;}.cell-um{display:none;}.cell-sup{display:none;}.cell-pack-col{display:none;}.cell-brand-col{display:none;}.cell-cost{display:none;}.cell-qb{display:none;}.cell-exp{display:none;}

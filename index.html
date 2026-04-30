@@ -546,7 +546,7 @@ body.light .fkb-btn-op{background:rgba(99,102,241,.10);color:#6366f1;}
   <div class="np-drag" id="npDrag">
     <div class="np-drag-left">
       <div class="np-dots"><span></span><span></span><span></span><span></span><span></span><span></span></div>
-      <div style="flex:1;min-width:0"><div class="np-drag-name" id="npName">—</div><span class="np-um-badge" id="npUm"></span></div>
+      <div style="flex:1;min-width:0"><div class="np-drag-name" id="npName">—</div><div style="display:flex;flex-wrap:wrap;gap:3px;margin-top:2px"><span class="np-um-badge" id="npUm"></span><span class="np-um-badge" id="npPack" style="display:none;background:rgba(129,140,248,.12);border:1px solid rgba(129,140,248,.28);color:#818cf8"></span></div></div>
     </div>
     <button class="np-ok" onclick="npConfirm()">✓</button>
   </div>
@@ -559,7 +559,6 @@ body.light .fkb-btn-op{background:rgba(99,102,241,.10);color:#6366f1;}
     <button class="np-op-tab" onclick="npOp('-')">−</button>
     <button class="np-op-tab" onclick="npOp('×')">×</button>
     <button class="np-op-tab" onclick="npOp('÷')">÷</button>
-    <button class="np-op-tab" onclick="npKey('back')">⌫</button>
   </div>
   <div class="np-grid">
     <button class="np-btn" onclick="npKey('7')">7</button><button class="np-btn" onclick="npKey('8')">8</button>
@@ -1163,8 +1162,9 @@ function openNp(id){
   npPos.x=Math.min(npPos.x,window.innerWidth-186);
   npPos.y=Math.max(10,Math.min(npPos.y,window.innerHeight-420));
   popup.style.left=npPos.x+'px';popup.style.top=npPos.y+'px';
-  document.getElementById('npName').textContent=item.desc;
+  document.getElementById('npName').textContent=cleanDesc(item.desc,item.id);
   const umEl=document.getElementById('npUm');umEl.textContent=item.um||'';umEl.style.display=item.um?'inline-block':'none';
+  const packEl=document.getElementById('npPack');if(item.pack){packEl.textContent=item.pack;packEl.style.display='inline-block';}else{packEl.style.display='none';}
   const ex=parseFloat(stockData[id])||0;
   document.getElementById('npExisting').innerHTML=ex>0?`Current: <span>${ex} ${item.um||''}</span>`:'No stock yet';
   const qbEl=document.getElementById('npQbInfo');const qb=qbData[id];
@@ -1381,7 +1381,7 @@ function fkbRefreshDisplay(){
   disp.querySelector('.fkb-after').textContent=fkbVal.slice(fkbCursorPos);
   requestAnimationFrame(()=>{const cursor=disp.querySelector('.fkb-cursor-bar');if(!cursor)return;const cRight=cursor.offsetLeft+cursor.offsetWidth;if(cRight>disp.scrollLeft+disp.clientWidth)disp.scrollLeft=cRight-disp.clientWidth+16;else if(cursor.offsetLeft<disp.scrollLeft)disp.scrollLeft=Math.max(0,cursor.offsetLeft-16);});
 }
-function fkbOpen(id,sid){if(isDesktop())return;if(!canWrite())return;fkbTargetId=id;fkbTargetSid=sid;let raw=formulaData[id]||String(parseFloat(stockData[id])||0);if(raw.startsWith('0+'))raw=raw.slice(2);fkbVal=raw;fkbCursorPos=fkbVal.length;fkbRefreshDisplay();requestAnimationFrame(()=>{const d=document.getElementById('fkbDisplay');if(d)d.scrollLeft=d.scrollWidth;});document.getElementById('fkbOverlay').classList.add('open');document.activeElement?.blur();}
+function fkbOpen(id,sid){if(isDesktop())return;if(!canWrite())return;if(document.getElementById('qkb').classList.contains('open'))window.qkbClose();fkbTargetId=id;fkbTargetSid=sid;let raw=formulaData[id]||String(parseFloat(stockData[id])||0);if(raw.startsWith('0+'))raw=raw.slice(2);fkbVal=raw;fkbCursorPos=fkbVal.length;fkbRefreshDisplay();requestAnimationFrame(()=>{const d=document.getElementById('fkbDisplay');if(d)d.scrollLeft=d.scrollWidth;});document.getElementById('fkbOverlay').classList.add('open');document.activeElement?.blur();}
 function fkbCancel(){document.getElementById('fkbOverlay').classList.remove('open');fkbTargetId=null;fkbTargetSid=null;fkbVal='';fkbCursorPos=0;}
 function fkbKey(k){
   if(k==='back'){if(fkbCursorPos>0){fkbVal=fkbVal.slice(0,fkbCursorPos-1)+fkbVal.slice(fkbCursorPos);fkbCursorPos--;}}
@@ -1404,7 +1404,7 @@ function fkbConfirm(){
   if(!fkbTargetId)return;
   const id=fkbTargetId,sid=fkbTargetSid;
   const clean=fkbVal.replace(/[^0-9.+\-*\/()]/g,'');
-  if(!clean){fkbCancel();return;}
+  if(!clean){fkbCancel();sendSet(id,0);return;}
   let qty;try{qty=Math.max(0,parseFloat(Function('return ('+clean+')')().toFixed(4)));}catch(e){qty=stockData[id]||0;}
   const inp=document.getElementById('eq-'+sid);if(inp)inp.value='='+clean;
   document.getElementById('eqok-'+sid)?.classList.remove('on');

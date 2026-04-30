@@ -226,20 +226,23 @@ body.light .portal-bar::before{background:linear-gradient(90deg,transparent,rgba
 
 /* NUMPAD */
 @keyframes popIn{from{transform:scale(0.86);opacity:0;}to{transform:scale(1);opacity:1;}}
-.np-popup{position:fixed;z-index:9000;display:none;flex-direction:column;width:176px;border-radius:20px;background:rgba(255,255,255,.09);backdrop-filter:blur(40px) saturate(200%);-webkit-backdrop-filter:blur(40px) saturate(200%);border:1px solid rgba(255,255,255,.22);box-shadow:0 1px 0 rgba(255,255,255,.3) inset,0 8px 32px rgba(0,0,0,.35);overflow:hidden;user-select:none;touch-action:none;}
-.np-popup.open{display:flex;animation:popIn .2s cubic-bezier(.16,1,.3,1);}
-.np-popup::before{content:'';position:absolute;top:0;left:10%;right:10%;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.85) 50%,transparent);pointer-events:none;z-index:10;}
-body.light .np-popup{background:rgba(255,255,255,.84);border-color:rgba(0,0,0,.13);box-shadow:0 1px 0 rgba(255,255,255,.95) inset,0 8px 32px rgba(0,0,0,.12);}
-.np-drag{padding:7px 8px 6px 10px;cursor:grab;display:flex;align-items:flex-start;justify-content:space-between;gap:4px;border-bottom:1px solid rgba(255,255,255,.07);background:rgba(255,255,255,.03);}
+.np-popup{position:fixed;z-index:9000;display:none;flex-direction:column;width:184px;border-radius:24px;background:rgba(120,140,160,.08);backdrop-filter:blur(60px) saturate(180%) brightness(1.08);-webkit-backdrop-filter:blur(60px) saturate(180%) brightness(1.08);border:1px solid rgba(255,255,255,.30);box-shadow:0 2px 0 rgba(255,255,255,.40) inset,0 -1px 0 rgba(255,255,255,.06) inset,0 20px 60px rgba(0,0,0,.50),0 4px 12px rgba(0,0,0,.30);overflow:hidden;user-select:none;touch-action:none;}
+.np-popup.open{display:flex;animation:popIn .22s cubic-bezier(.16,1,.3,1);}
+.np-popup::before{content:'';position:absolute;top:0;left:8%;right:8%;height:1.5px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.90) 40%,rgba(255,255,255,1) 50%,rgba(255,255,255,.90) 60%,transparent);pointer-events:none;z-index:10;border-radius:999px;}
+.np-popup::after{content:'';position:absolute;inset:0;border-radius:24px;background:radial-gradient(ellipse at 50% 0%,rgba(255,255,255,.10) 0%,transparent 65%);pointer-events:none;z-index:1;}
+body.light .np-popup{background:rgba(255,255,255,.55);border-color:rgba(255,255,255,.82);box-shadow:0 2px 0 rgba(255,255,255,1) inset,0 16px 48px rgba(0,0,0,.14),0 4px 10px rgba(0,0,0,.08);}
+.np-drag{padding:8px 9px 6px 11px;cursor:grab;display:flex;align-items:flex-start;justify-content:space-between;gap:4px;border-bottom:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.03);}
 .np-drag:active{cursor:grabbing;}
 body.light .np-drag{border-bottom-color:rgba(0,0,0,.07);background:rgba(0,0,0,.02);}
 .np-drag-left{display:flex;align-items:flex-start;gap:5px;flex:1;min-width:0;}
-.np-dots{display:grid;grid-template-columns:repeat(3,3px);gap:2px;flex-shrink:0;margin-top:2px;}
-.np-dots span{width:3px;height:3px;border-radius:50%;background:rgba(255,255,255,.25);display:block;}
+.np-dots{display:grid;grid-template-columns:repeat(3,3px);gap:2px;flex-shrink:0;margin-top:3px;}
+.np-dots span{width:3px;height:3px;border-radius:50%;background:rgba(255,255,255,.28);display:block;}
 body.light .np-dots span{background:rgba(0,0,0,.18);}
-.np-drag-name{font-size:8.5px;font-weight:800;color:rgba(255,255,255,.55);white-space:normal;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.35;}
-body.light .np-drag-name{color:rgba(0,0,0,.45);}
-.np-um-badge{display:none;font-size:8px;font-weight:800;padding:2px 6px;border-radius:20px;background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.28);color:var(--brand);margin-top:2px;}
+.np-uid{font-family:monospace;font-size:8px;font-weight:700;color:rgba(255,255,255,.35);letter-spacing:.3px;margin-bottom:2px;}
+body.light .np-uid{color:rgba(0,0,0,.30);}
+.np-drag-name{font-size:8.5px;font-weight:800;color:rgba(255,255,255,.72);white-space:normal;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.35;}
+body.light .np-drag-name{color:rgba(0,0,0,.55);}
+.np-um-badge{display:none;font-size:8px;font-weight:800;padding:2px 6px;border-radius:20px;background:rgba(16,185,129,.14);border:1px solid rgba(16,185,129,.30);color:var(--brand);margin-top:2px;}
 .np-ok{width:22px;height:22px;border-radius:50%;background:var(--brand);border:none;color:#020617;font-size:11px;font-weight:900;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(16,185,129,.5);transition:transform .1s;margin-top:1px;}
 .np-ok:active{transform:scale(.86);}
 .np-existing{font-size:8px;font-weight:700;color:rgba(255,255,255,.28);padding:2px 10px 0;text-align:right;}
@@ -259,17 +262,18 @@ body.light .np-value.op-times{color:#d97706 !important;}
 body.light .np-value.op-divide{color:#6366f1 !important;}
 .np-preview{font-size:7px;font-weight:700;color:rgba(251,191,36,.85);text-align:right;min-height:9px;padding:0 10px 2px;line-height:1.3;}
 .np-ops{display:flex;gap:3px;padding:2px 5px 3px;}
-.np-op-tab{flex:1;padding:5px 0;border-radius:7px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.07);color:rgba(255,255,255,.45);font-size:13px;font-weight:700;cursor:pointer;transition:all .15s;line-height:1;}
+.np-op-tab{flex:1;padding:6px 0;border-radius:9px;border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.10);color:rgba(255,255,255,.55);font-size:14px;font-weight:700;cursor:pointer;transition:all .12s;line-height:1;box-shadow:0 1px 0 rgba(255,255,255,.18) inset;}
 .np-op-tab.active{background:var(--brand-dim);border-color:var(--brand-border);color:var(--brand);}
-.np-op-tab:active{transform:scale(.88);}
-body.light .np-op-tab{background:rgba(0,0,0,.05);border-color:rgba(0,0,0,.08);color:rgba(0,0,0,.35);}
-.np-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;padding:0 6px 6px;}
-.np-btn{border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.09);border-radius:9px;height:42px;font-size:15px;font-weight:600;color:rgba(255,255,255,.92);cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:background .08s,transform .07s;display:flex;align-items:center;justify-content:center;}
-.np-btn:active{background:rgba(255,255,255,.22);transform:scale(.88);}
-body.light .np-btn{background:rgba(0,0,0,.06);border-color:rgba(0,0,0,.09);color:#0f172a;}
-body.light .np-btn:active{background:rgba(0,0,0,.13);}
-.np-btn-back{color:rgba(255,255,255,.4);font-size:13px;}
-body.light .np-btn-back{color:rgba(0,0,0,.35);}
+.np-op-tab:active{transform:scale(.86);background:rgba(255,255,255,.20);}
+body.light .np-op-tab{background:rgba(255,255,255,.55);border-color:rgba(0,0,0,.08);color:rgba(0,0,0,.45);box-shadow:0 1px 0 rgba(255,255,255,.95) inset;}
+body.light .np-op-tab:active{background:rgba(255,255,255,.75);}
+.np-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;padding:0 7px 7px;}
+.np-btn{border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.12);border-radius:11px;height:44px;font-size:16px;font-weight:600;color:rgba(255,255,255,.92);cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:background .07s,transform .07s;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 0 rgba(255,255,255,.22) inset;}
+.np-btn:active{background:rgba(255,255,255,.26);transform:scale(.87);}
+body.light .np-btn{background:rgba(255,255,255,.60);border-color:rgba(0,0,0,.07);color:#0f172a;box-shadow:0 1px 0 rgba(255,255,255,.98) inset;}
+body.light .np-btn:active{background:rgba(255,255,255,.80);}
+.np-btn-back{color:rgba(255,255,255,.45);font-size:14px;}
+body.light .np-btn-back{color:rgba(0,0,0,.38);}
 
 /* HISTORY */
 .hist-overlay{position:fixed;inset:0;z-index:7000;background:rgba(0,0,0,.5);backdrop-filter:blur(4px);display:none;}
@@ -546,7 +550,7 @@ body.light .fkb-btn-op{background:rgba(99,102,241,.10);color:#6366f1;}
   <div class="np-drag" id="npDrag">
     <div class="np-drag-left">
       <div class="np-dots"><span></span><span></span><span></span><span></span><span></span><span></span></div>
-      <div style="flex:1;min-width:0"><div class="np-drag-name" id="npName">—</div><div style="display:flex;flex-wrap:wrap;gap:3px;margin-top:2px"><span class="np-um-badge" id="npUm"></span><span class="np-um-badge" id="npPack" style="display:none;background:rgba(129,140,248,.12);border:1px solid rgba(129,140,248,.28);color:#818cf8"></span></div></div>
+      <div style="flex:1;min-width:0"><div class="np-uid" id="npUid"></div><div class="np-drag-name" id="npName">—</div><div style="display:flex;flex-wrap:wrap;gap:3px;margin-top:2px"><span class="np-um-badge" id="npUm"></span><span class="np-um-badge" id="npPack" style="display:none;background:rgba(129,140,248,.12);border:1px solid rgba(129,140,248,.28);color:#818cf8"></span></div></div>
     </div>
     <button class="np-ok" onclick="npConfirm()">✓</button>
   </div>
@@ -1162,6 +1166,7 @@ function openNp(id){
   npPos.x=Math.min(npPos.x,window.innerWidth-186);
   npPos.y=Math.max(10,Math.min(npPos.y,window.innerHeight-420));
   popup.style.left=npPos.x+'px';popup.style.top=npPos.y+'px';
+  document.getElementById('npUid').textContent=item.id;
   document.getElementById('npName').textContent=cleanDesc(item.desc,item.id);
   const umEl=document.getElementById('npUm');umEl.textContent=item.um||'';umEl.style.display=item.um?'inline-block':'none';
   const packEl=document.getElementById('npPack');if(item.pack){packEl.textContent=item.pack;packEl.style.display='inline-block';}else{packEl.style.display='none';}

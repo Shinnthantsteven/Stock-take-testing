@@ -216,17 +216,17 @@ body.light .portal-bar{border-color:rgba(0,0,0,.18);background:rgba(248,250,252,
 .portal-bar::before{content:'';position:absolute;top:-1.5px;left:12%;right:12%;height:3px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.85) 40%,white 50%,rgba(255,255,255,.85) 60%,transparent);border-radius:999px;pointer-events:none;z-index:2;}
 body.light .portal-bar::before{background:linear-gradient(90deg,transparent,rgba(0,0,0,.3) 40%,rgba(0,0,0,.5) 50%,rgba(0,0,0,.3) 60%,transparent);}
 .portal-bar:focus-within{border-color:rgba(16,185,129,.5);}
-.bar-inner{flex:1;display:flex;align-items:center;gap:8px;padding:0 18px;padding-bottom:env(safe-area-inset-bottom,0px);}
+.bar-inner{flex:1;display:flex;align-items:center;gap:8px;padding:0 18px;}
 .bar-icon{font-size:13px;opacity:.35;flex-shrink:0;}
 #searchIn{background:transparent;border:none;color:var(--text);font-size:14px;font-weight:700;outline:none;flex:1;padding:14px 0;font-family:'Plus Jakarta Sans',sans-serif;}
 #searchIn::placeholder{color:var(--text);opacity:.3;font-weight:600;}
 .bar-count{font-size:10px;font-weight:800;color:var(--brand);background:var(--brand-dim);border:1px solid var(--brand-border);border-radius:50px;padding:3px 11px;white-space:nowrap;flex-shrink:0;}
-.bar-exit{background:rgba(239,68,68,.15);border:none;border-left:1px solid rgba(239,68,68,.2);color:#ef4444;padding:0 18px;height:calc(46px + env(safe-area-inset-bottom,0px));padding-bottom:env(safe-area-inset-bottom,0px);font-weight:800;font-size:11px;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;border-radius:0 100px 100px 0;flex-shrink:0;letter-spacing:.5px;transition:background .2s;}
+.bar-exit{background:rgba(239,68,68,.15);border:none;border-left:1px solid rgba(239,68,68,.2);color:#ef4444;padding:0 18px;height:46px;font-weight:800;font-size:11px;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;border-radius:0 100px 100px 0;flex-shrink:0;letter-spacing:.5px;transition:background .2s;}
 .bar-exit:active{background:rgba(239,68,68,.32);}
 
 /* NUMPAD */
 @keyframes popIn{from{transform:scale(0.86);opacity:0;}to{transform:scale(1);opacity:1;}}
-.np-popup{position:fixed;z-index:9000;display:none;flex-direction:column;width:184px;border-radius:16px;background:rgba(255,255,255,.28);backdrop-filter:blur(28px) saturate(180%);-webkit-backdrop-filter:blur(28px) saturate(180%);border:1px solid rgba(255,255,255,.85);box-shadow:0 8px 40px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.55);overflow:hidden;user-select:none;touch-action:none;}
+.np-popup{position:fixed;z-index:9000;display:none;flex-direction:column;width:184px;border-radius:16px;background:rgba(255,255,255,.19);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,1);box-shadow:0 4px 30px rgba(0,0,0,.25);overflow:hidden;user-select:none;touch-action:none;}
 .np-popup.open{display:flex;animation:popIn .2s cubic-bezier(.16,1,.3,1);}
 body.light .np-popup{background:rgba(255,255,255,.25);}
 .np-drag{padding:8px 9px 6px 11px;cursor:grab;display:flex;align-items:flex-start;justify-content:space-between;gap:4px;border-bottom:1px solid rgba(255,255,255,.12);background:transparent;}
@@ -337,7 +337,7 @@ body.light .np-btn-back{color:rgba(0,0,0,.45);}
 .qkb{position:fixed;bottom:0;left:0;right:0;z-index:5000;background:var(--kb-bg);border-top:1px solid rgba(255,255,255,.07);padding:5px 3px 0;display:none;flex-direction:column;gap:0;will-change:transform;transform:translateZ(0);}
 .qkb.open{display:flex;}
 body.light .qkb{border-top-color:rgba(0,0,0,.10);}
-.qkb-bar{display:flex;align-items:center;gap:6px;padding:5px 6px calc(env(safe-area-inset-bottom,0px) + 2px);background:var(--kb-bg);}
+.qkb-bar{display:flex;align-items:center;gap:6px;padding:5px 6px calc(env(safe-area-inset-bottom,0px) + 6px);background:var(--kb-bg);}
 .qkb-input-display{flex:1;font-size:15px;font-weight:600;color:var(--text);background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.13);border-radius:10px;padding:7px 12px;min-height:36px;white-space:pre;overflow:hidden;display:flex;align-items:center;position:relative;}
 body.light .qkb-input-display{background:rgba(255,255,255,.7);border-color:rgba(0,0,0,.14);color:#0f172a;}
 .qkb-text-before,.qkb-text-after{color:inherit;font-size:15px;font-weight:600;white-space:pre;}

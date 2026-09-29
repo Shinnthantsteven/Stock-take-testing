@@ -1416,9 +1416,8 @@ function fkbConfirm(){
 
 /* AUTH */
 const USERS={
-  'steve':  {passwordHash:'ed823ec32c5d4e9ca9dd968bb0fe9366b7d904ce0cae615308ddd5b89f0e6a3a',name:'Steve',  color:'#10b981'},
-  'aswanth':{passwordHash:'158a323a7ba44870f23d96f1516dd70aa48e9a72db4ebb026b0a89e212a208ab',name:'Aswanth',color:'#818cf8'},
-  'fatima': {passwordHash:'158a323a7ba44870f23d96f1516dd70aa48e9a72db4ebb026b0a89e212a208ab',name:'Fatima', color:'#f472b6'},
+  'steve':  {passwordHash:'2cec8cf0e321c284fa0c2ebef804aac18bf1cbb85546f89e7e3d0b6aa8b9d2cf',name:'Steve',  color:'#10b981'},
+  'aswanth':{passwordHash:'0b592c692713048fb10a6bce270a9e83557d469c7d9c8e4766a6356ea5f89452',name:'Aswanth',color:'#818cf8'},
 };
 async function hashPwd(pwd){const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(pwd));return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');}
 let currentUser=null;

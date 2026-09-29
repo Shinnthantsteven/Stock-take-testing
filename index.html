@@ -15,7 +15,7 @@
 const _m={name:"Chef2Chef Stock",short_name:"C2C Stock",description:"Physical Stock Count Module",start_url:"./",display:"standalone",background_color:"#020617",theme_color:"#020617",orientation:"any",icons:[{src:"data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='100' fill='%23020617'/><text y='.85em' font-size='384' x='50%' text-anchor='middle'>🥩</text></svg>",sizes:"512x512",type:"image/svg+xml"}]};
 const _b=new Blob([JSON.stringify(_m)],{type:'application/json'});
 const _l=document.createElement('link');_l.rel='manifest';_l.href=URL.createObjectURL(_b);document.head.appendChild(_l);
-if('serviceWorker'in navigator){const sw=`const C='c2c-v6';self.addEventListener('install',e=>self.skipWaiting());self.addEventListener('activate',e=>e.waitUntil(clients.claim()));self.addEventListener('fetch',e=>{const u=e.request.url;if(u.includes('script.google.com')||u.includes('firebaseio.com'))return;if(u.includes('fonts.gstatic')||u.includes('gstatic.com/firebasejs')||u.includes('fonts.googleapis')){e.respondWith(caches.open(C).then(c=>c.match(e.request).then(r=>r||fetch(e.request).then(res=>{c.put(e.request,res.clone());return res;}))));}});`;navigator.serviceWorker.register(URL.createObjectURL(new Blob([sw],{type:'text/javascript'}))).catch(()=>{});}
+if('serviceWorker'in navigator){const sw=`const C='c2c-v7';self.addEventListener('install',e=>self.skipWaiting());self.addEventListener('activate',e=>e.waitUntil(clients.claim()));self.addEventListener('fetch',e=>{const u=e.request.url;if(u.includes('script.google.com')||u.includes('firebaseio.com'))return;if(u.includes('fonts.gstatic')||u.includes('gstatic.com/firebasejs')||u.includes('fonts.googleapis')){e.respondWith(caches.open(C).then(c=>c.match(e.request).then(r=>r||fetch(e.request).then(res=>{c.put(e.request,res.clone());return res;}))));}});`;navigator.serviceWorker.register(URL.createObjectURL(new Blob([sw],{type:'text/javascript'}))).catch(()=>{});}
 </script>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -666,7 +666,7 @@ const db=firebase.database();
 function normalizeFormula(f){if(!f)return '';return String(f).replace(/\s/g,'').replace(/^=/,'');}
 
 // ── NEW DEPLOYMENT URL ──
-const SHEETS_URL='https://script.google.com/macros/s/AKfycbxupmUR8epitUm-cK5PDq58QxruyYBdsnEtdp9NM5Fd0yEMkL7r67n_Dua1FhD62237/exec';
+const SHEETS_URL='https://script.google.com/macros/s/AKfycbxgw-SY1WHdBarOB5OHdNJbBmm2phn6kguwbrcEmqhlzBNr5xcNoNpZioHimSTpAVGZ/exec';
 
 let ITEMS=[],historyLog=[];
 const stockData={},formulaData={},qbData={},expiryData={};
@@ -791,12 +791,12 @@ function showToast(msg,type){
 function toggleSystemLock(){
   if(!isAdmin()){showToast('Only Steve (admin) can lock/unlock.','error');return;}
   const newLocked=!isLocked;
-  db.ref('stock/__SYSLOCK__').set({locked:newLocked,ts:Date.now()}).then(()=>{
+  db.ref('stock_30_09_2026/__SYSLOCK__').set({locked:newLocked,ts:Date.now()}).then(()=>{
     applyLockState(newLocked);showToast(newLocked?'🔒 System locked':'🔓 System unlocked',newLocked?'error':'ok');
     if(navigator.vibrate)navigator.vibrate(newLocked?[30,20,30]:35);
   }).catch(()=>{showToast('Could not update lock','error');});
 }
-function startLockListener(){db.ref('stock/__SYSLOCK__').on('value',snap=>{const val=snap.val();applyLockState(val&&val.locked===true);});}
+function startLockListener(){db.ref('stock_30_09_2026/__SYSLOCK__').on('value',snap=>{const val=snap.val();applyLockState(val&&val.locked===true);});}
 function canWrite(){
   if(isLocked&&!isAdmin()){
     const banner=document.getElementById('lockBanner');banner.style.background='rgba(239,68,68,.22)';setTimeout(()=>{banner.style.background='';},400);
@@ -825,7 +825,7 @@ function updateSheetBackground(uid,qty,formula,added){
 }
 function fbWrite(uid,qty,formula,added){
   lockWrite(uid);const k=uid.replace(/[.#$[\]]/g,'_');
-  db.ref('stock/'+k).set({qty,formula:formula||String(qty),ts:Date.now(),added:added??0,source:currentUser?currentUser.name:'web'})
+  db.ref('stock_30_09_2026/'+k).set({qty,formula:formula||String(qty),ts:Date.now(),added:added??0,source:currentUser?currentUser.name:'web'})
     .then(()=>{setSync('ok','● LIVE');updateSheetBackground(uid,qty,formula||String(qty),added??0);})
     .catch(()=>{setSync('offline','◌ OFFLINE');updateSheetBackground(uid,qty,formula||String(qty),added??0);});
 }
@@ -848,8 +848,8 @@ function startFirebaseListener(){
       saveLocal();setSync('ok','● LIVE');
     }
   };
-  db.ref('stock').on('child_changed',handleFbUpdate);
-  db.ref('stock').on('child_added',handleFbUpdate);
+  db.ref('stock_30_09_2026').on('child_changed',handleFbUpdate);
+  db.ref('stock_30_09_2026').on('child_added',handleFbUpdate);
   db.ref('.info/connected').on('value',snap=>{if(snap.val()===true){if(!isOnline){isOnline=true;updateOfflineUI();}setSync('ok','● LIVE');}});
 }
 
@@ -1491,7 +1491,7 @@ window.addEventListener('load',()=>{
           if(item.expiry)expiryData[item.id]=item.expiry; // ← load expiry
         });
         try{localStorage.setItem('c2c_items',JSON.stringify(ITEMS));localStorage.setItem('c2c_items_ts',String(Date.now()));}catch(e){}
-        db.ref('stock').once('value').then(snap=>{
+        db.ref('stock_30_09_2026').once('value').then(snap=>{
           const fb=snap.val();
           if(fb)Object.entries(fb).forEach(([k,v])=>{
             if(k==='__SYSLOCK__')return;
@@ -1516,7 +1516,7 @@ window.addEventListener('load',()=>{
                   else if(item.qbStock!==undefined)qbData[item.id]=item.qbStock;
                   if(item.expiry)expiryData[item.id]=item.expiry;
                 });
-                db.ref('stock').once('value').then(snap=>{
+                db.ref('stock_30_09_2026').once('value').then(snap=>{
                   const fb=snap.val();
                   if(fb)Object.entries(fb).forEach(([k,v])=>{
                     if(k==='__SYSLOCK__')return;
@@ -1552,7 +1552,7 @@ window.addEventListener('load',()=>{
           else if(item.qbStock!==undefined)qbData[item.id]=item.qbStock;
           if(item.expiry)expiryData[item.id]=item.expiry;
         });
-        db.ref('stock').once('value').then(snap=>{
+        db.ref('stock_30_09_2026').once('value').then(snap=>{
           const fb=snap.val();
           if(fb)Object.entries(fb).forEach(([k,v])=>{
             if(k==='__SYSLOCK__')return;
